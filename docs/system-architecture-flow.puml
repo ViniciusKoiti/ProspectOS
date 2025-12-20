@@ -1,0 +1,142 @@
+@startuml System Architecture & Data Flow
+!theme plain
+
+title ProspectOS System Architecture & Integration Points
+
+!define JAVA_COLOR #E8F5E8
+!define PYTHON_COLOR #FFF2E8  
+!define AI_COLOR #E8F0FF
+!define DB_COLOR #F0F0F0
+
+package "Frontend Layer" JAVA_COLOR {
+    [Web UI] as ui
+    [REST API] as api
+}
+
+package "Java Spring Boot Application" JAVA_COLOR {
+    package "AI Module" {
+        [AI Services] as aiservices
+        [LLM Client] as llmclient
+        [Function Calling] as functions
+    }
+    
+    package "Core Module" {
+        [Domain Logic] as domain
+        [Company Aggregate] as company
+        [ICP Management] as icp
+        [Business Rules] as rules
+    }
+    
+    package "Infrastructure Module" {
+        [JPA Repositories] as jpa
+        [Data Adapters] as adapters
+        [External Clients] as clients
+    }
+}
+
+package "External Systems" AI_COLOR {
+    cloud "LLM Providers" {
+        [OpenAI GPT-4] as openai
+        [Anthropic Claude] as anthropic
+        [Local Ollama] as ollama
+    }
+}
+
+package "Python Scraping Service" PYTHON_COLOR {
+    [Scraper API] as scraperapi
+    [Web Scraping Engine] as scraper
+    [News Monitoring] as news
+    [Data Processing] as processing
+}
+
+package "Data Layer" DB_COLOR {
+    database "PostgreSQL/H2" as db
+    [Company Data] as companydata
+    [ICP Profiles] as icpdata
+    [Analysis Results] as analysisdata
+}
+
+package "External Data Sources" {
+    [Company Websites] as websites
+    [News APIs] as newsapis
+    [Social Media] as social
+    [Tech Stack APIs] as techapis
+}
+
+' User Flow
+ui --> api : HTTP Requests
+api --> aiservices : Business Logic
+api --> domain : Core Operations
+
+' AI Integration Flow
+aiservices --> llmclient : LLM Calls
+llmclient --> functions : Function Calling
+functions --> clients : External Calls
+clients --> scraperapi : HTTP/REST
+
+llmclient --> openai : API Calls
+llmclient --> anthropic : API Calls  
+llmclient --> ollama : Local Calls
+
+' Python Scraper Flow
+scraperapi --> scraper : Scraping Jobs
+scraperapi --> news : News Search
+scraper --> processing : Data Cleaning
+processing --> scraperapi : Structured Data
+
+scraper --> websites : Web Scraping
+news --> newsapis : News Search
+news --> social : Social Monitoring
+scraper --> techapis : Tech Detection
+
+' Data Persistence Flow
+domain --> adapters : Domain → DTO
+adapters --> jpa : Data Access
+jpa --> db : SQL Operations
+
+db --> companydata : Store
+db --> icpdata : Store  
+db --> analysisdata : Store
+
+' Events & Notifications
+domain ..> aiservices : Domain Events
+company ..> rules : Business Events
+rules ..> aiservices : Trigger Analysis
+
+note top of llmclient
+  **Function Calling Capabilities:**
+  - scrapeWebsite(url, deep)
+  - searchNews(company, days)
+  - analyzeSignals(data)
+  - calculateScore(company, icp)
+  - generateStrategy(company)
+end note
+
+note top of scraperapi
+  **Python Service Endpoints:**
+  POST /scrape/website
+  POST /search/news  
+  POST /scrape/batch
+  GET /health
+  
+  **Features:**
+  - Rate limiting
+  - Proxy rotation
+  - Retry logic
+  - Caching
+end note
+
+note bottom of domain
+  **Clean Architecture:**
+  - Domain independent of frameworks
+  - Infrastructure adapters  
+  - Dependency inversion
+  - Spring Modulith boundaries
+end note
+
+' Key Integration Points (highlighted)
+clients -[#red]-> scraperapi : <color red>**Integration Point 1**</color>\nHTTP REST API
+llmclient -[#blue]-> openai : <color blue>**Integration Point 2**</color>\nLLM Provider APIs  
+jpa -[#green]-> db : <color green>**Integration Point 3**</color>\nData Persistence
+
+@enduml

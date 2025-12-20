@@ -1,0 +1,113 @@
+@startuml Python Scraper Integration
+!theme plain
+
+title Integration between Java ProspectOS and Python Scraper
+
+participant "ProspectOS\n(Java/Spring)" as java
+participant "Scraper API\n(Python)" as python
+participant "Company Website" as website
+participant "News Sources" as news
+participant "Social Media" as social
+
+== Website Data Extraction ==
+java -> python: POST /scrape/website\n{"url": "https://company.com", "deep": true}
+activate python
+
+python -> website: HTTP GET / (homepage)
+website --> python: HTML content
+
+alt Deep Scraping Enabled
+    python -> website: GET /about
+    python -> website: GET /team  
+    python -> website: GET /contact
+    python -> website: GET /careers
+    website --> python: Additional pages
+end
+
+python -> python: Extract structured data
+note right of python
+  Data extraction:
+  - Company description
+  - Contact emails/phones
+  - Technology stack (meta tags, scripts)
+  - Employee count estimates
+  - Office locations
+  - Product information
+end note
+
+python --> java: ScrapingResponse\n{"success": true, "data": {...}}
+deactivate python
+
+== News & Signals Detection ==
+java -> python: POST /search/news\n{"company": "TechCorp", "days_back": 30}
+activate python
+
+python -> news: Search company mentions
+python -> social: Check LinkedIn/Twitter updates
+news --> python: Recent articles
+social --> python: Company updates
+
+python -> python: Analyze signals
+note right of python
+  Signal detection:
+  - Funding rounds
+  - New hires (especially C-level)
+  - Product launches
+  - Acquisitions/partnerships
+  - Technology adoptions
+  - Office expansions
+end note
+
+python --> java: NewsResponse\n{"news": [...], "signals": [...]}
+deactivate python
+
+== Error Handling & Retries ==
+java -> python: POST /scrape/website\n{"url": "https://blocked-site.com"}
+activate python
+
+python -> website: HTTP GET /
+website --> python: 403 Forbidden / Rate Limited
+
+python -> python: Apply retry logic\nwith backoff
+note right of python
+  Error handling:
+  - Retry with delays
+  - Rotate user agents
+  - Use proxy rotation
+  - Fallback to cached data
+  - Return partial results
+end note
+
+python --> java: ScrapingResponse\n{"success": false, "error": "Rate limited", "partial_data": {...}}
+deactivate python
+
+== Batch Processing ==
+java -> python: POST /scrape/batch\n{"companies": ["url1", "url2", ...]}
+activate python
+
+loop For each company URL
+    python -> website: Scrape company data
+    python -> python: Process & store temporarily
+end
+
+python --> java: BatchResponse\n{"results": [{"url": "...", "data": "..."}, ...]}
+deactivate python
+
+note over java, python
+  **Integration Options:**
+  
+  1. **HTTP REST API** (Current approach)
+     - Python Flask/FastAPI server
+     - Java calls HTTP endpoints
+     - Async processing with webhooks
+  
+  2. **Message Queue** (Future enhancement)
+     - RabbitMQ/Kafka between systems
+     - Better for high-volume processing
+  
+  3. **Database Sharing** (Simple approach)
+     - Python writes to shared DB
+     - Java polls for new data
+end note
+
+@enduml

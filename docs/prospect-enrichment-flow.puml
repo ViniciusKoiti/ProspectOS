@@ -1,0 +1,97 @@
+@startuml Company Enrichment Flow
+!theme plain
+
+title Company Data Enrichment & Scoring Flow
+
+actor "Sales Rep" as sales
+participant "Core API" as core
+participant "AI Service" as ai
+participant "Python Scraper" as scraper
+participant "LLM Provider" as llm
+database "Database" as db
+
+== Company Registration ==
+sales -> core: Add Company\n(name, website, industry)
+activate core
+core -> db: Save Company\n(status: NEW, score: 0)
+core --> sales: Company Created (UUID)
+deactivate core
+
+== Automatic Enrichment Trigger ==
+core -> ai: Enrich Company Data
+activate ai
+
+ai -> scraper: scrapeWebsite(url, deep=true)
+activate scraper
+note right of scraper
+  Python scraper extracts:
+  - Contact emails & phones  
+  - Technology stack
+  - Company description
+  - Employee count estimate
+  - Recent news/signals
+end note
+scraper --> ai: ScrapingResponse\n(emails, tech_stack, description, etc.)
+deactivate scraper
+
+ai -> llm: Analyze Company Data\n+ ICP Matching
+activate llm
+note right of llm
+  LLM Function Calling:
+  1. analyzeCompanySignals()
+  2. calculateScore() 
+  3. generateStrategy()
+  
+  Uses scraped data to:
+  - Evaluate ICP fit (0-100)
+  - Identify growth signals
+  - Assess tech maturity
+  - Recommend approach
+end note
+llm --> ai: ScoringResult\n(score, reasoning, signals)
+deactivate llm
+
+== Business Logic Processing ==
+ai -> core: Update Company Score\n(score, analysis, signals)
+activate core
+
+core -> core: Apply Business Rules
+note right of core
+  Domain Logic:
+  - If score ≥ 80: status = REVIEWING
+  - Add detected signals  
+  - Update contact list
+  - Trigger domain events
+end note
+
+core -> db: Persist Updates
+core --> ai: Company Updated
+deactivate core
+deactivate ai
+
+== Sales Rep Notification ==
+core -> sales: Prospect Ready for Review\n(enriched data available)
+
+sales -> core: Review Enriched Company
+activate core
+core -> db: Fetch Company + Analysis
+core --> sales: Complete Company Profile\n(score, signals, contacts, strategy)
+deactivate core
+
+== Qualification Decision ==
+alt High Score (≥ 80) + Valid Contacts
+    sales -> core: Qualify Prospect
+    activate core
+    core -> core: Validate Qualification Rules
+    core -> db: Update status = QUALIFIED
+    core --> sales: Prospect Qualified ✅
+    deactivate core
+else Low Score or Missing Data
+    sales -> core: Mark for Follow-up
+    activate core
+    core -> db: Update status = DISQUALIFIED\nor schedule re-analysis
+    core --> sales: Prospect Disposition Set
+    deactivate core
+end
+
+@enduml

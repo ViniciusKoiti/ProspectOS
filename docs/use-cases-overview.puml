@@ -1,0 +1,100 @@
+@startuml
+!theme plain
+title ProspectOS - B2B Prospecting System Use Cases
+
+left to right direction
+
+' Actors
+actor "Sales Rep" as sales
+actor "Sales Manager" as manager
+actor "Marketing Team" as marketing
+actor "System Admin" as admin
+
+' External systems as actors (recommended in use case diagrams)
+actor "Python Scraper" as scraper <<system>>
+actor "LLM Provider" as llm <<system>>
+
+rectangle "ProspectOS System" {
+  ' Core prospecting use cases
+  usecase "Add Company Manually" as UC1
+  usecase "Import Company List" as UC2
+  usecase "Enrich Company Data" as UC3
+  usecase "Score Company" as UC4
+  usecase "Qualify Prospect" as UC5
+
+  ' ICP Management
+  usecase "Create ICP Profile" as UC6
+  usecase "Update ICP Criteria" as UC7
+  usecase "Match Company to ICP" as UC8
+
+  ' AI-Powered Analysis
+  usecase "Auto-Scrape Website" as UC9
+  usecase "Analyze Company Signals" as UC10
+  usecase "Generate Outreach Strategy" as UC11
+  usecase "Monitor Company News" as UC12
+
+  ' Workflow Management
+  usecase "Review Prospects Queue" as UC13
+  usecase "Update Prospect Status" as UC14
+  usecase "Generate Reports" as UC15
+
+  ' System Administration
+  usecase "Configure AI Providers" as UC16
+  usecase "Monitor System Health" as UC17
+  usecase "Manage User Access" as UC18
+}
+
+' Relationships (primary actors)
+sales --> UC1
+sales --> UC3
+sales --> UC5
+sales --> UC13
+sales --> UC14
+
+manager --> UC2
+manager --> UC6
+manager --> UC7
+manager --> UC15
+
+marketing --> UC8
+marketing --> UC11
+marketing --> UC12
+
+admin --> UC16
+admin --> UC17
+admin --> UC18
+
+' External systems interactions (as supporting actors)
+scraper --> UC3
+scraper --> UC9
+scraper --> UC12
+
+llm --> UC4
+llm --> UC8
+llm --> UC10
+llm --> UC11
+
+' Dependencies / includes (more UML-ish than "requires")
+UC4 .> UC3 : <<include>>
+UC5 .> UC4 : <<include>>
+UC8 .> UC6 : <<include>>
+UC11 .> UC10 : <<include>>
+UC13 .> UC4 : <<include>>
+
+note right of scraper
+Python application that:
+- Scrapes company websites
+- Searches news/signals
+- Extracts contact info
+- Identifies tech stack
+end note
+
+note right of llm
+AI providers (OpenAI, Anthropic)
+for intelligent analysis:
+- Company scoring
+- ICP matching
+- Strategy generation
+end note
+
+@enduml
