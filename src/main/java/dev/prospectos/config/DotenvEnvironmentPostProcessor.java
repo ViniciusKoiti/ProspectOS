@@ -21,8 +21,6 @@ public class DotenvEnvironmentPostProcessor implements EnvironmentPostProcessor,
 
         Map<String, Object> props = new HashMap<>();
 
-        // Carrega chaves do .env e disponibiliza pro Spring Environment
-        // Use os nomes CANÔNICOS do Spring AI (mais confiável)
         String openai = dotenv.get("OPENAI_API_KEY", null);
         if (openai != null && !openai.isBlank()) {
             props.put("spring.ai.openai.api-key", openai);
@@ -37,8 +35,6 @@ public class DotenvEnvironmentPostProcessor implements EnvironmentPostProcessor,
             environment.getPropertySources().addFirst(new MapPropertySource("dotenv", props));
         }
     }
-
-    // Alta prioridade (roda cedo)
     @Override
     public int getOrder() {
         return Ordered.HIGHEST_PRECEDENCE;

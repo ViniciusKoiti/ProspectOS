@@ -1,2 +1,1 @@
-spring.application.name=prospectos
 org.springframework.boot.env.EnvironmentPostProcessor=dev.prospectos.config.DotenvEnvironmentPostProcessor
