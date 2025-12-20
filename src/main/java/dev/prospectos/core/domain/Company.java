@@ -46,6 +46,12 @@ public class Company extends AbstractAggregateRoot<Company> {
     private Instant createdAt;
     private Instant lastUpdatedAt;
     
+    @Column(columnDefinition = "TEXT")
+    private String aiAnalysis;
+    
+    @Column(columnDefinition = "TEXT")
+    private String recommendedApproach;
+    
     protected Company() {
         // For JPA
     }
@@ -178,6 +184,8 @@ public class Company extends AbstractAggregateRoot<Company> {
     public List<TechnologySignal> getTechnologySignals() { return new ArrayList<>(technologySignals); }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getLastUpdatedAt() { return lastUpdatedAt; }
+    public String getAiAnalysis() { return aiAnalysis; }
+    public String getRecommendedApproach() { return recommendedApproach; }
     
     // Setters for basic properties
     public void setDescription(String description) {
@@ -194,6 +202,29 @@ public class Company extends AbstractAggregateRoot<Company> {
         this.country = country;
         this.city = city;
         this.lastUpdatedAt = Instant.now();
+    }
+    
+    public void setAiAnalysis(String aiAnalysis) {
+        this.aiAnalysis = aiAnalysis;
+        this.lastUpdatedAt = Instant.now();
+    }
+    
+    public void setRecommendedApproach(String recommendedApproach) {
+        this.recommendedApproach = recommendedApproach;
+        this.lastUpdatedAt = Instant.now();
+    }
+    
+    public String getLocation() {
+        if (city != null && country != null) {
+            return city + ", " + country;
+        } else if (country != null) {
+            return country;
+        }
+        return "Unknown";
+    }
+    
+    public boolean hasActiveSignals() {
+        return !technologySignals.isEmpty();
     }
     
     public enum CompanySize {
