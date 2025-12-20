@@ -10,5 +10,7 @@
  * 
  * This module should remain dependency-free from other application modules.
  */
-@org.springframework.modulith.ApplicationModule
+@org.springframework.modulith.ApplicationModule(
+    displayName = "Core Module"
+)
 package dev.prospectos.core;
