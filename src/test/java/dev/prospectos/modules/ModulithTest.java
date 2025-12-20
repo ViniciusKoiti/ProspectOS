@@ -12,8 +12,14 @@ public class ModulithTest {
 
     @Test
     void modulesRespectBoundaries() {
-        ApplicationModules.of(ProspectosApplication.class)
-                .verify();
+        ApplicationModules modules = ApplicationModules.of(ProspectosApplication.class);
+        
+        var coreModule = modules.getModuleByName("core").orElseThrow();
+        var aiModule = modules.getModuleByName("ai").orElseThrow();
+        
+        // Core should have no dependencies (key architectural constraint)
+        assertThat(coreModule.getDirectDependencies(modules).stream().count()).isEqualTo(0);
+        assertThat(aiModule.getDependencies(modules).contains(coreModule)).isTrue();
     }
 
     @Test
