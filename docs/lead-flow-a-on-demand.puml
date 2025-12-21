@@ -1,0 +1,26 @@
+@startuml Lead Flow A - On-demand
+title Fluxo A: On-demand (busca ao vivo)
+
+actor Usuario
+
+rectangle "ProspectOS" {
+    Usuario -> "Pesquisa de leads" : Envia consulta\n(ex.: fazendeiros PR)
+    "Pesquisa de leads" -> "Fontes permitidas" : Seleciona fontes\n(TOS/robots ok)
+    "Fontes permitidas" -> "Scraper/Coleta"
+    "Scraper/Coleta" -> "Enriquecimento de contato"
+    "Enriquecimento de contato" -> "Validacao de email"
+    "Validacao de email" -> "Score com IA"
+    "Score com IA" -> "Salvar resultado"
+    "Salvar resultado" -> Usuario : Exibe lista + score
+}
+
+note right of "Fontes permitidas"
+Somente fontes com uso permitido
+e registro de origem.
+end note
+
+note right of "Validacao de email"
+Evita bounce e melhora
+qualidade do envio.
+end note
+@enduml

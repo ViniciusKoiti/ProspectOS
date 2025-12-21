@@ -1,0 +1,24 @@
+@startuml Lead Flow B - Cache Refresh
+title Fluxo B: Cache publico + refresh
+
+actor Usuario
+
+rectangle "ProspectOS" {
+    "Coleta periodica" -> "Fontes permitidas" : Agendado
+    "Fontes permitidas" -> "Scraper/Coleta"
+    "Scraper/Coleta" -> "Normalizacao + deduplicacao"
+    "Normalizacao + deduplicacao" -> "Base publica"
+
+    Usuario -> "Pesquisa de leads" : Consulta base
+    "Pesquisa de leads" -> "Base publica"
+    "Pesquisa de leads" -> "Enriquecimento de contato" : Sob demanda
+    "Enriquecimento de contato" -> "Validacao de email"
+    "Validacao de email" -> "Score com IA"
+    "Score com IA" -> Usuario : Resultados
+}
+
+note right of "Base publica"
+Requer politica de expiraçao
+e refresh de dados.
+end note
+@enduml

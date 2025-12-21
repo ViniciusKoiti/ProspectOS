@@ -1,0 +1,25 @@
+@startuml Lead Flow D - Hybrid
+title Fluxo D: Hibrido (base publica + usuario)
+
+actor Usuario
+
+rectangle "ProspectOS" {
+    "Coleta periodica" -> "Fontes permitidas"
+    "Fontes permitidas" -> "Scraper/Coleta"
+    "Scraper/Coleta" -> "Base publica"
+
+    Usuario -> "Importar base" : CSV/CRM
+    "Importar base" -> "Base do usuario"
+
+    "Base publica" -> "Normalizacao + deduplicacao"
+    "Base do usuario" -> "Normalizacao + deduplicacao"
+    "Normalizacao + deduplicacao" -> "Enriquecimento de contato"
+    "Enriquecimento de contato" -> "Validacao de email"
+    "Validacao de email" -> "Score com IA"
+    "Score com IA" -> Usuario : Resultados
+}
+
+note right of "Normalizacao + deduplicacao"
+Unifica dados e evita contatos duplicados.
+end note
+@enduml

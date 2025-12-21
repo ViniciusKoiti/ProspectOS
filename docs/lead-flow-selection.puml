@@ -1,0 +1,27 @@
+@startuml Lead Flow Selection
+title Seleçao de fluxo (recomendado)
+
+skinparam noteBackgroundColor #FFF3BF
+
+rectangle "Opcoes" {
+    [Fluxo A\nOn-demand] as A
+    [Fluxo B\nCache + refresh] as B
+    [Fluxo C\nBase do usuario] as C
+    [Fluxo D\nHibrido] as D
+}
+
+note right of A
+Recomendado como MVP.
+Mais rapido para validar demanda.
+end note
+
+note bottom of C
+Alternativa de menor risco legal.
+Bom para MVP se a origem dos dados
+for uma preocupacao maior.
+end note
+
+A -right-> D : Evoluir
+B -right-> D : Evoluir
+C -right-> D : Evoluir
+@enduml

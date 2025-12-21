@@ -1,0 +1,19 @@
+@startuml Lead Flow C - User Import
+title Fluxo C: Base do usuario
+
+actor Usuario
+
+rectangle "ProspectOS" {
+    Usuario -> "Importar base" : CSV/CRM
+    "Importar base" -> "Normalizacao + deduplicacao"
+    "Normalizacao + deduplicacao" -> "Enriquecimento de contato"
+    "Enriquecimento de contato" -> "Validacao de email"
+    "Validacao de email" -> "Score com IA"
+    "Score com IA" -> Usuario : Resultados
+}
+
+note right of "Importar base"
+Usuario e responsavel pela origem
+dos dados importados.
+end note
+@enduml
