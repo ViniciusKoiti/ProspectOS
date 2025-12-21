@@ -3,7 +3,7 @@ package dev.prospectos.core.api.dto;
 import java.util.List;
 
 /**
- * DTO público para transferir dados de ICP entre módulos
+ * Public DTO to transfer ICP data across modules.
  */
 public record ICPDto(
     Long id,
@@ -17,7 +17,7 @@ public record ICPDto(
 ) {
     
     /**
-     * Cria um ICPDto com dados mínimos para testes
+     * Creates an ICPDto with minimal data for tests.
      */
     public static ICPDto createMock() {
         return new ICPDto(

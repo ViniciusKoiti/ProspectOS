@@ -7,8 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
- * Serviço principal de IA para decisões de prospecção
- * Agora usa interfaces para abstrair provedores LLM
+ * Main AI service for prospecting decisions.
+ * Uses interfaces to abstract LLM providers.
  */
 @Slf4j
 @Service
@@ -21,10 +21,10 @@ public class ProspectorAIService {
     }
     
     /**
-     * AI decide se vale a pena investigar uma empresa
+     * AI decides whether a company is worth investigating.
      */
     public boolean shouldInvestigateCompany(Company company, ICP icp) {
-        log.info("🤖 AI analyzing if should investigate: {}", company.getName());
+        log.info("AI analyzing whether to investigate: {}", company.getName());
         
         String prompt = String.format("""
                 Company: %s
@@ -51,7 +51,7 @@ public class ProspectorAIService {
         boolean should = aiProvider.analyzeICPFit(prompt);
         
         log.info("   Decision: {} - {}", 
-            should ? "✅ INVESTIGATE" : "❌ SKIP",
+            should ? "INVESTIGATE" : "SKIP",
             company.getName()
         );
         
@@ -59,10 +59,10 @@ public class ProspectorAIService {
     }
     
     /**
-     * AI analisa e enriquece dados da empresa usando function calling
+     * AI analyzes and enriches company data using function calling.
      */
     public String enrichCompanyWithAI(Company company) {
-        log.info("🤖 AI enriching company: {}", company.getName());
+        log.info("AI enriching company: {}", company.getName());
         
         String prompt = String.format("""
                 Analyze this company and enrich with relevant information for B2B prospecting.
@@ -85,28 +85,28 @@ public class ProspectorAIService {
     }
     
     /**
-     * AI sugere estratégia de abordagem
+     * AI recommends an outreach strategy.
      */
     public String recommendApproachStrategy(Company company, ICP icp) {
-        log.info("🤖 AI recommending strategy: {}", company.getName());
+        log.info("AI recommending strategy: {}", company.getName());
         
         String prompt = String.format("""
-                Empresa: %s
-                Análise AI: %s
+                Company: %s
+                AI analysis: %s
                 Score: %s
                 
                 ICP:
-                - Tema: %s
-                - Cargos alvo: %s
+                - Theme: %s
+                - Target roles: %s
                 
-                Com base nestas informações, recomende:
-                1. Melhor canal de abordagem (email, LinkedIn, phone)
-                2. Melhor pessoa/cargo para contatar
-                3. Melhor momento (timing)
-                4. Principais pain points a mencionar
-                5. Proposta de valor específica
+                Based on this information, recommend:
+                1. Best outreach channel (email, LinkedIn, phone)
+                2. Best person/role to contact
+                3. Best timing
+                4. Key pain points to mention
+                5. Specific value proposition
                 
-                Seja específico e acionável.
+                Be specific and actionable.
                 """,
                 company.getName(),
                 company.getAiAnalysis() != null ? company.getAiAnalysis() : "Not available",

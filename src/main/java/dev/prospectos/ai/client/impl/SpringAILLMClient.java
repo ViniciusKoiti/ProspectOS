@@ -7,8 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 
 /**
- * Implementação do LLMClient usando Spring AI ChatClient
- * Abstrai a complexidade do Spring AI por trás de uma interface simples
+ * LLMClient implementation using Spring AI ChatClient.
+ * Abstracts Spring AI complexity behind a simple interface.
  */
 @Slf4j
 public class SpringAILLMClient implements LLMClient {
@@ -30,7 +30,7 @@ public class SpringAILLMClient implements LLMClient {
         }
         
         try {
-            log.debug("🤖 Executando query no {}: {}", provider.getDisplayName(), 
+            log.debug("Executing query on {}: {}", provider.getDisplayName(), 
                 prompt.substring(0, Math.min(100, prompt.length())) + "...");
             
             return chatClient.prompt()
@@ -39,8 +39,8 @@ public class SpringAILLMClient implements LLMClient {
                 .content();
                 
         } catch (Exception e) {
-            log.error("Erro na consulta LLM: {}", e.getMessage());
-            return "Erro: " + e.getMessage();
+            log.error("LLM query error: {}", e.getMessage());
+            return "Error: " + e.getMessage();
         }
     }
     
@@ -51,7 +51,7 @@ public class SpringAILLMClient implements LLMClient {
         }
         
         try {
-            log.debug("🤖 Executando query com functions no {}: {}", provider.getDisplayName(), 
+            log.debug("Executing query with functions on {}: {}", provider.getDisplayName(), 
                 String.join(", ", functions));
             
             return chatClient.prompt()
@@ -61,8 +61,8 @@ public class SpringAILLMClient implements LLMClient {
                 .content();
                 
         } catch (Exception e) {
-            log.error("Erro na consulta LLM com functions: {}", e.getMessage());
-            return "Erro: " + e.getMessage();
+            log.error("LLM query with functions error: {}", e.getMessage());
+            return "Error: " + e.getMessage();
         }
     }
     
@@ -73,7 +73,7 @@ public class SpringAILLMClient implements LLMClient {
         }
         
         try {
-            log.debug("🤖 Executando query estruturada no {}: {}", provider.getDisplayName(), 
+            log.debug("Executing structured query on {}: {}", provider.getDisplayName(), 
                 responseClass.getSimpleName());
             
             return chatClient.prompt()
@@ -82,8 +82,8 @@ public class SpringAILLMClient implements LLMClient {
                 .entity(responseClass);
                 
         } catch (Exception e) {
-            log.error("Erro na consulta LLM estruturada: {}", e.getMessage());
-            throw new RuntimeException("Erro na consulta estruturada", e);
+            log.error("Structured LLM query error: {}", e.getMessage());
+            throw new RuntimeException("Structured query error", e);
         }
     }
     

@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 /**
- * Functions que LLMs podem chamar para fazer scraping
+ * Functions that LLMs can call to perform scraping.
  */
 @Slf4j
 @Configuration
@@ -23,18 +23,18 @@ public class ScrapingFunctions {
     }
     
     /**
-     * LLM pode chamar esta função para fazer scraping de website
+     * LLM can call this function to scrape a website.
      */
     @Bean
     @Description("""
-        Faz scraping de um website corporativo para extrair dados.
-        Use quando precisar de informações sobre uma empresa que não foram fornecidas.
+        Scrapes a corporate website to extract data.
+        Use when you need information about a company that was not provided.
         
-        Retorna: emails, telefones, tech stack, sobre a empresa, etc.
+        Returns: emails, phone numbers, tech stack, about the company, etc.
         """)
     public Function<ScrapingRequest, Map<String, Object>> scrapeWebsite() {
         return request -> {
-            log.info("🤖 LLM called scrapeWebsite: {}", request.website());
+            log.info("LLM called scrapeWebsite: {}", request.website());
             
             ScraperClient.ScrapingResponse response = scraperClient.scrapeWebsiteSync(
                 request.website(),
@@ -53,13 +53,13 @@ public class ScrapingFunctions {
     }
     
     /**
-     * Request DTO para scraping
+     * Request DTO for scraping.
      */
     public record ScrapingRequest(
-        @Description("URL do website a ser analisado") 
+        @Description("Website URL to analyze") 
         String website,
         
-        @Description("Se true, faz scraping profundo (múltiplas páginas)") 
+        @Description("If true, performs deep scraping (multiple pages)") 
         boolean deep
     ) {}
 }

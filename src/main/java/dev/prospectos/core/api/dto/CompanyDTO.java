@@ -1,8 +1,8 @@
 package dev.prospectos.core.api.dto;
 
 /**
- * DTO público para transferir dados de Company entre módulos
- * Expõe apenas os dados necessários para outros módulos
+ * Public DTO to transfer Company data across modules.
+ * Exposes only the data needed by other modules.
  */
 public record CompanyDTO(
     Long id,
@@ -15,7 +15,7 @@ public record CompanyDTO(
 ) {
     
     /**
-     * Cria um CompanyDTO com dados mínimos para testes
+     * Creates a CompanyDTO with minimal data for tests.
      */
     public static CompanyDTO createMock() {
         return new CompanyDTO(

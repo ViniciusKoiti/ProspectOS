@@ -14,8 +14,8 @@ import java.util.Arrays;
 import java.util.Optional;
 
 /**
- * Factory para criação de LLMClients
- * Implementa strategy pattern para diferentes provedores
+ * Factory for creating LLMClients.
+ * Implements the strategy pattern for different providers.
  */
 @Slf4j
 @Component
@@ -40,21 +40,21 @@ public class LLMClientFactory {
     }
     
     /**
-     * Cria LLMClient principal (para queries gerais)
+     * Creates the primary LLMClient (for general queries).
      */
     public LLMClient createPrimaryClient() {
         return createClient(LLMProvider.OPENAI, chatClient);
     }
     
     /**
-     * Cria LLMClient para scoring (especializado)
+     * Creates the scoring LLMClient (specialized).
      */
     public LLMClient createScoringClient() {
         return createClient(LLMProvider.OPENAI, scoringChatClient);
     }
     
     /**
-     * Cria LLMClient para um provedor específico
+     * Creates an LLMClient for a specific provider.
      */
     public LLMClient createClient(LLMProvider provider) {
         return switch (provider) {
@@ -66,20 +66,20 @@ public class LLMClientFactory {
     }
     
     /**
-     * Detecta e cria o melhor cliente disponível
+     * Detects and creates the best available client.
      */
     public LLMClient createBestAvailableClient() {
         if (isOpenAIAvailable()) {
-            log.info("🤖 Using OpenAI as primary provider");
+            log.info("Using OpenAI as primary provider");
             return createClient(LLMProvider.OPENAI, chatClient);
         }
         
         if (isAnthropicAvailable()) {
-            log.info("🤖 Using Anthropic as primary provider");
+            log.info("Using Anthropic as primary provider");
             return createClient(LLMProvider.ANTHROPIC, chatClient);
         }
         
-        log.warn("🤖 No LLM provider configured. Using Mock for testing.");
+        log.warn("No LLM provider configured. Using Mock for testing.");
         return createMockClient();
     }
     
@@ -87,17 +87,17 @@ public class LLMClientFactory {
         boolean available = isProviderAvailable(provider);
         
         if (chatClientOpt.isPresent() && available) {
-            log.debug("✅ Creating {} client - available", provider.getDisplayName());
+            log.debug("Creating {} client - available", provider.getDisplayName());
             return new SpringAILLMClient(chatClientOpt.get(), provider, true);
         } else {
-            log.debug("🧪 Creating {} client - mock (test env or not available)", provider.getDisplayName());
-            // Em teste, criar SpringAILLMClient com mock behavior, mas mantém o provider correto
+            log.debug("Creating {} client - mock (test env or not available)", provider.getDisplayName());
+            // In tests, create SpringAILLMClient with mock behavior but keep the correct provider
             return new SpringAILLMClient(null, provider, false);
         }
     }
     
     private LLMClient createMockClient() {
-        log.debug("🧪 Creating Mock LLM client");
+        log.debug("Creating Mock LLM client");
         return new MockLLMClient();
     }
     
@@ -119,7 +119,7 @@ public class LLMClientFactory {
     }
     
     /**
-     * Detecta se está rodando em contexto de teste
+     * Detects whether running in a test context.
      */
     private boolean isTestEnvironment() {
         return Arrays.stream(environment.getActiveProfiles())
@@ -129,7 +129,7 @@ public class LLMClientFactory {
     }
     
     /**
-     * Detecta se está rodando em contexto de teste através de stack trace
+     * Detects whether running in a test context via stack trace.
      */
     private boolean isRunningInTestContext() {
         return Arrays.stream(Thread.currentThread().getStackTrace())
@@ -139,7 +139,7 @@ public class LLMClientFactory {
     }
     
     /**
-     * Valida se a chave de API é válida (não é chave de teste/desenvolvimento)
+     * Validates if the API key is valid (not a test/development key).
      */
     private boolean isValidApiKey(String key) {
         if (key == null || key.trim().isEmpty()) {
@@ -148,7 +148,7 @@ public class LLMClientFactory {
         
         String trimmedKey = key.trim();
         
-        // Lista de padrões inválidos
+        // List of invalid patterns
         return !trimmedKey.equals("test-key")
                 && !trimmedKey.equals("dummy-key")
                 && !trimmedKey.equals("fake-key")

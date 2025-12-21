@@ -5,27 +5,27 @@ import dev.prospectos.ai.client.LLMProvider;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Implementação mock do LLMClient para testes
- * Simula respostas realistas sem dependência de APIs externas
+ * Mock implementation of LLMClient for tests.
+ * Simulates realistic responses without external API dependencies.
  */
 @Slf4j
 public class MockLLMClient implements LLMClient {
     
     @Override
     public String query(String prompt) {
-        log.debug("🤖 Mock LLM Query: {}", prompt.substring(0, Math.min(100, prompt.length())));
+        log.debug("Mock LLM query: {}", prompt.substring(0, Math.min(100, prompt.length())));
         
-        if (prompt.toLowerCase().contains("yes or no") || prompt.toLowerCase().contains("sim ou não")) {
+        if (prompt.toLowerCase().contains("yes or no")) {
             return "YES";
         }
         
-        if (prompt.toLowerCase().contains("empresa") || prompt.toLowerCase().contains("company")) {
+        if (prompt.toLowerCase().contains("company")) {
             return "This is a technology company with great potential for our ICP. " +
                    "Based on website analysis, they use modern technologies like Java and Spring, " +
                    "have a team of 50-200 employees and are in expansion phase.";
         }
         
-        if (prompt.toLowerCase().contains("estratégia") || prompt.toLowerCase().contains("strategy")) {
+        if (prompt.toLowerCase().contains("strategy")) {
             return "I recommend LinkedIn approach targeting CTO or VP Engineering. " +
                    "Ideal timing: next 2 weeks. Pain points: scalability and technical modernization. " +
                    "Value proposition: 30% reduction in operational costs.";
@@ -36,7 +36,7 @@ public class MockLLMClient implements LLMClient {
     
     @Override
     public String queryWithFunctions(String prompt, String... functions) {
-        log.debug("🤖 Mock LLM Query with functions: {}", String.join(", ", functions));
+        log.debug("Mock LLM query with functions: {}", String.join(", ", functions));
         
         return "Mock response with data collected via functions: " + String.join(", ", functions) + 
                ". Complete company analysis shows strong ICP fit.";
@@ -45,7 +45,7 @@ public class MockLLMClient implements LLMClient {
     @Override
     @SuppressWarnings("unchecked")
     public <T> T queryStructured(String prompt, Class<T> responseClass) {
-        log.debug("🤖 Mock LLM Structured Query: {}", responseClass.getSimpleName());
+        log.debug("Mock LLM structured query: {}", responseClass.getSimpleName());
         
         try {
             if (responseClass.getSimpleName().contains("ScoringResult")) {

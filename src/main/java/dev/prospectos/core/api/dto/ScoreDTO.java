@@ -1,7 +1,7 @@
 package dev.prospectos.core.api.dto;
 
 /**
- * DTO público para transferir dados de Score entre módulos
+ * Public DTO to transfer Score data across modules.
  */
 public record ScoreDTO(
     int value,
@@ -10,7 +10,7 @@ public record ScoreDTO(
 ) {
     
     /**
-     * Cria um ScoreDTO com dados mínimos para testes
+     * Creates a ScoreDTO with minimal data for tests.
      */
     public static ScoreDTO createMock() {
         return new ScoreDTO(

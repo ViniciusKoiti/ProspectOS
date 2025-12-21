@@ -23,12 +23,12 @@ public class SignalAnalysisFunctions {
     
     @Bean
     @Description("""
-        Analisa sinais de interesse de uma empresa.
-        Retorna resumo dos sinais detectados agrupados por tipo.
+        Analyzes interest signals for a company.
+        Returns a summary of detected signals grouped by type.
         """)
     public Function<SignalRequest, Map<String, Object>> analyzeCompanySignals() {
         return request -> {
-            log.info("🤖 LLM called analyzeCompanySignals: {}", request.companyId());
+            log.info("LLM called analyzeCompanySignals: {}", request.companyId());
             
             Company company = companyRepository.findById(request.companyId())
                 .orElseThrow(() -> new IllegalArgumentException("Company not found: " + request.companyId()));
@@ -48,7 +48,7 @@ public class SignalAnalysisFunctions {
     }
     
     public record SignalRequest(
-        @Description("ID da empresa a analisar")
+        @Description("Company ID to analyze")
         UUID companyId
     ) {}
 }

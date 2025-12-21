@@ -1,8 +1,8 @@
 package dev.prospectos.ai.dto;
 
 /**
- * Enum de prioridade específico para o módulo AI
- * Evita dependência direta do core.domain.Priority
+ * Priority enum specific to the AI module.
+ * Avoids direct dependency on core.domain.Priority.
  */
 public enum PriorityLevel {
     HOT("Immediate action required - high priority prospect"),
@@ -21,7 +21,7 @@ public enum PriorityLevel {
     }
     
     /**
-     * Converte de core.domain.Priority para ai.dto.PriorityLevel
+     * Converts core.domain.Priority to ai.dto.PriorityLevel.
      */
     public static PriorityLevel fromCorePriority(String corePriority) {
         return switch (corePriority.toUpperCase()) {
@@ -29,7 +29,7 @@ public enum PriorityLevel {
             case "WARM" -> WARM;
             case "COLD" -> COLD;
             case "IGNORE" -> IGNORE;
-            default -> COLD; // fallback seguro
+            default -> COLD; // safe fallback
         };
     }
 }

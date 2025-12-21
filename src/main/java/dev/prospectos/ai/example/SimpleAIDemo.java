@@ -31,7 +31,7 @@ public class SimpleAIDemo implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        System.out.println("🚀 === ProspectOS AI Demo (Using Mocks) ===\n");
+        System.out.println("=== ProspectOS AI Demo (Using Mocks) ===\n");
 
         // Create test data using DTOs
         CompanyDTO company = new CompanyDTO(
@@ -41,7 +41,7 @@ public class SimpleAIDemo implements CommandLineRunner {
             "https://techcorp.com",
             "Growing software company",
             150,
-            "São Paulo"
+            "Sao Paulo"
         );
 
         ICPDto icp = new ICPDto(
@@ -58,21 +58,21 @@ public class SimpleAIDemo implements CommandLineRunner {
         // Get AI provider (will use mock automatically)
         AIProvider provider = providerFactory.createPrimaryProvider();
 
-        System.out.println("📊 Provider: " + provider.getClient().getProvider().getDisplayName());
-        System.out.println("🔗 Available: " + provider.isAvailable());
+        System.out.println("Provider: " + provider.getClient().getProvider().getDisplayName());
+        System.out.println("Available: " + provider.isAvailable());
         System.out.println();
 
         // Test ICP fit analysis
-        System.out.println("📋 1. ICP Fit Analysis");
+        System.out.println("1. ICP Fit Analysis");
         String fitPrompt = String.format("Company: %s, Industry: %s. ICP: %s. Fit?",
                 company.name(), company.industry(), icp.description());
 
         boolean fits = provider.analyzeICPFit(fitPrompt);
-        System.out.println("   Result: " + (fits ? "✅ YES" : "❌ NO"));
+        System.out.println("   Result: " + (fits ? "YES" : "NO"));
         System.out.println();
 
         // Test scoring
-        System.out.println("📊 2. Company Scoring");
+        System.out.println("2. Company Scoring");
         String scorePrompt = String.format("Score company %s from %s industry for ICP %s",
                 company.name(), company.industry(), icp.description());
 
@@ -82,7 +82,7 @@ public class SimpleAIDemo implements CommandLineRunner {
         System.out.println("   Reasoning: " + score.reasoning());
         System.out.println();
 
-        System.out.println("🎉 Demo completed successfully!");
-        System.out.println("💡 This used mock responses - no API keys required!");
+        System.out.println("Demo completed successfully!");
+        System.out.println("This used mock responses - no API keys required!");
     }
 }

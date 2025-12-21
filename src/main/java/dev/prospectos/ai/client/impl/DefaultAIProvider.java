@@ -5,8 +5,8 @@ import dev.prospectos.ai.client.LLMClient;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Implementação padrão do AIProvider
- * Centraliza a lógica de interação com LLMs para diferentes tipos de análise
+ * Default AIProvider implementation.
+ * Centralizes interaction logic with LLMs for different analysis types.
  */
 @Slf4j
 public class DefaultAIProvider implements AIProvider {
@@ -25,13 +25,13 @@ public class DefaultAIProvider implements AIProvider {
     
     @Override
     public boolean analyzeICPFit(String prompt) {
-        log.info("🎯 Analisando adequação ao ICP via {}", llmClient.getProvider().getDisplayName());
+        log.info("Analyzing ICP fit via {}", llmClient.getProvider().getDisplayName());
         
-        String enhancedPrompt = prompt + "\n\nResponda APENAS com 'SIM' ou 'NÃO'.";
+        String enhancedPrompt = prompt + "\n\nRespond ONLY with 'YES' or 'NO'.";
         String response = llmClient.query(enhancedPrompt);
         
-        boolean fits = response.trim().toUpperCase().startsWith("SIM");
-        log.info("   Resultado: {} via {}", fits ? "✅ ADEQUADO" : "❌ NÃO ADEQUADO", 
+        boolean fits = response.trim().toUpperCase().startsWith("YES");
+        log.info("   Result: {} via {}", fits ? "FIT" : "NOT_FIT", 
             llmClient.getProvider().getDisplayName());
         
         return fits;
@@ -39,7 +39,7 @@ public class DefaultAIProvider implements AIProvider {
     
     @Override
     public String enrichCompanyData(String prompt) {
-        log.info("🔍 Enriquecendo dados da empresa via {}", functionLLMClient.getProvider().getDisplayName());
+        log.info("Enriching company data via {}", functionLLMClient.getProvider().getDisplayName());
         
         return functionLLMClient.queryWithFunctions(
             prompt, 
@@ -50,21 +50,21 @@ public class DefaultAIProvider implements AIProvider {
     
     @Override
     public <T> T calculateScore(String prompt, Class<T> responseClass) {
-        log.info("📊 Calculando score via {}", llmClient.getProvider().getDisplayName());
+        log.info("Calculating score via {}", llmClient.getProvider().getDisplayName());
         
         return llmClient.queryStructured(prompt, responseClass);
     }
     
     @Override
     public <T> T generateStrategy(String prompt, Class<T> responseClass) {
-        log.info("🎯 Gerando estratégia via {}", functionLLMClient.getProvider().getDisplayName());
+        log.info("Generating strategy via {}", functionLLMClient.getProvider().getDisplayName());
         
         return functionLLMClient.queryStructured(prompt, responseClass);
     }
     
     @Override
     public <T> T generateOutreach(String prompt, Class<T> responseClass) {
-        log.info("✉️ Gerando outreach via {}", llmClient.getProvider().getDisplayName());
+        log.info("Generating outreach via {}", llmClient.getProvider().getDisplayName());
         
         return llmClient.queryStructured(prompt, responseClass);
     }

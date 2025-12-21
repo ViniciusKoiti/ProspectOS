@@ -1,58 +1,58 @@
 package dev.prospectos.ai.client;
 
 /**
- * Interface para diferentes estratégias de AI 
- * Permite implementações especializadas para diferentes tipos de análise
+ * Interface for different AI strategies.
+ * Allows specialized implementations for different analysis types.
  */
 public interface AIProvider {
     
     /**
-     * Análise de adequação empresa-ICP
-     * @param prompt dados da empresa e ICP
-     * @return decisão se deve investigar (true/false)
+     * Company-to-ICP fit analysis.
+     * @param prompt company and ICP data
+     * @return decision on whether to investigate (true/false)
      */
     boolean analyzeICPFit(String prompt);
     
     /**
-     * Enriquecimento de dados da empresa usando function calling
-     * @param prompt dados da empresa
-     * @return análise enriquecida
+     * Company data enrichment using function calling.
+     * @param prompt company data
+     * @return enriched analysis
      */
     String enrichCompanyData(String prompt);
     
     /**
-     * Cálculo de score estruturado
-     * @param prompt dados para scoring
-     * @param responseClass classe do resultado
-     * @return objeto de scoring
+     * Structured score calculation.
+     * @param prompt scoring data
+     * @param responseClass result class
+     * @return scoring object
      */
     <T> T calculateScore(String prompt, Class<T> responseClass);
     
     /**
-     * Geração de estratégia de abordagem
-     * @param prompt dados da empresa e contexto
-     * @param responseClass classe da estratégia
-     * @return estratégia estruturada
+     * Outreach strategy generation.
+     * @param prompt company data and context
+     * @param responseClass strategy class
+     * @return structured strategy
      */
     <T> T generateStrategy(String prompt, Class<T> responseClass);
     
     /**
-     * Geração de mensagem de outreach
-     * @param prompt dados para personalização
-     * @param responseClass classe da mensagem
-     * @return mensagem estruturada
+     * Outreach message generation.
+     * @param prompt personalization data
+     * @param responseClass message class
+     * @return structured message
      */
     <T> T generateOutreach(String prompt, Class<T> responseClass);
     
     /**
-     * Retorna o cliente LLM subjacente
-     * @return cliente LLM
+     * Returns the underlying LLM client.
+     * @return LLM client
      */
     LLMClient getClient();
     
     /**
-     * Verifica se o provider está disponível
-     * @return true se disponível
+     * Checks whether the provider is available.
+     * @return true if available
      */
     boolean isAvailable();
 }

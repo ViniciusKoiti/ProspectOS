@@ -15,8 +15,8 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 /**
- * Exemplo de uso da nova arquitetura AI com interfaces
- * Demonstra como trocar entre diferentes provedores LLM transparentemente
+ * Example usage of the new AI architecture with interfaces.
+ * Demonstrates how to switch between LLM providers transparently.
  */
 @Slf4j
 @Component
@@ -31,10 +31,10 @@ public class AIUsageExample {
     }
 
     /**
-     * Exemplo de análise completa de uma empresa usando múltiplos providers
+     * Example of a full company analysis using multiple providers.
      */
     public void demonstrateFullAnalysis() {
-        // Dados de exemplo usando DTOs
+        // Example data using DTOs
         CompanyDTO company = new CompanyDTO(
             1L,
             "TechCorp",
@@ -42,39 +42,39 @@ public class AIUsageExample {
             "https://techcorp.com",
             "Leading tech company",
             150,
-            "São Paulo"
+            "Sao Paulo"
         );
 
         ICPDto icp = new ICPDto(
             1L,
             "SaaS B2B",
-            "Empresas de software em crescimento",
-            List.of("Software", "Tecnologia"),
+            "Growing software companies",
+            List.of("Software", "Technology"),
             List.of("Docker", "Kubernetes", "AWS"),
             50,
             500,
             List.of("CTO", "VP Engineering")
         );
 
-        log.info("🚀 === AI ARCHITECTURE DEMONSTRATION ===");
+        log.info("=== AI ARCHITECTURE DEMONSTRATION ===");
 
-        // 1. Usando provider principal (detecta automaticamente o melhor disponível)
+        // 1. Use primary provider (auto-detects the best available)
         demonstratePrimaryProvider(company, icp);
 
-        // 2. Usando provider específico para comparação
+        // 2. Use a specific provider for comparison
         demonstrateSpecificProvider(company, icp, LLMProvider.MOCK);
 
-        // 3. Demonstrando troca de providers em runtime
+        // 3. Demonstrate provider switching at runtime
         demonstrateProviderSwitching(company, icp);
     }
 
     private void demonstratePrimaryProvider(CompanyDTO company, ICPDto icp) {
-        log.info("\n📊 1. USING PRIMARY PROVIDER");
+        log.info("\n1. USING PRIMARY PROVIDER");
 
         AIProvider primary = providerFactory.createPrimaryProvider();
         log.info("Selected provider: {}", primary.getClient().getProvider().getDisplayName());
 
-        // Análise completa
+        // Full analysis
         boolean shouldInvestigate = analyzeFit(primary, company, icp);
         if (shouldInvestigate) {
             ScoringResult score = calculateScore(primary, company, icp);
@@ -84,12 +84,12 @@ public class AIUsageExample {
     }
 
     private void demonstrateSpecificProvider(CompanyDTO company, ICPDto icp, LLMProvider provider) {
-        log.info("\n🎯 2. USING SPECIFIC PROVIDER: {}", provider.getDisplayName());
+        log.info("\n2. USING SPECIFIC PROVIDER: {}", provider.getDisplayName());
 
         AIProvider specific = providerFactory.createProvider(provider);
         log.info("Configured provider: {}", specific.getClient().getProvider().getDisplayName());
 
-        // Análise usando provider específico
+        // Analysis using the specific provider
         boolean shouldInvestigate = analyzeFit(specific, company, icp);
         if (shouldInvestigate) {
             ScoringResult score = calculateScore(specific, company, icp);
@@ -97,21 +97,21 @@ public class AIUsageExample {
     }
 
     private void demonstrateProviderSwitching(CompanyDTO company, ICPDto icp) {
-        log.info("\n🔄 3. DEMONSTRATING PROVIDER SWITCHING");
+        log.info("\n3. DEMONSTRATING PROVIDER SWITCHING");
 
-        // Testa cada provider disponível
+        // Test each available provider
         for (LLMProvider provider : LLMProvider.values()) {
             try {
                 AIProvider ai = providerFactory.createProvider(provider);
                 if (ai.isAvailable()) {
-                    log.info("✅ Testing {}: {}",
+                    log.info("Testing {}: {}",
                         provider.getDisplayName(),
-                        ai.getClient().query("Teste de conectividade"));
+                        ai.getClient().query("Connectivity test"));
                 } else {
-                    log.info("⚠️ {} not available", provider.getDisplayName());
+                    log.info("{} not available", provider.getDisplayName());
                 }
             } catch (Exception e) {
-                log.warn("❌ Erro no {}: {}", provider.getDisplayName(), e.getMessage());
+                log.warn("Error for {}: {}", provider.getDisplayName(), e.getMessage());
             }
         }
     }
@@ -123,7 +123,7 @@ public class AIUsageExample {
         );
 
         boolean fits = ai.analyzeICPFit(prompt);
-        log.info("   ICP fit: {}", fits ? "✅ YES" : "❌ NO");
+        log.info("   ICP fit: {}", fits ? "YES" : "NO");
         return fits;
     }
 

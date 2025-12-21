@@ -8,7 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
- * Serviço de estratégias de abordagem usando IA
+ * Outreach strategy service using AI.
  */
 @Slf4j
 @Service
@@ -21,10 +21,10 @@ public class StrategyAIService {
     }
     
     /**
-     * Gera recomendação de estratégia de abordagem
+     * Generates an outreach strategy recommendation.
      */
     public StrategyRecommendation recommendStrategy(Company company, ICP icp) {
-        log.info("🤖 AI generating strategy: {}", company.getName());
+        log.info("AI generating strategy: {}", company.getName());
         
         String prompt = String.format("""
                 Analyze the company and recommend the best outreach strategy.

@@ -18,7 +18,7 @@ public class ChatClientConfig {
     private String anthropicKey;
     
     /**
-     * Escolhe automaticamente o melhor ChatModel disponível
+     * Automatically selects the best available ChatModel.
      */
     @Bean
     @Primary

@@ -1,35 +1,35 @@
 /**
  * AI Module
  * 
- * <p>Módulo de Inteligência Artificial usando Spring AI para orquestração
- * de Large Language Models (LLMs) na prospecção B2B.
+ * <p>Artificial Intelligence module using Spring AI to orchestrate
+ * Large Language Models (LLMs) for B2B prospecting.
  * 
- * <h2>LLMs Suportados</h2>
+ * <h2>Supported LLMs</h2>
  * <ul>
- *   <li>OpenAI GPT-4 Turbo - Melhor qualidade geral</li>
- *   <li>Anthropic Claude 3.5 Sonnet - Melhor análise complexa</li>
- *   <li>Ollama (llama3.1, mixtral) - Local, sem custo</li>
+ *   <li>OpenAI GPT-4 Turbo - Best overall quality</li>
+ *   <li>Anthropic Claude 3.5 Sonnet - Best for complex analysis</li>
+ *   <li>Ollama (llama3.1, mixtral) - Local, no cost</li>
  * </ul>
  * 
- * <h2>Capacidades</h2>
+ * <h2>Capabilities</h2>
  * <ul>
- *   <li>Análise de adequação empresa-ICP</li>
+ *   <li>Company-to-ICP fit analysis</li>
  *   <li>Scoring inteligente (0-100)</li>
- *   <li>Recomendação de estratégia de abordagem</li>
- *   <li>Geração de mensagens personalizadas</li>
- *   <li>Análise de sinais de interesse</li>
+ *   <li>Outreach strategy recommendation</li>
+ *   <li>Personalized message generation</li>
+ *   <li>Interest signal analysis</li>
  * </ul>
  * 
  * <h2>Function Calling</h2>
- * <p>LLMs podem chamar funções Java automaticamente:
+ * <p>LLMs can call Java functions automatically:
  * <ul>
  *   <li>{@code scrapeWebsite()} - Scraping via Python</li>
- *   <li>{@code searchNews()} - Buscar notícias</li>
- *   <li>{@code analyzeSignals()} - Analisar sinais</li>
+ *   <li>{@code searchNews()} - Search news</li>
+ *   <li>{@code analyzeSignals()} - Analyze signals</li>
  * </ul>
  * 
  * <h2>Structured Outputs</h2>
- * <p>Respostas parseadas automaticamente para POJOs:
+ * <p>Responses parsed automatically into POJOs:
  * <pre>
  * ScoringResult result = chatClient.prompt()
  *     .user("Score this company...")
@@ -38,9 +38,9 @@
  * </pre>
  * 
  * <h2>Prompts</h2>
- * <p>Templates StringTemplate em {@code src/main/resources/prompts/}
+ * <p>StringTemplate templates in {@code src/main/resources/prompts/}
  * 
- * <h2>Configuração</h2>
+ * <h2>Configuration</h2>
  * <pre>
  * OPENAI_API_KEY=sk-...
  * ANTHROPIC_API_KEY=sk-ant-...

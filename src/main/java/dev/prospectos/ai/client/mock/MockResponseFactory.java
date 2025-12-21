@@ -9,18 +9,18 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Factory dedicada para criar mocks de responses da AI
- * Centraliza toda lógica de criação de mocks estruturados
+ * Factory dedicated to creating AI response mocks.
+ * Centralizes all logic for structured mock creation.
  */
 @Slf4j
 public class MockResponseFactory {
     
     /**
-     * Cria mock response baseado no tipo solicitado
+     * Creates a mock response based on the requested type.
      */
     @SuppressWarnings("unchecked")
     public static <T> T createMockResponse(Class<T> responseClass, String providerName) {
-        log.debug("🧪 Creating mock for {} from {}", responseClass.getSimpleName(), providerName);
+        log.debug("Creating mock for {} from {}", responseClass.getSimpleName(), providerName);
         
         return switch (responseClass.getSimpleName()) {
             case "ScoringResult" -> (T) createMockScoringResult(providerName);

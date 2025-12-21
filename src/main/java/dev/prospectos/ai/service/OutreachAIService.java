@@ -8,7 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
- * Geração de mensagens de outreach personalizadas
+ * Personalized outreach message generation.
  */
 @Slf4j
 @Service
@@ -21,10 +21,10 @@ public class OutreachAIService {
     }
     
     /**
-     * Gera mensagem de outreach personalizada
+     * Generates a personalized outreach message.
      */
     public OutreachMessage generateOutreach(Company company, ICP icp) {
-        log.info("🤖 AI generating outreach: {}", company.getName());
+        log.info("AI generating outreach: {}", company.getName());
         
         String prompt = String.format("""
                 Create a highly personalized B2B outreach message.

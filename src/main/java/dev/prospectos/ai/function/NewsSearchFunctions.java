@@ -21,17 +21,17 @@ public class NewsSearchFunctions {
     
     @Bean
     @Description("""
-        Busca notícias recentes sobre uma empresa.
-        Use para identificar sinais de interesse como:
-        - Rodadas de investimento
-        - Expansão para novas regiões
-        - Lançamento de produtos
-        - Contratações em massa
-        - Parcerias estratégicas
+        Searches recent news about a company.
+        Use to identify interest signals such as:
+        - Funding rounds
+        - Expansion to new regions
+        - Product launches
+        - Mass hiring
+        - Strategic partnerships
         """)
     public Function<NewsRequest, List<String>> searchCompanyNews() {
         return request -> {
-            log.info("🤖 LLM called searchCompanyNews: {}", request.companyName());
+            log.info("LLM called searchCompanyNews: {}", request.companyName());
             
             return scraperClient.searchNews(
                 request.companyName(),
@@ -41,10 +41,10 @@ public class NewsSearchFunctions {
     }
     
     public record NewsRequest(
-        @Description("Nome da empresa")
+        @Description("Company name")
         String companyName,
         
-        @Description("Quantos dias para trás buscar (padrão: 30)")
+        @Description("How many days back to search (default: 30)")
         int daysBack
     ) {
         public NewsRequest(String companyName) {

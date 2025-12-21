@@ -1,29 +1,29 @@
 /**
  * Infrastructure Module
  * 
- * <p>Módulo de infraestrutura responsável por implementações técnicas
- * e integrações com frameworks externos.
+ * <p>Infrastructure module responsible for technical implementations
+ * and integrations with external frameworks.
  * 
  * <h2>Responsabilidades</h2>
  * <ul>
- *   <li>Implementações JPA dos repositories de domínio</li>
- *   <li>Configurações de banco de dados</li>
- *   <li>Adaptadores para frameworks externos</li>
- *   <li>Implementações de serviços de aplicação</li>
+ *   <li>JPA implementations of domain repositories</li>
+ *   <li>Database configurations</li>
+ *   <li>External framework adapters</li>
+ *   <li>Application service implementations</li>
  * </ul>
  * 
- * <h2>Dependências Permitidas</h2>
+ * <h2>Allowed Dependencies</h2>
  * <ul>
- *   <li>core - Acesso ao domínio e interfaces</li>
- *   <li>Spring Framework - Para implementações</li>
- *   <li>JPA/Hibernate - Para persistência</li>
+ *   <li>core - Access to domain and interfaces</li>
+ *   <li>Spring Framework - For implementations</li>
+ *   <li>JPA/Hibernate - For persistence</li>
  * </ul>
  * 
- * <h2>Padrões Arquiteturais</h2>
+ * <h2>Architectural Patterns</h2>
  * <ul>
- *   <li>Adapter Pattern - Para integrar domínio com JPA</li>
- *   <li>Repository Pattern - Implementações concretas</li>
- *   <li>Dependency Inversion - Depende de abstrações do core</li>
+ *   <li>Adapter Pattern - To integrate domain with JPA</li>
+ *   <li>Repository Pattern - Concrete implementations</li>
+ *   <li>Dependency Inversion - Depends on core abstractions</li>
  * </ul>
  */
 @org.springframework.modulith.ApplicationModule(

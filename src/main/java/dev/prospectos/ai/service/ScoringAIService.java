@@ -8,7 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
- * Serviço de scoring usando AI com structured output
+ * Scoring service using AI with structured output.
  */
 @Slf4j
 @Service
@@ -21,11 +21,11 @@ public class ScoringAIService {
     }
     
     /**
-     * Calcula score da empresa (0-100) usando AI
-     * Retorna objeto estruturado parseado automaticamente
+     * Calculates a company score (0-100) using AI.
+     * Returns a structured object parsed automatically.
      */
     public ScoringResult scoreCompany(Company company, ICP icp) {
-        log.info("🤖 AI calculating score: {}", company.getName());
+        log.info("AI calculating score: {}", company.getName());
         
         String prompt = String.format("""
                 COMPANY:
@@ -72,7 +72,7 @@ public class ScoringAIService {
                 String.join(", ", icp.getRegions()),
                 icp.getInterestTheme());
         
-        // AI parseia automaticamente para ScoringResult!
+        // AI parses into ScoringResult automatically.
         ScoringResult result = aiProvider.calculateScore(prompt, ScoringResult.class);
         
         log.info("   Score calculated: {} ({}) - {}", 

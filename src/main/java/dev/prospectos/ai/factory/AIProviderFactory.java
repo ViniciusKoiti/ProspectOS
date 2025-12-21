@@ -8,8 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
- * Factory para criação de AIProviders
- * Coordena diferentes clientes LLM para diferentes propósitos
+ * Factory for creating AIProviders.
+ * Coordinates different LLM clients for different purposes.
  */
 @Slf4j
 @Component
@@ -22,13 +22,13 @@ public class AIProviderFactory {
     }
     
     /**
-     * Cria AIProvider principal usando melhor cliente disponível
+     * Creates the primary AIProvider using the best available client.
      */
     public AIProvider createPrimaryProvider() {
         LLMClient primaryClient = llmClientFactory.createBestAvailableClient();
         LLMClient scoringClient = llmClientFactory.createScoringClient();
         
-        log.info("🚀 Criando AIProvider principal: {} + {}", 
+        log.info("Creating primary AIProvider: {} + {}", 
             primaryClient.getProvider().getDisplayName(),
             scoringClient.getProvider().getDisplayName());
         
@@ -36,34 +36,34 @@ public class AIProviderFactory {
     }
     
     /**
-     * Cria AIProvider para um provedor específico
+     * Creates an AIProvider for a specific provider.
      */
     public AIProvider createProvider(LLMProvider provider) {
         LLMClient client = llmClientFactory.createClient(provider);
         
-        log.info("🚀 Criando AIProvider para: {}", provider.getDisplayName());
+        log.info("Creating AIProvider for: {}", provider.getDisplayName());
         
         return new DefaultAIProvider(client);
     }
     
     /**
-     * Cria AIProvider otimizado para scoring
+     * Creates an AIProvider optimized for scoring.
      */
     public AIProvider createScoringProvider() {
         LLMClient scoringClient = llmClientFactory.createScoringClient();
         
-        log.info("🚀 Criando AIProvider para scoring: {}", scoringClient.getProvider().getDisplayName());
+        log.info("Creating AIProvider for scoring: {}", scoringClient.getProvider().getDisplayName());
         
         return new DefaultAIProvider(scoringClient);
     }
     
     /**
-     * Cria AIProvider mock para testes
+     * Creates a mock AIProvider for tests.
      */
     public AIProvider createMockProvider() {
         LLMClient mockClient = llmClientFactory.createClient(LLMProvider.MOCK);
         
-        log.info("🧪 Criando AIProvider mock para testes");
+        log.info("Creating mock AIProvider for tests");
         
         return new DefaultAIProvider(mockClient);
     }

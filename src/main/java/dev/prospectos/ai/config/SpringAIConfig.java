@@ -11,14 +11,14 @@ import org.springframework.context.annotation.Configuration;
 import java.util.Optional;
 
 /**
- * Configuração principal do módulo AI
- * Agora usando pattern Strategy com factories
+ * Main configuration for the AI module.
+ * Uses the Strategy pattern with factories.
  */
 @Configuration
 public class SpringAIConfig {
     
     /**
-     * ChatClient principal com system prompt padrão (opcional)
+     * Primary ChatClient with default system prompt (optional).
      */
     @Bean
     @ConditionalOnBean(ChatModel.class)
@@ -50,7 +50,7 @@ public class SpringAIConfig {
     }
     
     /**
-     * ChatClient especializado para scoring (opcional)
+     * Specialized ChatClient for scoring (optional).
      */
     @Bean("scoringChatClient")
     @ConditionalOnBean(ChatModel.class)
@@ -76,8 +76,8 @@ public class SpringAIConfig {
     }
     
     /**
-     * AIProvider principal - ponto central de configuração
-     * Usa factory para detectar melhor provider disponível
+     * Primary AIProvider - configuration entry point.
+     * Uses the factory to detect the best available provider.
      */
     @Bean
     public AIProvider aiProvider(AIProviderFactory factory) {
@@ -85,7 +85,7 @@ public class SpringAIConfig {
     }
     
     /**
-     * Disponibiliza Optional<ChatClient> para factory
+     * Exposes Optional<ChatClient> for the factory.
      */
     @Bean
     public Optional<ChatClient> optionalChatClient(Optional<ChatClient> chatClient) {
@@ -93,7 +93,7 @@ public class SpringAIConfig {
     }
     
     /**
-     * Disponibiliza Optional<ChatClient> scoring para factory
+     * Exposes scoring Optional<ChatClient> for the factory.
      */
     @Bean("optionalScoringChatClient")
     public Optional<ChatClient> optionalScoringChatClient(Optional<ChatClient> scoringChatClient) {
