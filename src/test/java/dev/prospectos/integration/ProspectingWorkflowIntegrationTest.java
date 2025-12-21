@@ -7,6 +7,10 @@ import dev.prospectos.ai.service.OutreachAIService;
 import dev.prospectos.ai.service.ProspectorAIService;
 import dev.prospectos.ai.service.ScoringAIService;
 import dev.prospectos.ai.service.StrategyAIService;
+import dev.prospectos.core.api.CompanyDataService;
+import dev.prospectos.core.api.ICPDataService;
+import dev.prospectos.core.api.dto.CompanyDTO;
+import dev.prospectos.core.api.dto.ICPDto;
 import dev.prospectos.core.domain.Company;
 import dev.prospectos.core.domain.ICP;
 import dev.prospectos.core.domain.Website;
@@ -37,37 +41,21 @@ class ProspectingWorkflowIntegrationTest {
     @Autowired
     private OutreachAIService outreachService;
 
-    private Company createHighPotentialCompany() {
-        return Company.create(
-            "CloudTech Solutions",
-            Website.of("https://cloudtech.com"),
-            "Software"
-        );
-    }
+    @Autowired
+    private CompanyDataService companyDataService;
 
-    private Company createLowPotentialCompany() {
-        return Company.create(
-            "Local Restaurant",
-            Website.of("https://localrestaurant.com"),
-            "Food & Beverage"
-        );
-    }
+    @Autowired
+    private ICPDataService icpDataService;
 
-    private ICP createTechFocusedICP() {
-        return ICP.create(
-            "Enterprise SaaS",
-            "Fast-growing technology companies",
-            List.of("Software", "Technology", "SaaS"),
-            List.of("United States", "Brazil", "Canada"),
-            List.of("CTO", "VP Engineering", "Head of DevOps"),
-            "Cloud infrastructure and scalability"
-        );
-    }
+    private static final Long HIGH_POTENTIAL_COMPANY_ID = 2L;
+    private static final Long LOW_POTENTIAL_COMPANY_ID = 3L;
+    private static final Long MINIMAL_COMPANY_ID = 7L;
+    private static final Long DEFAULT_ICP_ID = 1L;
 
     @Test
     void completeWorkflowHighPotential() {
-        Company company = createHighPotentialCompany();
-        ICP icp = createTechFocusedICP();
+        Company company = createCompanyFromSeed(HIGH_POTENTIAL_COMPANY_ID);
+        ICP icp = createIcpFromSeed(DEFAULT_ICP_ID);
         
         boolean shouldInvestigate = prospectorService.shouldInvestigateCompany(company, icp);
         
@@ -104,8 +92,8 @@ class ProspectingWorkflowIntegrationTest {
 
     @Test
     void completeWorkflowLowPotential() {
-        Company company = createLowPotentialCompany();
-        ICP icp = createTechFocusedICP();
+        Company company = createCompanyFromSeed(LOW_POTENTIAL_COMPANY_ID);
+        ICP icp = createIcpFromSeed(DEFAULT_ICP_ID);
         
         boolean shouldInvestigate = prospectorService.shouldInvestigateCompany(company, icp);
         
@@ -123,13 +111,11 @@ class ProspectingWorkflowIntegrationTest {
 
     @Test
     void workflowScalability() {
-        List<Company> companies = List.of(
-            Company.create("TechStart1", Website.of("https://techstart1.com"), "Software"),
-            Company.create("TechStart2", Website.of("https://techstart2.com"), "Software"),
-            Company.create("TechStart3", Website.of("https://techstart3.com"), "Software")
-        );
-        
-        ICP icp = createTechFocusedICP();
+        List<Company> companies = companyDataService.findCompaniesByICP(DEFAULT_ICP_ID)
+            .stream()
+            .map(this::toDomainCompany)
+            .toList();
+        ICP icp = createIcpFromSeed(DEFAULT_ICP_ID);
         
         for (Company company : companies) {
             boolean shouldInvestigate = prospectorService.shouldInvestigateCompany(company, icp);
@@ -146,13 +132,8 @@ class ProspectingWorkflowIntegrationTest {
 
     @Test
     void workflowHandlesEdgeCases() {
-        Company minimalCompany = Company.create(
-            "MinimalCorp",
-            Website.of("https://minimal.com"),
-            "Unknown"
-        );
-        
-        ICP icp = createTechFocusedICP();
+        Company minimalCompany = createCompanyFromSeed(MINIMAL_COMPANY_ID);
+        ICP icp = createIcpFromSeed(DEFAULT_ICP_ID);
         
         assertThatCode(() -> {
             boolean shouldInvestigate = prospectorService.shouldInvestigateCompany(minimalCompany, icp);
@@ -171,5 +152,32 @@ class ProspectingWorkflowIntegrationTest {
                 assertThat(outreach.subject()).isNotBlank();
             }
         }).doesNotThrowAnyException();
+    }
+
+    private Company createCompanyFromSeed(Long companyId) {
+        CompanyDTO company = companyDataService.findCompany(companyId);
+        assertThat(company).isNotNull();
+        return toDomainCompany(company);
+    }
+
+    private Company toDomainCompany(CompanyDTO company) {
+        return Company.create(
+            company.name(),
+            Website.of(company.website()),
+            company.industry()
+        );
+    }
+
+    private ICP createIcpFromSeed(Long icpId) {
+        ICPDto icp = icpDataService.findICP(icpId);
+        assertThat(icp).isNotNull();
+        return ICP.create(
+            icp.name(),
+            icp.description(),
+            icp.targetIndustries(),
+            List.of(),
+            icp.targetRoles(),
+            null
+        );
     }
 }

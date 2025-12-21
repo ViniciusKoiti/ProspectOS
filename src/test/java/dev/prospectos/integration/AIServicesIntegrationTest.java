@@ -6,6 +6,10 @@ import dev.prospectos.ai.service.OutreachAIService;
 import dev.prospectos.ai.service.ProspectorAIService;
 import dev.prospectos.ai.service.ScoringAIService;
 import dev.prospectos.ai.service.StrategyAIService;
+import dev.prospectos.core.api.CompanyDataService;
+import dev.prospectos.core.api.ICPDataService;
+import dev.prospectos.core.api.dto.CompanyDTO;
+import dev.prospectos.core.api.dto.ICPDto;
 import dev.prospectos.core.domain.Company;
 import dev.prospectos.core.domain.ICP;
 import dev.prospectos.core.domain.Website;
@@ -39,20 +43,11 @@ class AIServicesIntegrationTest {
     @Autowired
     private AIProviderFactory providerFactory;
 
-    private Company createTestCompany() {
-        return Company.create("TechCorp", Website.of("https://techcorp.com"), "Software");
-    }
+    @Autowired
+    private CompanyDataService companyDataService;
 
-    private ICP createTestICP() {
-        return ICP.create(
-            "SaaS B2B",
-            "Growing software companies",
-            List.of("Software", "Technology"),
-            List.of("Brazil", "United States"),
-            List.of("CTO", "VP Engineering"),
-            "DevOps and scalability"
-        );
-    }
+    @Autowired
+    private ICPDataService icpDataService;
 
     @Test
     void allAIServicesInjectedCorrectly() {
@@ -61,12 +56,14 @@ class AIServicesIntegrationTest {
         assertThat(strategyService).isNotNull();
         assertThat(outreachService).isNotNull();
         assertThat(providerFactory).isNotNull();
+        assertThat(companyDataService).isNotNull();
+        assertThat(icpDataService).isNotNull();
     }
 
     @Test
     void servicesHandleInputsGracefully() {
-        Company company = createTestCompany();
-        ICP icp = createTestICP();
+        Company company = createCompanyFromSeed();
+        ICP icp = createIcpFromSeed();
         
         assertThatCode(() -> {
             prospectorService.shouldInvestigateCompany(company, icp);
@@ -79,8 +76,8 @@ class AIServicesIntegrationTest {
 
     @Test
     void servicesCommunicateWithProvider() {
-        Company company = createTestCompany();
-        ICP icp = createTestICP();
+        Company company = createCompanyFromSeed();
+        ICP icp = createIcpFromSeed();
         
         boolean investigationResult = prospectorService.shouldInvestigateCompany(company, icp);
         assertThat(investigationResult).isNotNull();
@@ -100,12 +97,35 @@ class AIServicesIntegrationTest {
 
     @Test
     void servicesProvideConsistentResults() {
-        Company company = createTestCompany();
-        ICP icp = createTestICP();
+        Company company = createCompanyFromSeed();
+        ICP icp = createIcpFromSeed();
         
         boolean result1 = prospectorService.shouldInvestigateCompany(company, icp);
         boolean result2 = prospectorService.shouldInvestigateCompany(company, icp);
         
         assertThat(result1).isEqualTo(result2);
+    }
+
+    private Company createCompanyFromSeed() {
+        CompanyDTO company = companyDataService.findCompany(1L);
+        assertThat(company).isNotNull();
+        return Company.create(
+            company.name(),
+            Website.of(company.website()),
+            company.industry()
+        );
+    }
+
+    private ICP createIcpFromSeed() {
+        ICPDto icp = icpDataService.findICP(1L);
+        assertThat(icp).isNotNull();
+        return ICP.create(
+            icp.name(),
+            icp.description(),
+            icp.targetIndustries(),
+            List.of(),
+            icp.targetRoles(),
+            null
+        );
     }
 }

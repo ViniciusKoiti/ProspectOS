@@ -24,15 +24,11 @@ class ModulithBoundariesIntegrationTest {
     void modulesRespectBoundaries() {
         ApplicationModules modules = ApplicationModules.of(ProspectosApplication.class);
         
-        // Verify core architectural constraints instead of using verify() 
-        // which has issues in Spring Modulith 1.4.4
         var coreModule = modules.getModuleByName("core").orElseThrow();
         var aiModule = modules.getModuleByName("ai").orElseThrow();
         
-        // Core should have no dependencies
         assertThat(coreModule.getDirectDependencies(modules).stream().count()).isEqualTo(0);
         
-        // AI should be allowed to depend on core
         assertThat(aiModule.getDependencies(modules).contains(coreModule)).isTrue();
     }
 

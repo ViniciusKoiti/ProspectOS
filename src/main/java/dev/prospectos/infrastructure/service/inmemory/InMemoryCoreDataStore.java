@@ -41,7 +41,7 @@ public class InMemoryCoreDataStore {
     }
 
     private void seedData() {
-        CompanyDTO company = new CompanyDTO(
+        CompanyDTO techCorp = new CompanyDTO(
             1L,
             "TechCorp",
             "Software",
@@ -49,6 +49,60 @@ public class InMemoryCoreDataStore {
             "Leading software company",
             150,
             "San Francisco, CA"
+        );
+        CompanyDTO cloudTech = new CompanyDTO(
+            2L,
+            "CloudTech Solutions",
+            "Software",
+            "https://cloudtech.com",
+            "Cloud infrastructure specialists",
+            220,
+            "Austin, TX"
+        );
+        CompanyDTO localRestaurant = new CompanyDTO(
+            3L,
+            "Local Restaurant",
+            "Food & Beverage",
+            "https://localrestaurant.com",
+            "Neighborhood dining spot",
+            25,
+            "Curitiba, BR"
+        );
+        CompanyDTO techStart1 = new CompanyDTO(
+            4L,
+            "TechStart1",
+            "Software",
+            "https://techstart1.com",
+            "Early-stage software startup",
+            40,
+            "Sao Paulo, BR"
+        );
+        CompanyDTO techStart2 = new CompanyDTO(
+            5L,
+            "TechStart2",
+            "Software",
+            "https://techstart2.com",
+            "Growing SaaS platform",
+            55,
+            "Toronto, CA"
+        );
+        CompanyDTO techStart3 = new CompanyDTO(
+            6L,
+            "TechStart3",
+            "Software",
+            "https://techstart3.com",
+            "Product-led startup",
+            65,
+            "Miami, FL"
+        );
+        CompanyDTO minimalCorp = new CompanyDTO(
+            7L,
+            "MinimalCorp",
+            "Unknown",
+            "https://minimal.com",
+            "Minimal company profile",
+            10,
+            "Remote"
         );
         ICPDto icp = new ICPDto(
             1L,
@@ -61,8 +115,22 @@ public class InMemoryCoreDataStore {
             List.of("CTO", "DevOps Engineer", "Platform Engineer")
         );
 
-        companies.put(company.id(), company);
+        companies.put(techCorp.id(), techCorp);
+        companies.put(cloudTech.id(), cloudTech);
+        companies.put(localRestaurant.id(), localRestaurant);
+        companies.put(techStart1.id(), techStart1);
+        companies.put(techStart2.id(), techStart2);
+        companies.put(techStart3.id(), techStart3);
+        companies.put(minimalCorp.id(), minimalCorp);
         icps.put(icp.id(), icp);
-        icpCompanies.put(icp.id(), new ArrayList<>(List.of(company.id())));
+        icpCompanies.put(icp.id(), new ArrayList<>(List.of(
+            techCorp.id(),
+            cloudTech.id(),
+            localRestaurant.id(),
+            techStart1.id(),
+            techStart2.id(),
+            techStart3.id(),
+            minimalCorp.id()
+        )));
     }
 }
