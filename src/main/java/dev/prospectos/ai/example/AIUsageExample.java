@@ -6,7 +6,6 @@ import dev.prospectos.ai.dto.OutreachMessage;
 import dev.prospectos.ai.dto.ScoringResult;
 import dev.prospectos.ai.dto.StrategyRecommendation;
 import dev.prospectos.ai.factory.AIProviderFactory;
-import dev.prospectos.core.api.CoreDataService;
 import dev.prospectos.core.api.dto.CompanyDTO;
 import dev.prospectos.core.api.dto.ICPDto;
 import lombok.extern.slf4j.Slf4j;
@@ -23,11 +22,8 @@ import java.util.List;
 public class AIUsageExample {
 
     private final AIProviderFactory providerFactory;
-    private final CoreDataService coreDataService;
-
-    public AIUsageExample(AIProviderFactory providerFactory, CoreDataService coreDataService) {
+    public AIUsageExample(AIProviderFactory providerFactory) {
         this.providerFactory = providerFactory;
-        this.coreDataService = coreDataService;
     }
 
     /**

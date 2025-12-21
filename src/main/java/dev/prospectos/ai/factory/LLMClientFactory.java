@@ -43,6 +43,9 @@ public class LLMClientFactory {
      * Creates the primary LLMClient (for general queries).
      */
     public LLMClient createPrimaryClient() {
+        if (isTestEnvironment()) {
+            return createMockClient();
+        }
         return createClient(LLMProvider.OPENAI, chatClient);
     }
     
@@ -50,6 +53,9 @@ public class LLMClientFactory {
      * Creates the scoring LLMClient (specialized).
      */
     public LLMClient createScoringClient() {
+        if (isTestEnvironment()) {
+            return createMockClient();
+        }
         return createClient(LLMProvider.OPENAI, scoringChatClient);
     }
     
@@ -57,6 +63,9 @@ public class LLMClientFactory {
      * Creates an LLMClient for a specific provider.
      */
     public LLMClient createClient(LLMProvider provider) {
+        if (isTestEnvironment() && provider != LLMProvider.MOCK) {
+            return createMockClient(provider);
+        }
         return switch (provider) {
             case OPENAI -> createClient(provider, chatClient);
             case ANTHROPIC -> createClient(provider, chatClient); // Future: separate Claude client
@@ -69,6 +78,10 @@ public class LLMClientFactory {
      * Detects and creates the best available client.
      */
     public LLMClient createBestAvailableClient() {
+        if (isTestEnvironment()) {
+            log.info("Test profile detected. Using Mock provider.");
+            return createMockClient();
+        }
         if (isOpenAIAvailable()) {
             log.info("Using OpenAI as primary provider");
             return createClient(LLMProvider.OPENAI, chatClient);
@@ -99,6 +112,11 @@ public class LLMClientFactory {
     private LLMClient createMockClient() {
         log.debug("Creating Mock LLM client");
         return new MockLLMClient();
+    }
+
+    private LLMClient createMockClient(LLMProvider provider) {
+        log.debug("Creating Mock LLM client for {}", provider.getDisplayName());
+        return new MockLLMClient(provider);
     }
     
     private boolean isProviderAvailable(LLMProvider provider) {

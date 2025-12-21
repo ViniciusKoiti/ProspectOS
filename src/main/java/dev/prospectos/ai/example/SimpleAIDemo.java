@@ -3,7 +3,6 @@ package dev.prospectos.ai.example;
 import dev.prospectos.ai.client.AIProvider;
 import dev.prospectos.ai.dto.ScoringResult;
 import dev.prospectos.ai.factory.AIProviderFactory;
-import dev.prospectos.core.api.CoreDataService;
 import dev.prospectos.core.api.dto.CompanyDTO;
 import dev.prospectos.core.api.dto.ICPDto;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,11 +21,8 @@ import java.util.List;
 public class SimpleAIDemo implements CommandLineRunner {
 
     private final AIProviderFactory providerFactory;
-    private final CoreDataService coreDataService;
-    
-    public SimpleAIDemo(AIProviderFactory providerFactory, CoreDataService coreDataService) {
+    public SimpleAIDemo(AIProviderFactory providerFactory) {
         this.providerFactory = providerFactory;
-        this.coreDataService = coreDataService;
     }
 
     @Override
