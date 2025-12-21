@@ -48,6 +48,9 @@ Core data API returns mock DTOs and uses lossy UUID to Long conversions, so API 
 - Add tests that validate the real persistence path.
 
 ## Links
+- [[Temporary Mock Cause]]
+- [[Schema Mismatch Cause]]
+- [[Data Access Area]]
+- [[DTO Mapping Area]]
 - [[Core Module]]
 - [[Infrastructure Module]]
-- [[Core Data Service]]
