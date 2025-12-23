@@ -1,8 +1,8 @@
 package dev.prospectos.infrastructure.service.inmemory;
 
-import dev.prospectos.core.api.dto.CompanyDTO;
-import dev.prospectos.core.api.dto.ICPDto;
-import dev.prospectos.core.api.dto.ScoreDTO;
+import dev.prospectos.api.dto.CompanyDTO;
+import dev.prospectos.api.dto.ICPDto;
+import dev.prospectos.api.dto.ScoreDTO;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 

@@ -1,8 +1,8 @@
 package dev.prospectos.infrastructure.service.jpa;
 
-import dev.prospectos.core.api.CompanyDataService;
-import dev.prospectos.core.api.dto.CompanyDTO;
-import dev.prospectos.core.api.dto.ScoreDTO;
+import dev.prospectos.api.CompanyDataService;
+import dev.prospectos.api.dto.CompanyDTO;
+import dev.prospectos.api.dto.ScoreDTO;
 import dev.prospectos.core.domain.Company;
 import dev.prospectos.core.domain.ICP;
 import dev.prospectos.core.domain.Score;

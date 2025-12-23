@@ -1,6 +1,6 @@
-package dev.prospectos.core.api;
+package dev.prospectos.api;
 
-import dev.prospectos.core.api.dto.ICPDto;
+import dev.prospectos.api.dto.ICPDto;
 
 /**
  * Public interface for ICP data access across modules.

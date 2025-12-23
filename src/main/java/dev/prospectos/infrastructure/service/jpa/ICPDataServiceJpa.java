@@ -1,7 +1,7 @@
 package dev.prospectos.infrastructure.service.jpa;
 
-import dev.prospectos.core.api.ICPDataService;
-import dev.prospectos.core.api.dto.ICPDto;
+import dev.prospectos.api.ICPDataService;
+import dev.prospectos.api.dto.ICPDto;
 import dev.prospectos.core.domain.ICP;
 import dev.prospectos.core.repository.ICPDomainRepository;
 import org.springframework.context.annotation.Profile;

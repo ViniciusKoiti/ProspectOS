@@ -1,7 +1,7 @@
-package dev.prospectos.core.api;
+package dev.prospectos.api;
 
-import dev.prospectos.core.api.dto.CompanyDTO;
-import dev.prospectos.core.api.dto.ScoreDTO;
+import dev.prospectos.api.dto.CompanyDTO;
+import dev.prospectos.api.dto.ScoreDTO;
 
 import java.util.List;
 

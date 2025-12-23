@@ -1,15 +1,14 @@
 package dev.prospectos.integration;
 
-import dev.prospectos.ai.client.AIProvider;
 import dev.prospectos.ai.factory.AIProviderFactory;
 import dev.prospectos.ai.service.OutreachAIService;
 import dev.prospectos.ai.service.ProspectorAIService;
 import dev.prospectos.ai.service.ScoringAIService;
 import dev.prospectos.ai.service.StrategyAIService;
-import dev.prospectos.core.api.CompanyDataService;
-import dev.prospectos.core.api.ICPDataService;
-import dev.prospectos.core.api.dto.CompanyDTO;
-import dev.prospectos.core.api.dto.ICPDto;
+import dev.prospectos.api.CompanyDataService;
+import dev.prospectos.api.ICPDataService;
+import dev.prospectos.api.dto.CompanyDTO;
+import dev.prospectos.api.dto.ICPDto;
 import dev.prospectos.core.domain.Company;
 import dev.prospectos.core.domain.ICP;
 import dev.prospectos.core.domain.Website;

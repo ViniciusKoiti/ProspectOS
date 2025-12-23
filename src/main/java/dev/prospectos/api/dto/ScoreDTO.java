@@ -1,4 +1,4 @@
-package dev.prospectos.core.api.dto;
+package dev.prospectos.api.dto;
 
 /**
  * Public DTO to transfer Score data across modules.

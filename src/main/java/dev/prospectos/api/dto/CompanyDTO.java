@@ -1,4 +1,4 @@
-package dev.prospectos.core.api.dto;
+package dev.prospectos.api.dto;
 
 /**
  * Public DTO to transfer Company data across modules.

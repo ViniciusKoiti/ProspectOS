@@ -1,7 +1,7 @@
 package dev.prospectos.infrastructure.service.inmemory;
 
-import dev.prospectos.core.api.ICPDataService;
-import dev.prospectos.core.api.dto.ICPDto;
+import dev.prospectos.api.ICPDataService;
+import dev.prospectos.api.dto.ICPDto;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 

@@ -1,4 +1,4 @@
-package dev.prospectos.core.api.dto;
+package dev.prospectos.api.dto;
 
 import java.util.List;
 
