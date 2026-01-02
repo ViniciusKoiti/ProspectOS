@@ -74,6 +74,16 @@ public class Company extends AbstractAggregateRoot<Company> {
     public static Company create(String name, Website website, String industry) {
         return new Company(name, website, industry);
     }
+
+    public void updateProfile(String name, Website website, String industry) {
+        if (website == null) {
+            throw new IllegalArgumentException("Website cannot be null");
+        }
+        this.name = validateName(name);
+        this.website = website;
+        this.industry = industry;
+        this.lastUpdatedAt = Instant.now();
+    }
     
     public void updateScore(Score newScore, String reason) {
         if (newScore == null) {

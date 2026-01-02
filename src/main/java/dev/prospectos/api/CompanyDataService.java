@@ -2,6 +2,8 @@ package dev.prospectos.api;
 
 import dev.prospectos.api.dto.CompanyDTO;
 import dev.prospectos.api.dto.ScoreDTO;
+import dev.prospectos.api.dto.request.CompanyCreateRequest;
+import dev.prospectos.api.dto.request.CompanyUpdateRequest;
 
 import java.util.List;
 
@@ -11,6 +13,14 @@ import java.util.List;
 public interface CompanyDataService {
 
     CompanyDTO findCompany(Long companyId);
+
+    List<CompanyDTO> findAllCompanies();
+
+    CompanyDTO createCompany(CompanyCreateRequest request);
+
+    CompanyDTO updateCompany(Long companyId, CompanyUpdateRequest request);
+
+    boolean deleteCompany(Long companyId);
 
     void updateCompanyScore(Long companyId, ScoreDTO score);
 

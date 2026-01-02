@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Component
 @Profile({"demo", "test"})
@@ -19,9 +20,12 @@ public class InMemoryCoreDataStore {
     private final Map<Long, ICPDto> icps = new ConcurrentHashMap<>();
     private final Map<Long, List<Long>> icpCompanies = new ConcurrentHashMap<>();
     private final Map<Long, ScoreDTO> companyScores = new ConcurrentHashMap<>();
+    private final AtomicLong companyIdSequence = new AtomicLong();
+    private final AtomicLong icpIdSequence = new AtomicLong();
 
     public InMemoryCoreDataStore() {
         seedData();
+        initializeSequences();
     }
 
     Map<Long, CompanyDTO> companies() {
@@ -38,6 +42,14 @@ public class InMemoryCoreDataStore {
 
     Map<Long, ScoreDTO> companyScores() {
         return companyScores;
+    }
+
+    long nextCompanyId() {
+        return companyIdSequence.incrementAndGet();
+    }
+
+    long nextIcpId() {
+        return icpIdSequence.incrementAndGet();
     }
 
     private void seedData() {
@@ -132,5 +144,12 @@ public class InMemoryCoreDataStore {
             techStart3.id(),
             minimalCorp.id()
         )));
+    }
+
+    private void initializeSequences() {
+        long maxCompanyId = companies.keySet().stream().mapToLong(Long::longValue).max().orElse(0L);
+        long maxIcpId = icps.keySet().stream().mapToLong(Long::longValue).max().orElse(0L);
+        companyIdSequence.set(maxCompanyId);
+        icpIdSequence.set(maxIcpId);
     }
 }

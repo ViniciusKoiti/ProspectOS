@@ -39,7 +39,7 @@ public class ICP {
     private ICP(String name, String description, List<String> industries, 
                List<String> regions, List<String> targetRoles, String interestTheme) {
         this.id = UUID.randomUUID();
-        this.name = name;
+        this.name = validateName(name);
         this.description = description;
         this.industries = industries;
         this.regions = regions;
@@ -50,6 +50,23 @@ public class ICP {
     public static ICP create(String name, String description, List<String> industries,
                            List<String> regions, List<String> targetRoles, String interestTheme) {
         return new ICP(name, description, industries, regions, targetRoles, interestTheme);
+    }
+
+    public void updateProfile(String name, String description, List<String> industries,
+                              List<String> regions, List<String> targetRoles, String interestTheme) {
+        this.name = validateName(name);
+        this.description = description;
+        this.industries = industries;
+        this.regions = regions;
+        this.targetRoles = targetRoles;
+        this.interestTheme = interestTheme;
+    }
+
+    private String validateName(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("ICP name cannot be null or empty");
+        }
+        return name.trim();
     }
     
     public UUID getId() { return id; }

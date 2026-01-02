@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -19,19 +20,29 @@ import java.util.UUID;
 public class ApiExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<LeadSearchResponse> handleValidation(MethodArgumentNotValidException ex) {
+    public ResponseEntity<Object> handleValidation(MethodArgumentNotValidException ex) {
         List<String> errors = ex.getBindingResult().getFieldErrors().stream()
             .map(this::formatFieldError)
             .toList();
         String message = errors.isEmpty() ? "Validation failed" : String.join("; ", errors);
+        if (LeadSearchController.class.equals(ex.getParameter().getContainingClass())) {
+            LeadSearchResponse response = new LeadSearchResponse(
+                LeadSearchStatus.FAILED,
+                List.of(),
+                UUID.randomUUID(),
+                message
+            );
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(Map.of("error", message));
+    }
 
-        LeadSearchResponse response = new LeadSearchResponse(
-            LeadSearchStatus.FAILED,
-            List.of(),
-            UUID.randomUUID(),
-            message
-        );
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalArgument(IllegalArgumentException ex) {
+        String message = ex.getMessage() == null ? "Invalid request" : ex.getMessage();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(Map.of("error", message));
     }
 
     private String formatFieldError(FieldError error) {

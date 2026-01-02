@@ -3,9 +3,12 @@ package dev.prospectos.infrastructure.service.jpa;
 import dev.prospectos.api.CompanyDataService;
 import dev.prospectos.api.dto.CompanyDTO;
 import dev.prospectos.api.dto.ScoreDTO;
+import dev.prospectos.api.dto.request.CompanyCreateRequest;
+import dev.prospectos.api.dto.request.CompanyUpdateRequest;
 import dev.prospectos.core.domain.Company;
 import dev.prospectos.core.domain.ICP;
 import dev.prospectos.core.domain.Score;
+import dev.prospectos.core.domain.Website;
 import dev.prospectos.core.repository.CompanyDomainRepository;
 import dev.prospectos.core.repository.ICPDomainRepository;
 import org.springframework.context.annotation.Profile;
@@ -36,6 +39,67 @@ public class CompanyDataServiceJpa implements CompanyDataService {
         return findCompanyByExternalId(companyId)
             .map(this::toDTO)
             .orElse(null);
+    }
+
+    @Override
+    public List<CompanyDTO> findAllCompanies() {
+        return companyRepository.findAll()
+            .stream()
+            .map(this::toDTO)
+            .toList();
+    }
+
+    @Override
+    public CompanyDTO createCompany(CompanyCreateRequest request) {
+        Company company = Company.create(
+            request.name(),
+            Website.of(request.website()),
+            request.industry()
+        );
+        if (request.description() != null) {
+            company.setDescription(request.description());
+        }
+        if (request.size() != null) {
+            company.setSize(parseCompanySize(request.size()));
+        }
+        if (request.country() != null || request.city() != null) {
+            company.setLocation(request.country(), request.city());
+        }
+        return toDTO(companyRepository.save(company));
+    }
+
+    @Override
+    public CompanyDTO updateCompany(Long companyId, CompanyUpdateRequest request) {
+        Optional<Company> existing = findCompanyByExternalId(companyId);
+        if (existing.isEmpty()) {
+            return null;
+        }
+        Company company = existing.get();
+        company.updateProfile(
+            request.name(),
+            Website.of(request.website()),
+            request.industry()
+        );
+        if (request.description() != null) {
+            company.setDescription(request.description());
+        }
+        if (request.size() != null) {
+            company.setSize(parseCompanySize(request.size()));
+        }
+        if (request.country() != null || request.city() != null) {
+            company.setLocation(request.country(), request.city());
+        }
+        return toDTO(companyRepository.save(company));
+    }
+
+    @Override
+    public boolean deleteCompany(Long companyId) {
+        Optional<Company> existing = findCompanyByExternalId(companyId);
+        if (existing.isEmpty()) {
+            return false;
+        }
+        companyRepository.delete(existing.get());
+        return true;
     }
 
     @Override
@@ -104,5 +168,16 @@ public class CompanyDataServiceJpa implements CompanyDataService {
             null,
             company.getLocation()
         );
+    }
+
+    private Company.CompanySize parseCompanySize(String size) {
+        if (size == null || size.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            return Company.CompanySize.valueOf(size.trim().toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalArgumentException("Invalid company size: " + size);
+        }
     }
 }
