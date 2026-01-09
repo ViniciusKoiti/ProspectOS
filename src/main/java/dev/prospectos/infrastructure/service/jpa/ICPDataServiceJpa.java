@@ -17,7 +17,7 @@ import java.util.UUID;
  * Repository-backed ICP data service for non-test profiles.
  */
 @Service
-@Profile("!demo & !test")
+@Profile("!demo & !test & !mock")
 public class ICPDataServiceJpa implements ICPDataService {
 
     private final ICPDomainRepository icpRepository;

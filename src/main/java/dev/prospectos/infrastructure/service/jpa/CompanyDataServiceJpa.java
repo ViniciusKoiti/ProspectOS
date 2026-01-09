@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
  * Repository-backed Company data service for non-test profiles.
  */
 @Service
-@Profile("!demo & !test")
+@Profile("!demo & !test & !mock")
 public class CompanyDataServiceJpa implements CompanyDataService {
 
     private final CompanyDomainRepository companyRepository;

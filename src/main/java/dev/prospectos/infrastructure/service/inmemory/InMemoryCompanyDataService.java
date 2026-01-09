@@ -15,7 +15,7 @@ import java.util.Objects;
  * In-memory Company data service for demo and test profiles.
  */
 @Service
-@Profile({"demo", "test"})
+@Profile({"demo", "test", "mock"})
 public class InMemoryCompanyDataService implements CompanyDataService {
 
     private final InMemoryCoreDataStore store;

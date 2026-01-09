@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Component
-@Profile({"demo", "test"})
+@Profile({"demo", "test", "mock"})
 public class InMemoryCoreDataStore {
 
     private final Map<Long, CompanyDTO> companies = new ConcurrentHashMap<>();
