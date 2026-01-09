@@ -6,6 +6,7 @@ package dev.prospectos.ai.client;
 public enum LLMProvider {
     OPENAI("OpenAI GPT-4", "Best overall quality"),
     ANTHROPIC("Claude 3.5 Sonnet", "Best complex analysis"),
+    GROQ("Groq Llama 3", "Fast hosted inference"),
     OLLAMA("Ollama Local", "Free, local execution"),
     MOCK("Mock Provider", "For testing");
     

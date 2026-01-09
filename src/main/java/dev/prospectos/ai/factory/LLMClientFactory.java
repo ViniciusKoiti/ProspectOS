@@ -6,6 +6,7 @@ import dev.prospectos.ai.client.impl.MockLLMClient;
 import dev.prospectos.ai.client.impl.SpringAILLMClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -26,16 +27,25 @@ public class LLMClientFactory {
     
     @Value("${spring.ai.anthropic.api-key:}")
     private String anthropicKey;
-    
+
+    @Value("${prospectos.ai.groq.api-key:}")
+    private String groqKey;
+
     private final Optional<ChatClient> chatClient;
     private final Optional<ChatClient> scoringChatClient;
+    private final Optional<ChatClient> groqChatClient;
+    private final Optional<ChatClient> groqScoringChatClient;
     private final Environment environment;
     
-    public LLMClientFactory(Optional<ChatClient> chatClient, 
-                           Optional<ChatClient> scoringChatClient,
+    public LLMClientFactory(@Qualifier("optionalChatClient") Optional<ChatClient> chatClient,
+                           @Qualifier("optionalScoringChatClient") Optional<ChatClient> scoringChatClient,
+                           @Qualifier("optionalGroqChatClient") Optional<ChatClient> groqChatClient,
+                           @Qualifier("optionalGroqScoringChatClient") Optional<ChatClient> groqScoringChatClient,
                            Environment environment) {
         this.chatClient = chatClient;
         this.scoringChatClient = scoringChatClient;
+        this.groqChatClient = groqChatClient;
+        this.groqScoringChatClient = groqScoringChatClient;
         this.environment = environment;
     }
     
@@ -69,6 +79,7 @@ public class LLMClientFactory {
         return switch (provider) {
             case OPENAI -> createClient(provider, chatClient);
             case ANTHROPIC -> createClient(provider, chatClient); // Future: separate Claude client
+            case GROQ -> createClient(provider, groqChatClient);
             case OLLAMA -> createClient(provider, chatClient);    // Future: separate Ollama client
             case MOCK -> createMockClient();
         };
@@ -78,6 +89,11 @@ public class LLMClientFactory {
      * Detects and creates the best available client.
      */
     public LLMClient createBestAvailableClient() {
+        if (isGroqAvailable()) {
+            log.info("Using Groq as primary provider");
+            return createClient(LLMProvider.GROQ, groqChatClient);
+        }
+
         if (isTestEnvironment()) {
             log.info("Test profile detected. Using Mock provider.");
             return createMockClient();
@@ -95,7 +111,27 @@ public class LLMClientFactory {
         log.warn("No LLM provider configured. Using Mock for testing.");
         return createMockClient();
     }
-    
+
+    private LLMClient createBestAvailableScoringClient() {
+        if (isGroqAvailable()) {
+            log.info("Using Groq for scoring");
+            return createClient(LLMProvider.GROQ, groqScoringChatClient);
+        }
+
+        if (isOpenAIAvailable()) {
+            log.info("Using OpenAI for scoring");
+            return createClient(LLMProvider.OPENAI, scoringChatClient);
+        }
+
+        if (isAnthropicAvailable()) {
+            log.info("Using Anthropic for scoring");
+            return createClient(LLMProvider.ANTHROPIC, scoringChatClient);
+        }
+
+        log.warn("No scoring LLM provider configured. Using Mock for testing.");
+        return createMockClient();
+    }
+
     private LLMClient createClient(LLMProvider provider, Optional<ChatClient> chatClientOpt) {
         boolean available = isProviderAvailable(provider);
         
@@ -118,11 +154,12 @@ public class LLMClientFactory {
         log.debug("Creating Mock LLM client for {}", provider.getDisplayName());
         return new MockLLMClient(provider);
     }
-    
+
     private boolean isProviderAvailable(LLMProvider provider) {
         return switch (provider) {
             case OPENAI -> isOpenAIAvailable();
             case ANTHROPIC -> isAnthropicAvailable();
+            case GROQ -> isGroqAvailable();
             case OLLAMA -> isOllamaAvailable();
             case MOCK -> true;
         };
@@ -135,7 +172,11 @@ public class LLMClientFactory {
     private boolean isAnthropicAvailable() {
         return isValidApiKey(anthropicKey);
     }
-    
+
+    private boolean isGroqAvailable() {
+        return isValidApiKey(groqKey);
+    }
+
     /**
      * Detects whether running in a test context.
      */

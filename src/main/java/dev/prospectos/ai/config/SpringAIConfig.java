@@ -7,6 +7,7 @@ import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.util.Optional;
 
@@ -23,30 +24,7 @@ public class SpringAIConfig {
     @Bean
     @ConditionalOnBean(ChatModel.class)
     public ChatClient chatClient(ChatModel chatModel) {
-        return ChatClient.builder(chatModel)
-            .defaultSystem("""
-                You are a B2B prospecting and company analysis expert.
-                
-                Your responsibilities:
-                1. Analyze if companies fit the ICP (Ideal Customer Profile)
-                2. Calculate fit scores (0-100) based on concrete data
-                3. Recommend personalized outreach strategies
-                4. Generate highly personalized outreach messages
-                5. Identify buying interest signals
-                
-                Principles:
-                - Base all decisions on DATA, not assumptions
-                - Be objective and direct
-                - Use available functions when you need more information
-                - Provide clear reasoning for your conclusions
-                - Scores must be justified with specific criteria
-                
-                Output format:
-                - Always return structured JSON when requested
-                - Be concise but complete
-                - Prioritize actionable information
-                """)
-            .build();
+        return buildDefaultChatClient(chatModel);
     }
     
     /**
@@ -55,24 +33,19 @@ public class SpringAIConfig {
     @Bean("scoringChatClient")
     @ConditionalOnBean(ChatModel.class)
     public ChatClient scoringChatClient(ChatModel chatModel) {
-        return ChatClient.builder(chatModel)
-            .defaultSystem("""
-                You are a B2B prospecting scoring system.
-                
-                Calculate scores (0-100) based on:
-                1. ICP fit (30 points)
-                2. Interest signals (25 points)
-                3. Company size and maturity (20 points)
-                4. Timing and urgency (15 points)
-                5. Contact accessibility (10 points)
-                
-                ALWAYS return JSON with:
-                - score (0-100)
-                - reasoning (detailed justification)
-                - breakdown (points per category)
-                - priority (HOT/WARM/COLD/IGNORE)
-                """)
-            .build();
+        return buildScoringChatClient(chatModel);
+    }
+
+    @Bean("groqChatClient")
+    @ConditionalOnBean(name = "groqChatModel")
+    public ChatClient groqChatClient(@Qualifier("groqChatModel") ChatModel chatModel) {
+        return buildDefaultChatClient(chatModel);
+    }
+
+    @Bean("groqScoringChatClient")
+    @ConditionalOnBean(name = "groqChatModel")
+    public ChatClient groqScoringChatClient(@Qualifier("groqChatModel") ChatModel chatModel) {
+        return buildScoringChatClient(chatModel);
     }
     
     /**
@@ -98,5 +71,65 @@ public class SpringAIConfig {
     @Bean("optionalScoringChatClient")
     public Optional<ChatClient> optionalScoringChatClient(Optional<ChatClient> scoringChatClient) {
         return scoringChatClient;
+    }
+
+    @Bean("optionalGroqChatClient")
+    public Optional<ChatClient> optionalGroqChatClient(@Qualifier("groqChatClient") Optional<ChatClient> groqChatClient) {
+        return groqChatClient;
+    }
+
+    @Bean("optionalGroqScoringChatClient")
+    public Optional<ChatClient> optionalGroqScoringChatClient(
+        @Qualifier("groqScoringChatClient") Optional<ChatClient> groqScoringChatClient
+    ) {
+        return groqScoringChatClient;
+    }
+
+    private ChatClient buildDefaultChatClient(ChatModel chatModel) {
+        return ChatClient.builder(chatModel)
+            .defaultSystem("""
+                You are a B2B prospecting and company analysis expert.
+                
+                Your responsibilities:
+                1. Analyze if companies fit the ICP (Ideal Customer Profile)
+                2. Calculate fit scores (0-100) based on concrete data
+                3. Recommend personalized outreach strategies
+                4. Generate highly personalized outreach messages
+                5. Identify buying interest signals
+                
+                Principles:
+                - Base all decisions on DATA, not assumptions
+                - Be objective and direct
+                - Use available functions when you need more information
+                - Provide clear reasoning for your conclusions
+                - Scores must be justified with specific criteria
+                
+                Output format:
+                - Always return structured JSON when requested
+                - Be concise but complete
+                - Prioritize actionable information
+                """)
+            .build();
+    }
+
+    private ChatClient buildScoringChatClient(ChatModel chatModel) {
+        return ChatClient.builder(chatModel)
+            .defaultSystem("""
+                You are a B2B prospecting scoring system.
+                
+                Calculate scores (0-100) based on:
+                1. ICP fit (30 points)
+                2. Interest signals (25 points)
+                3. Company size and maturity (20 points)
+                4. Timing and urgency (15 points)
+                5. Contact accessibility (10 points)
+                
+                ALWAYS return JSON with:
+                - score (0-100)
+                - reasoning (detailed justification)
+                - breakdown (points per category)
+                - priority (HOT/WARM/COLD/IGNORE)
+                """)
+            .build();
     }
 }
