@@ -4,7 +4,7 @@
 Score leads using AI services and map results into the domain model.
 
 ## Checklist
-- [ ] Use ScoringAIService to score a Company against ICP.
+- [x] Use ScoringAIService to score a Company against ICP.
 - [ ] Map AI output into Score and Priority.
 - [ ] Handle AI failures with safe fallback (default score or error).
 - [ ] Update company status based on score rules.
