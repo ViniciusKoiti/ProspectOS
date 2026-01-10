@@ -8,6 +8,7 @@ import dev.prospectos.api.dto.LeadSearchResponse;
 import dev.prospectos.api.dto.LeadSearchStatus;
 import dev.prospectos.api.dto.ScoreDTO;
 import dev.prospectos.api.dto.SourceProvenanceDTO;
+import dev.prospectos.api.SourceProvenanceService;
 import dev.prospectos.infrastructure.service.compliance.AllowedSourcesComplianceService;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -29,13 +30,16 @@ public class InMemoryLeadSearchService implements LeadSearchService {
 
     private final InMemoryCoreDataStore store;
     private final AllowedSourcesComplianceService complianceService;
+    private final SourceProvenanceService sourceProvenanceService;
 
     public InMemoryLeadSearchService(
         InMemoryCoreDataStore store,
-        AllowedSourcesComplianceService complianceService
+        AllowedSourcesComplianceService complianceService,
+        SourceProvenanceService sourceProvenanceService
     ) {
         this.store = store;
         this.complianceService = complianceService;
+        this.sourceProvenanceService = sourceProvenanceService;
     }
 
     @Override
@@ -54,6 +58,8 @@ public class InMemoryLeadSearchService implements LeadSearchService {
             .limit(limit)
             .map(company -> toLeadResult(company, sourceName))
             .toList();
+
+        leads.forEach(result -> sourceProvenanceService.record(result.company(), result.source()));
 
         return new LeadSearchResponse(
             LeadSearchStatus.COMPLETED,
