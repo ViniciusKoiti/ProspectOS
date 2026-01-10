@@ -1,6 +1,7 @@
 package dev.prospectos.ai.config;
 
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -29,20 +30,20 @@ public class ChatClientConfig {
     @Bean
     @Primary
     public ChatModel primaryChatModel(
-        @Qualifier("openAiChatModel") Optional<ChatModel> openAiChatModel,
-        @Qualifier("groqChatModel") Optional<ChatModel> groqChatModel,
-        @Qualifier("anthropicChatModel") Optional<ChatModel> anthropicChatModel
+        @Qualifier("openAiChatModel") @Autowired(required = false) ChatModel openAiChatModel,
+        @Qualifier("groqChatModel") @Autowired(required = false) ChatModel groqChatModel,
+        @Qualifier("anthropicChatModel") @Autowired(required = false) ChatModel anthropicChatModel
     ) {
-        if (isValidApiKey(openaiKey) && openAiChatModel.isPresent()) {
-            return openAiChatModel.get();
+        if (isValidApiKey(openaiKey) && openAiChatModel != null) {
+            return openAiChatModel;
         }
 
-        if (isValidApiKey(groqKey) && groqChatModel.isPresent()) {
-            return groqChatModel.get();
+        if (isValidApiKey(groqKey) && groqChatModel != null) {
+            return groqChatModel;
         }
 
-        if (isValidApiKey(anthropicKey) && anthropicChatModel.isPresent()) {
-            return anthropicChatModel.get();
+        if (isValidApiKey(anthropicKey) && anthropicChatModel != null) {
+            return anthropicChatModel;
         }
         
         throw new IllegalStateException(
