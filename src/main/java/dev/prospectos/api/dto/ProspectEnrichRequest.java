@@ -1,4 +1,4 @@
-package dev.prospectos.infrastructure.api.dto;
+package dev.prospectos.api.dto;
 
 public record ProspectEnrichRequest(
     String name,
