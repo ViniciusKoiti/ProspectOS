@@ -1,5 +1,6 @@
 package dev.prospectos.ai.service;
 
+import dev.prospectos.api.ProspectEnrichService;
 import dev.prospectos.ai.client.AIProvider;
 import dev.prospectos.core.domain.Company;
 import dev.prospectos.core.domain.ICP;
@@ -12,7 +13,7 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
-public class ProspectorAIService {
+public class ProspectorAIService implements ProspectEnrichService {
     
     private final AIProvider aiProvider;
     
@@ -61,7 +62,8 @@ public class ProspectorAIService {
     /**
      * AI analyzes and enriches company data using function calling.
      */
-    public String enrichCompanyWithAI(Company company) {
+    @Override
+    public String enrichCompany(Company company) {
         log.info("AI enriching company: {}", company.getName());
         
         String prompt = String.format("""
