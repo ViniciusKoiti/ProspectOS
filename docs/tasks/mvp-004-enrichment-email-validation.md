@@ -4,12 +4,12 @@
 Normalize company/contact data and validate emails before scoring.
 
 ## Checklist
-- [ ] Define enrichment input/output contract (raw -> normalized).
-- [ ] Implement enrichment service (basic field cleanup + mapping).
+- [x] Define enrichment input/output contract (raw -> normalized).
+- [x] Implement enrichment service (basic field cleanup + mapping).
 - [x] Validate emails using Email value object.
 - [x] Add domain validation (syntax + domain format).
-- [ ] Flag or remove invalid emails from contact list.
-- [ ] Add unit tests for enrichment and email validation.
+- [x] Flag or remove invalid emails from contact list.
+- [x] Add unit tests for enrichment and email validation.
 
 ## Acceptance criteria
 - Invalid emails are filtered or flagged.
