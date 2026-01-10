@@ -1,0 +1,101 @@
+@startuml Company Management - CRUD Flow
+title 🏢 Company Management - Operações CRUD
+
+actor "Sales Rep" as SR
+participant "Company UI" as UI
+box "API Layer" #LightBlue
+    participant "CompanyController" as CC
+    participant "CompanyDataService" as CDS
+end box
+box "Infrastructure" #LightGray
+    participant "CompanyRepositoryAdapter" as CRA
+    participant "CompanyJpaRepository" as CJR
+end box
+box "Core Domain" #LightYellow
+    participant "Company" as COMP
+    participant "Website" as WEB
+    participant "Score" as SCORE
+    participant "Contact" as CONT
+end box
+participant "Database" as DB
+
+== 1. Listar Empresas ==
+SR -> UI: View Companies
+UI -> CC: GET /api/companies
+CC -> CDS: findAllCompanies()
+CDS -> CRA: findAll()
+CRA -> CJR: JPA Query
+CJR -> DB: SELECT * FROM companies
+DB --> CJR: Company Records
+CJR --> CRA: Company Entities
+CRA --> CDS: List<Company>
+CDS --> CC: List<CompanyDTO>
+CC --> UI: Companies JSON
+UI --> SR: Company List Display
+
+== 2. Criar Nova Empresa ==
+SR -> UI: Add Company Form
+UI -> CC: POST /api/companies\n{name, website, industry}
+CC -> CDS: createCompany(request)
+CDS -> COMP: Company.create(name, Website.of(url), industry)
+COMP -> WEB: Website validation
+WEB -> WEB: ✅ URL format check
+COMP -> COMP: Set initial state:\n- Score = 0\n- Status = NEW
+COMP -> COMP: 🎯 Fire CompanyCreated event
+CDS -> CRA: save(company)
+CRA -> CJR: JPA Persist
+CJR -> DB: INSERT INTO companies
+DB --> CJR: ✅ Saved
+CJR --> CRA: Persisted Entity
+CRA --> CDS: Company
+CDS --> CC: CompanyDTO
+CC --> UI: 201 Created + CompanyDTO
+UI --> SR: ✅ Company Created
+
+== 3. Atualizar Empresa ==
+SR -> UI: Edit Company
+UI -> CC: PUT /api/companies/{id}\n{name, website, industry}
+CC -> CDS: updateCompany(id, request)
+CDS -> CRA: findById(id)
+CRA -> DB: SELECT company WHERE id = ?
+DB --> CRA: Company Entity
+CRA --> CDS: Company
+CDS -> COMP: updateProfile(name, website, industry)
+COMP -> COMP: Validate and update fields
+COMP -> COMP: lastUpdatedAt = now()
+CDS -> CRA: save(company)
+CRA -> DB: UPDATE companies SET ...
+DB --> CRA: ✅ Updated
+CRA --> CDS: Updated Company
+CDS --> CC: CompanyDTO
+CC --> UI: 200 OK + CompanyDTO
+UI --> SR: ✅ Company Updated
+
+== 4. Atualizar Score ==
+SR -> UI: Update Score
+UI -> CC: PUT /api/companies/{id}/score\n{value, reason}
+CC -> CDS: updateCompanyScore(id, scoreDTO)
+CDS -> CRA: findById(id)
+CRA --> CDS: Company
+CDS -> SCORE: Score.of(value)
+SCORE -> SCORE: ✅ Validate (0-100)
+CDS -> COMP: updateScore(score, reason)
+COMP -> COMP: Auto-status logic:\nif score ≥ 80 → REVIEWING
+COMP -> COMP: 🎯 Fire CompanyScored event
+CDS -> CRA: save(company)
+CRA -> DB: UPDATE companies
+DB --> CRA: ✅ Updated
+CRA --> CDS: Company
+CDS --> CC: ✅ Score Updated
+CC --> UI: 204 No Content
+UI --> SR: ✅ Score Updated
+
+note right of COMP
+**Business Rules**
+- Companies start with Score=0, Status=NEW
+- High scores (≥80) auto-promote to REVIEWING
+- Website URL is validated on creation/update
+- Contact emails must be unique per company
+end note
+
+@enduml

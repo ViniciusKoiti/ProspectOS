@@ -1,0 +1,53 @@
+@startuml Fluxos Atuais - Visão Geral
+title ProspectOS - Fluxos de Uso Atuais (Estado Atual)
+
+actor Usuario as U
+participant "Frontend/Client" as FE
+participant "API Gateway" as API
+participant "LeadSearchController" as LS
+participant "CompanyController" as CC
+participant "ProspectController" as PC
+participant "ICPController" as IC
+participant "ScraperClient" as SC
+participant "AI Services" as AI
+participant "Database" as DB
+
+note over U, DB: 🔴 **Fluxos Implementados Atualmente**
+
+== 1. Busca de Leads (Lead Flow A) ==
+U -> FE: Query: "fazendeiros PR"
+FE -> API: POST /api/leads/search
+API -> LS: LeadSearchRequest
+LS -> SC: scrapeWebsiteSync()
+SC -> AI: AI Web Search
+AI --> SC: Structured Data
+SC --> LS: ScrapingResponse
+LS -> DB: Save Results
+LS --> API: LeadSearchResponse
+API --> FE: List + Scores
+FE --> U: Exibe resultados
+
+== 2. Gestão de Empresas ==
+U -> FE: Manage Companies
+FE -> API: CRUD Operations
+API -> CC: Company Operations
+CC -> DB: Store/Retrieve
+CC --> API: CompanyDTO
+API --> FE: Company Data
+FE --> U: Company Interface
+
+== 3. Enriquecimento de Prospects ==
+U -> FE: Enrich Company Data
+FE -> API: POST /api/prospect/enrich
+API -> PC: ProspectEnrichRequest
+PC -> AI: enrichCompany()
+AI --> PC: Analysis
+PC --> API: ProspectEnrichResponse
+API --> FE: Enriched Data
+FE --> U: Enhanced Company Info
+
+note right of AI: **AI Services**\n- ScoringAIService\n- OutreachAIService\n- StrategyAIService\n- ProspectorAIService
+
+note right of SC: **Scraper Client**\n- AIWebSearchScraperClient\n- MockScraperClient (test)
+
+@enduml

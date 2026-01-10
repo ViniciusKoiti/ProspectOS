@@ -1,0 +1,110 @@
+@startuml Email Validation - Current Implementation
+title 📧 Email Validation - Estado Atual vs MVP-004 Requirements
+
+box "Current Implementation" #LightGreen
+    participant "Email Value Object" as EMAIL
+    participant "Contact" as CONT
+    participant "Company" as COMP
+end box
+box "MVP-004 Requirements" #LightCoral
+    participant "Enrichment Service" as ES
+    participant "Email Filter" as EF
+    participant "Data Normalizer" as DN
+end box
+
+== Current Email Validation (✅ Implemented) ==
+
+note over EMAIL
+**Email.java - Current Features**
+✅ Syntax validation (regex)
+✅ Domain extraction
+✅ Personal/corporate detection
+✅ Immutable value object
+✅ JPA embeddable
+end note
+
+COMP -> CONT: addContact(contact)
+CONT -> EMAIL: Email.of(emailString)
+EMAIL -> EMAIL: Validate email format:\nPATTERN.matcher(email).matches()
+
+alt Valid Email Format
+    EMAIL -> EMAIL: ✅ Parse email:\n- address = toLowerCase()\n- domain = extract domain\n- localPart = extract local
+    EMAIL -> EMAIL: isPersonalEmail():\nCheck against personal domains
+    EMAIL --> CONT: Valid Email object
+    CONT -> COMP: validateContactUniqueness()
+    COMP -> COMP: ✅ Add to contacts list
+else Invalid Email Format
+    EMAIL -> EMAIL: ❌ throw IllegalArgumentException
+    EMAIL --> CONT: Exception: "Invalid email format"
+end
+
+== MVP-004 Missing Features (❌ TODO) ==
+
+note over ES, DN
+**Required for MVP-004 Completion**
+❌ Enrichment input/output contracts
+❌ Basic field cleanup & mapping
+❌ Email filtering in enrichment flow
+❌ Invalid email flagging/removal
+❌ Data normalization service
+❌ Deterministic enrichment process
+end note
+
+== Proposed Enhancement Flow ==
+
+COMP -> ES: enrichCompanyData(rawData)
+ES -> DN: normalizeCompanyFields(data)
+DN -> DN: Clean & standardize:\n- Company name formatting\n- Industry categorization\n- Location normalization
+DN --> ES: Normalized data
+
+ES -> EF: filterAndValidateEmails(emailList)
+EF -> EMAIL: Validate each email
+EMAIL -> EMAIL: Syntax + domain validation
+
+alt Valid Email
+    EMAIL --> EF: ✅ Valid email object
+else Invalid Email
+    EMAIL --> EF: ❌ Invalid email (flagged)
+end
+
+EF -> EF: Remove/flag invalid emails
+EF --> ES: Filtered email list
+
+ES -> COMP: mapToCompanyEntity(normalizedData)
+COMP -> COMP: Create company with clean data:\n- Validated contacts only\n- Normalized fields\n- Consistent formatting
+
+note right of EF
+**Email Filtering Logic**
+1. Syntax validation
+2. Domain format check
+3. Disposable email detection
+4. Role-based email filtering
+   (noreply@, admin@, etc.)
+5. Duplicate detection
+end note
+
+note left of DN
+**Data Normalization**
+1. Company name standardization
+2. Industry mapping to categories
+3. Location geocoding
+4. Phone number formatting
+5. Website URL normalization
+end note
+
+== Integration Points ==
+
+note over EMAIL, DN
+**Current State Analysis:**
+✅ Email value object is solid foundation
+✅ Contact uniqueness validation works
+✅ Corporate vs personal detection
+
+🔧 **Needs Integration:**
+- Enrichment service with normalization
+- Bulk email validation in enrichment flow
+- Data quality scoring
+- Deterministic field mapping
+end note
+
+@enduml

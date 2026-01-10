@@ -1,0 +1,73 @@
+@startuml Lead Search - Fluxo Detalhado
+title 🔍 Lead Search Flow - Estado Atual Detalhado
+
+actor Usuario as U
+participant "API Client" as AC
+box "Infrastructure Layer" #LightBlue
+    participant "LeadSearchController" as LSC
+    participant "LeadSearchService" as LSS
+    participant "AllowedSourcesCompliance" as ASC
+end box
+box "AI Module" #LightGreen
+    participant "ScraperClient" as SC
+    participant "ChatClient" as CC
+    participant "ProspectorAIService" as PAI
+end box
+box "Core Domain" #LightYellow
+    participant "Company" as COMP
+    participant "Email" as EMAIL
+    participant "Score" as SCORE
+end box
+participant "Database" as DB
+
+== 1. Requisição de Busca ==
+U -> AC: Query: "fazendeiros no Paraná"
+AC -> LSC: POST /api/leads/search\n{query, limit, sources}
+
+== 2. Validação de Fontes ==
+LSC -> ASC: validateSources(request.sources)
+ASC -> ASC: Check allowed sources\n(compliance registry)
+ASC --> LSC: ✅ Sources validated
+
+== 3. Web Scraping / AI Search ==
+LSC -> SC: scrapeWebsiteSync(website, deep=false)
+SC -> CC: AI Web Search Prompt:\n"Find companies: fazendeiros PR"
+CC -> CC: 🧠 LLM Processing
+CC --> SC: Structured JSON Response:\n{companies[], contacts[], signals[]}
+
+== 4. Data Processing ==
+SC --> LSC: ScrapingResponse(success, data, error)
+LSS -> COMP: Create Company entities
+COMP -> EMAIL: Validate email addresses
+EMAIL -> EMAIL: ✅ Email.of(address)\n❌ Invalid emails filtered
+
+== 5. AI Scoring ==
+LSC -> PAI: scoreCompanies(companies)
+PAI -> SCORE: Calculate scores (0-100)
+SCORE -> COMP: Update prospecting scores
+COMP -> COMP: Auto-status update\n(score ≥80 → REVIEWING)
+
+== 6. Persistence & Response ==
+LSC -> DB: Save companies, contacts, scores
+DB --> LSC: ✅ Saved
+LSC --> AC: LeadSearchResponse\n{leads[], status, count}
+AC --> U: Display results with scores
+
+note right of EMAIL
+**Email Validation (MVP-004)**
+✅ Syntax validation
+✅ Domain format check
+✅ Personal/corporate detection
+❌ Real email verification (TODO)
+end note
+
+note right of SCORE
+**Scoring Logic**
+- ICP fit (30%)
+- Interest signals (25%)
+- Company maturity (20%)
+- Timing (15%)
+- Contact quality (10%)
+end note
+
+@enduml

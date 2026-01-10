@@ -1,0 +1,129 @@
+@startuml ICP Management - Ideal Customer Profile Flow
+title 🎯 ICP Management - Ideal Customer Profile Configuration
+
+actor "Sales Manager" as SM
+participant "ICP UI" as UI
+box "API Layer" #LightBlue
+    participant "ICPController" as ICPC
+    participant "ICPDataService" as ICPDS
+end box
+box "Infrastructure" #LightGray
+    participant "ICPRepositoryAdapter" as ICPRA
+    participant "ICPJpaRepository" as ICPJR
+end box
+box "Core Domain" #LightYellow
+    participant "ICP" as ICP
+    participant "Company" as COMP
+end box
+box "AI Matching" #LightGreen
+    participant "ScoringAIService" as SAI
+    participant "ChatClient" as CC
+end box
+participant "Database" as DB
+
+== 1. ICP Configuration ==
+SM -> UI: Configure ICP Criteria
+note right: Define ideal customer characteristics:\n- Industry, size, location\n- Technology preferences\n- Budget ranges, etc.
+
+UI -> ICPC: POST /api/icp\n{industry, size, location, criteria}
+ICPC -> ICPDS: createICP(request)
+ICPDS -> ICP: ICP.create(criteria)
+ICP -> ICP: Validate criteria:\n- Required fields\n- Value ranges\n- Consistency checks
+ICPDS -> ICPRA: save(icp)
+ICPRA -> ICPJR: JPA Persist
+ICPJR -> DB: INSERT INTO icp_profiles
+DB --> ICPJR: ✅ Saved
+ICPJR --> ICPRA: Persisted ICP
+ICPRA --> ICPDS: ICP
+ICPDS --> ICPC: ICPDto
+ICPC --> UI: 201 Created + ICPDto
+UI --> SM: ✅ ICP Created
+
+== 2. Company-ICP Matching ==
+SM -> UI: Evaluate Company Fit
+UI -> ICPC: GET /api/icp/{icpId}/match/{companyId}
+ICPC -> ICPDS: evaluateCompanyFit(icpId, companyId)
+
+ICPDS -> ICPRA: findById(icpId)
+ICPRA -> DB: SELECT icp WHERE id = ?
+DB --> ICPRA: ICP Record
+ICPRA --> ICPDS: ICP
+
+ICPDS -> COMP: findById(companyId)
+COMP --> ICPDS: Company
+
+== 3. AI-Powered Scoring ==
+ICPDS -> SAI: calculateICPFit(icp, company)
+SAI -> CC: ICP Matching Prompt:\n"Evaluate company fit against ICP criteria"
+
+note right of CC
+**ICP Matching Criteria**
+- Industry alignment
+- Company size match
+- Geographic preferences
+- Technology stack compatibility
+- Budget/revenue indicators
+- Growth stage alignment
+end note
+
+CC -> CC: 🧠 LLM Analysis:\n- Compare company against ICP\n- Calculate fit percentage\n- Identify gaps and strengths
+CC --> SAI: Fit Analysis:\n{score, reasoning, gaps[], strengths[]}
+
+SAI -> SAI: Validate score (0-100)
+SAI --> ICPDS: ICPFitResult
+
+== 4. Fit Result Response ==
+ICPDS --> ICPC: ICPFitDto:\n{score, reasoning, recommendations}
+ICPC --> UI: ICP Fit Assessment
+UI --> SM: Display fit analysis:\n- Fit score (0-100%)\n- Strengths vs ICP\n- Improvement areas\n- Recommended actions
+
+== 5. Bulk Company Evaluation ==
+SM -> UI: Evaluate All Companies
+UI -> ICPC: POST /api/icp/{icpId}/evaluate-all
+ICPC -> ICPDS: evaluateAllCompanies(icpId)
+
+ICPDS -> ICPRA: findById(icpId)
+ICPRA --> ICPDS: ICP
+ICPDS -> COMP: findAllCompanies()
+COMP --> ICPDS: List<Company>
+
+loop for each company
+    ICPDS -> SAI: calculateICPFit(icp, company)
+    SAI -> CC: Batch scoring prompt
+    CC --> SAI: Fit score
+    SAI --> ICPDS: Score result
+    ICPDS -> COMP: updateScore(company, icpFitScore)
+end
+
+ICPDS -> DB: Batch update scores
+DB --> ICPDS: ✅ Updated
+
+ICPDS --> ICPC: BulkEvaluationResult:\n{totalEvaluated, avgScore, topMatches[]}
+ICPC --> UI: Bulk evaluation results
+UI --> SM: ✅ All companies scored
+
+== 6. ICP Refinement ==
+SM -> UI: Refine ICP Based on Results
+UI -> ICPC: PUT /api/icp/{icpId}\n{updated criteria}
+ICPC -> ICPDS: updateICP(icpId, updates)
+ICPDS -> ICP: updateCriteria(newCriteria)
+ICP -> ICP: Validate updated criteria
+ICPDS -> ICPRA: save(updatedICP)
+ICPRA -> DB: UPDATE icp_profiles
+DB --> ICPRA: ✅ Updated
+ICPRA --> ICPDS: Updated ICP
+ICPDS --> ICPC: Updated ICPDto
+ICPC --> UI: 200 OK + ICPDto
+UI --> SM: ✅ ICP Updated
+
+note bottom
+**ICP Management Benefits:**
+✅ Consistent evaluation criteria
+✅ AI-powered objective scoring
+✅ Bulk company assessment
+✅ Data-driven prospect prioritization
+✅ Continuous ICP refinement
+✅ Automated fit calculations
+end note
+
+@enduml
