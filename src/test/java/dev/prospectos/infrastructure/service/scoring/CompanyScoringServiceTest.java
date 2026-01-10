@@ -20,6 +20,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -39,46 +40,49 @@ class CompanyScoringServiceTest {
     @BeforeEach
     void setUp() {
         companyScoringService = new CompanyScoringService(
-            scoringAIService,
-            companyDataService,
-            icpDataService
+                scoringAIService,
+                companyDataService,
+                icpDataService
         );
     }
 
     @Test
     void scoreCompany_MapsScoreAndUpdatesCompany() {
+        // Arrange
         CompanyDTO company = new CompanyDTO(
-            1L,
-            "Acme",
-            "Software",
-            "https://acme.com",
-            "Test company",
-            120,
-            "Austin"
+                1L,
+                "Acme",
+                "Software",
+                "https://acme.com",
+                "Test company",
+                120,
+                "Austin"
         );
         ICPDto icp = new ICPDto(
-            1L,
-            "ICP",
-            "Desc",
-            List.of("Software"),
-            List.of("Java"),
-            10,
-            500,
-            List.of("CTO")
+                1L,
+                "ICP",
+                "Desc",
+                List.of("Software"),
+                List.of("Java"),
+                10,
+                500,
+                List.of("CTO")
         );
 
         when(companyDataService.findCompany(1L)).thenReturn(company);
         when(icpDataService.findICP(1L)).thenReturn(icp);
         when(scoringAIService.scoreCompany(any(), any())).thenReturn(new ScoringResult(
-            88,
-            PriorityLevel.HOT,
-            "Strong fit",
-            Map.of("icpFit", 28),
-            "Engage now"
+                88,
+                PriorityLevel.HOT,
+                "Strong fit",
+                Map.of("icpFit", 28),
+                "Engage now"
         ));
 
+        // Act
         ScoreDTO result = companyScoringService.scoreCompany(1L, 1L);
 
+        // Assert
         assertEquals(88, result.value());
         assertEquals("HOT", result.category());
         assertEquals("Strong fit", result.reasoning());
@@ -91,36 +95,43 @@ class CompanyScoringServiceTest {
 
     @Test
     void scoreCompany_ClampsOutOfRangeScore() {
+        // Arrange
         CompanyDTO company = CompanyDTO.createMock();
         ICPDto icp = ICPDto.createMock();
 
         when(companyDataService.findCompany(1L)).thenReturn(company);
         when(icpDataService.findICP(1L)).thenReturn(icp);
         when(scoringAIService.scoreCompany(any(), any())).thenReturn(new ScoringResult(
-            150,
-            PriorityLevel.WARM,
-            "Over limit",
-            Map.of(),
-            "Follow up"
+                150,
+                PriorityLevel.WARM,
+                "Over limit",
+                Map.of(),
+                "Follow up"
         ));
 
+        // Act
         ScoreDTO result = companyScoringService.scoreCompany(1L, 1L);
 
+        // Assert
         assertEquals(100, result.value());
         assertEquals("WARM", result.category());
     }
 
     @Test
     void scoreCompany_UsesFallbackOnFailure() {
+        // Arrange
         CompanyDTO company = CompanyDTO.createMock();
         ICPDto icp = ICPDto.createMock();
 
         when(companyDataService.findCompany(1L)).thenReturn(company);
         when(icpDataService.findICP(1L)).thenReturn(icp);
-        when(scoringAIService.scoreCompany(any(), any())).thenThrow(new RuntimeException("timeout"));
+        when(scoringAIService.scoreCompany(any(), any()))
+                .thenThrow(new RuntimeException("timeout"));
 
+        // Act
         ScoreDTO result = companyScoringService.scoreCompany(1L, 1L);
 
+        // Assert
         assertEquals(0, result.value());
         assertEquals("IGNORE", result.category());
         assertTrue(result.reasoning().contains("timeout"));
@@ -129,9 +140,9 @@ class CompanyScoringServiceTest {
     @Test
     void scoreCompany_RejectsMissingCompany() {
         when(companyDataService.findCompany(1L)).thenReturn(null);
-        when(icpDataService.findICP(1L)).thenReturn(ICPDto.createMock());
 
-        assertThrows(IllegalArgumentException.class, () -> companyScoringService.scoreCompany(1L, 1L));
+        assertThrows(IllegalArgumentException.class,
+                () -> companyScoringService.scoreCompany(1L, 1L));
     }
 
     @Test
@@ -139,6 +150,8 @@ class CompanyScoringServiceTest {
         when(companyDataService.findCompany(1L)).thenReturn(CompanyDTO.createMock());
         when(icpDataService.findICP(1L)).thenReturn(null);
 
-        assertThrows(IllegalArgumentException.class, () -> companyScoringService.scoreCompany(1L, 1L));
+        // Act & Assert
+        assertThrows(IllegalArgumentException.class,
+                () -> companyScoringService.scoreCompany(1L, 1L));
     }
 }
