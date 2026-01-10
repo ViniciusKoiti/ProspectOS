@@ -8,6 +8,7 @@ import dev.prospectos.api.dto.LeadSearchResponse;
 import dev.prospectos.api.dto.LeadSearchStatus;
 import dev.prospectos.api.dto.ScoreDTO;
 import dev.prospectos.api.dto.SourceProvenanceDTO;
+import dev.prospectos.infrastructure.service.compliance.AllowedSourcesComplianceService;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
@@ -27,9 +28,14 @@ public class InMemoryLeadSearchService implements LeadSearchService {
     private static final int DEFAULT_LIMIT = 10;
 
     private final InMemoryCoreDataStore store;
+    private final AllowedSourcesComplianceService complianceService;
 
-    public InMemoryLeadSearchService(InMemoryCoreDataStore store) {
+    public InMemoryLeadSearchService(
+        InMemoryCoreDataStore store,
+        AllowedSourcesComplianceService complianceService
+    ) {
         this.store = store;
+        this.complianceService = complianceService;
     }
 
     @Override
@@ -40,7 +46,8 @@ public class InMemoryLeadSearchService implements LeadSearchService {
 
         int limit = request.limit() == null ? DEFAULT_LIMIT : request.limit();
         String[] tokens = request.query().toLowerCase(Locale.ROOT).split("\\s+");
-        String sourceName = resolveSourceName(request.sources());
+        List<String> requestedSources = complianceService.validateSources(request.sources());
+        String sourceName = resolveSourceName(requestedSources);
 
         List<LeadResultDTO> leads = store.companies().values().stream()
             .filter(company -> matchesQuery(company, tokens))
