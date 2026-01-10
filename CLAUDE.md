@@ -29,7 +29,9 @@ This is a Java Spring Boot application using Spring Modulith for modular archite
 The application uses Spring Modulith to enforce modular boundaries:
 
 - **Core Module** (`dev.prospectos.core`): Contains domain entities and business logic. This module should have zero dependencies on other application modules.
-- **Repository Layer** (`dev.prospectos.core.repository`): Data access layer within the core module.
+- **AI Module** (`dev.prospectos.ai`): AI integration services for scoring, enrichment, and strategy recommendations
+- **Infrastructure Module** (`dev.prospectos.infrastructure`): JPA repositories, web controllers, and external service adapters
+- **API Module** (`dev.prospectos.api`): Service interfaces and DTOs for inter-module communication
 
 ### Key Architectural Principles
 - The core module must remain dependency-free from other application modules (verified by `ModulithTest.coreIsDependent()`)
@@ -40,6 +42,8 @@ The application uses Spring Modulith to enforce modular boundaries:
 - **Java 21** with language toolchain
 - **Spring Boot 3.5.10-SNAPSHOT**
 - **Spring Modulith 1.4.4** for modular architecture
+- **Spring AI 1.0.0-M4** with OpenAI and Anthropic providers
+- **H2 Database** for development
 - **Gradle** for build management
 - **JUnit 5** for testing
 
@@ -47,11 +51,12 @@ The application uses Spring Modulith to enforce modular boundaries:
 
 ### Domain Model (DDD)
 - **Company Aggregate**: Main aggregate root with business logic for prospecting, scoring, and qualification
-- **Value Objects**: 
+- **ICP Aggregate**: Ideal Customer Profile for matching criteria
+- **Value Objects**:
   - `Website`: URL validation and domain extraction
   - `Email`: Email validation with corporate/personal detection
   - `Score`: Prospecting score (0-100) with categorization
-- **Domain Events**: 
+- **Domain Events**:
   - `CompanyCreated`: Fired when new company is added
   - `CompanyScored`: Fired when score is updated
   - `SignalDetected`: Fired when prospecting signals are detected

@@ -1,0 +1,37 @@
+@startuml
+skinparam backgroundColor #FBFAF7
+skinparam componentStyle rectangle
+skinparam shadowing false
+
+package "Web/API" {
+  [LeadSearchController] as LeadSearchController
+}
+
+package "Core" {
+  [Company] as Company
+}
+
+package "API Ports" {
+  [LeadSearchService] as LeadSearchService
+  [SourceProvenanceService] as SourceProvenanceService
+}
+
+package "Infrastructure" {
+  [InMemoryLeadSearchService] as InMemoryLeadSearchService
+  [AllowedSourcesComplianceService] as AllowedSourcesComplianceService
+  [SourceProvenanceServiceJpa] as SourceProvenanceServiceJpa
+  [SourceProvenanceRepository] as SourceProvenanceRepository
+  [SourceProvenance] as SourceProvenance
+}
+
+LeadSearchController --> LeadSearchService
+LeadSearchService <|.. InMemoryLeadSearchService
+InMemoryLeadSearchService --> AllowedSourcesComplianceService
+InMemoryLeadSearchService --> SourceProvenanceService
+SourceProvenanceService <|.. SourceProvenanceServiceJpa
+SourceProvenanceServiceJpa --> SourceProvenanceRepository
+SourceProvenanceRepository --> SourceProvenance
+
+SourceProvenance --> Company : companyExternalId
+
+@enduml

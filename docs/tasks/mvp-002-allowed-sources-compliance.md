@@ -8,7 +8,7 @@ Block disallowed sources and record provenance for every lead.
 - [x] Create compliance service to validate requested sources.
 - [x] Add provenance model (source name, url, timestamp).
 - [x] Map provenance into result DTOs.
-- [ ] Persist provenance with company or a related entity.
+- [x] Persist provenance with company or a related entity.
 - [x] Add unit tests for compliance checks.
 
 ## Acceptance criteria
