@@ -81,7 +81,11 @@ public class CompanyEnrichmentService {
         }
 
         try {
-            return Website.of(websiteUrl.trim());
+            Website website = Website.of(websiteUrl.trim());
+            if (!website.getDomain().contains(".")) {
+                return null;
+            }
+            return website;
         } catch (IllegalArgumentException e) {
             // Invalid website URL - return null
             return null;

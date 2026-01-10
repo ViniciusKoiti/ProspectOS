@@ -76,9 +76,6 @@ public class DataNormalizer {
         // Remove excessive whitespace
         normalized = normalized.replaceAll("\\s+", " ");
 
-        // Remove leading/trailing punctuation
-        normalized = normalized.replaceAll("^[^a-zA-Z0-9]*|[^a-zA-Z0-9]*$", "");
-
         // Limit length to reasonable size (500 chars)
         if (normalized.length() > 500) {
             normalized = normalized.substring(0, 497) + "...";
@@ -103,11 +100,27 @@ public class DataNormalizer {
             return mapped;
         }
 
-        // Check for partial matches
-        for (Map.Entry<String, String> entry : INDUSTRY_MAPPINGS.entrySet()) {
-            if (normalized.contains(entry.getKey())) {
-                return entry.getValue();
-            }
+        // Ordered partial matches to avoid ambiguous classification
+        if (normalized.contains("fintech") || normalized.contains("finance") || normalized.contains("financial")) {
+            return "Financial Services";
+        }
+        if (normalized.contains("healthcare") || normalized.contains("health")) {
+            return "Healthcare";
+        }
+        if (normalized.contains("e-commerce") || normalized.contains("retail")) {
+            return "Retail";
+        }
+        if (normalized.contains("manufacturing")) {
+            return "Manufacturing";
+        }
+        if (normalized.contains("education")) {
+            return "Education";
+        }
+        if (normalized.contains("consulting")) {
+            return "Consulting";
+        }
+        if (normalized.contains("software") || normalized.contains("technology") || normalized.contains("tech") || normalized.contains("it")) {
+            return "Technology";
         }
 
         // Return capitalized version of original
@@ -168,18 +181,49 @@ public class DataNormalizer {
             }
         }
 
-        // Check for keywords
-        if (normalized.contains("startup") || normalized.contains("small")) {
-            return CompanySize.SMALL;
+        // Handle single numbers or plus ranges (e.g., 2000+)
+        if (numbersOnly.endsWith("+")) {
+            String base = numbersOnly.substring(0, numbersOnly.length() - 1);
+            return mapEmployeeCount(base);
         }
-        if (normalized.contains("enterprise") || normalized.contains("large")) {
+        if (!numbersOnly.isEmpty()) {
+            CompanySize byCount = mapEmployeeCount(numbersOnly);
+            if (byCount != null) {
+                return byCount;
+            }
+        }
+
+        // Check for keywords
+        if (normalized.contains("startup")) {
+            return CompanySize.STARTUP;
+        }
+        if (normalized.contains("enterprise")) {
+            return CompanySize.ENTERPRISE;
+        }
+        if (normalized.contains("large")) {
             return CompanySize.LARGE;
         }
         if (normalized.contains("medium")) {
             return CompanySize.MEDIUM;
         }
+        if (normalized.contains("small")) {
+            return CompanySize.SMALL;
+        }
 
         return null; // Unknown size
+    }
+
+    private CompanySize mapEmployeeCount(String countString) {
+        try {
+            int count = Integer.parseInt(countString);
+            if (count <= 10) return CompanySize.STARTUP;
+            if (count <= 50) return CompanySize.SMALL;
+            if (count <= 200) return CompanySize.MEDIUM;
+            if (count <= 1000) return CompanySize.LARGE;
+            return CompanySize.ENTERPRISE;
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     /**
