@@ -12,20 +12,20 @@ import java.util.Map;
 @Component
 public class DataNormalizer {
 
-    private static final Map<String, String> INDUSTRY_MAPPINGS = Map.of(
-        "tech", "Technology",
-        "technology", "Technology",
-        "software", "Technology",
-        "it", "Technology",
-        "finance", "Financial Services",
-        "fintech", "Financial Services",
-        "healthcare", "Healthcare",
-        "health", "Healthcare",
-        "retail", "Retail",
-        "e-commerce", "Retail",
-        "manufacturing", "Manufacturing",
-        "education", "Education",
-        "consulting", "Consulting"
+    private static final Map<String, String> INDUSTRY_MAPPINGS = Map.ofEntries(
+        Map.entry("tech", "Technology"),
+        Map.entry("technology", "Technology"),
+        Map.entry("software", "Technology"),
+        Map.entry("it", "Technology"),
+        Map.entry("finance", "Financial Services"),
+        Map.entry("fintech", "Financial Services"),
+        Map.entry("healthcare", "Healthcare"),
+        Map.entry("health", "Healthcare"),
+        Map.entry("retail", "Retail"),
+        Map.entry("e-commerce", "Retail"),
+        Map.entry("manufacturing", "Manufacturing"),
+        Map.entry("education", "Education"),
+        Map.entry("consulting", "Consulting")
     );
 
     private static final Map<String, CompanySize> SIZE_MAPPINGS = Map.of(
