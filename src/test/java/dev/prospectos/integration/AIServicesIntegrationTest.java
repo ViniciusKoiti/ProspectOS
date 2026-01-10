@@ -66,7 +66,7 @@ class AIServicesIntegrationTest {
         
         assertThatCode(() -> {
             prospectorService.shouldInvestigateCompany(company, icp);
-            prospectorService.enrichCompanyWithAI(company);
+            prospectorService.enrichCompany(company);
             scoringService.scoreCompany(company, icp);
             strategyService.recommendStrategy(company, icp);
             outreachService.generateOutreach(company, icp);
@@ -81,7 +81,7 @@ class AIServicesIntegrationTest {
         boolean investigationResult = prospectorService.shouldInvestigateCompany(company, icp);
         assertThat(investigationResult).isNotNull();
         
-        String enrichmentResult = prospectorService.enrichCompanyWithAI(company);
+        String enrichmentResult = prospectorService.enrichCompany(company);
         assertThat(enrichmentResult).isNotBlank();
         
         var scoringResult = scoringService.scoreCompany(company, icp);

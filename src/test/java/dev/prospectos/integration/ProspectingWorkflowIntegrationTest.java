@@ -60,7 +60,7 @@ class ProspectingWorkflowIntegrationTest {
         boolean shouldInvestigate = prospectorService.shouldInvestigateCompany(company, icp);
         
         if (shouldInvestigate) {
-            String aiAnalysis = prospectorService.enrichCompanyWithAI(company);
+            String aiAnalysis = prospectorService.enrichCompany(company);
             assertThat(aiAnalysis).isNotBlank();
             assertThat(aiAnalysis.length()).isGreaterThan(50);
             
@@ -101,7 +101,7 @@ class ProspectingWorkflowIntegrationTest {
             // Low potential correctly identified
         } else {
             // Continue with workflow to test all components
-            String aiAnalysis = prospectorService.enrichCompanyWithAI(company);
+            String aiAnalysis = prospectorService.enrichCompany(company);
             assertThat(aiAnalysis).isNotBlank();
             
             ScoringResult score = scoringService.scoreCompany(company, icp);
@@ -139,7 +139,7 @@ class ProspectingWorkflowIntegrationTest {
             boolean shouldInvestigate = prospectorService.shouldInvestigateCompany(minimalCompany, icp);
             
             if (shouldInvestigate) {
-                String aiAnalysis = prospectorService.enrichCompanyWithAI(minimalCompany);
+                String aiAnalysis = prospectorService.enrichCompany(minimalCompany);
                 assertThat(aiAnalysis).isNotBlank();
                 
                 ScoringResult score = scoringService.scoreCompany(minimalCompany, icp);
