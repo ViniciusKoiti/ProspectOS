@@ -1,6 +1,6 @@
 package dev.prospectos.ai.function;
 
-import dev.prospectos.ai.client.ScraperClient;
+import dev.prospectos.ai.client.ScraperClientInterface;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,14 +11,15 @@ import java.util.function.Function;
 
 /**
  * Functions that LLMs can call to perform scraping.
+ * Uses ScraperClientInterface to support both AI-powered and mock implementations.
  */
 @Slf4j
 @Configuration
 public class ScrapingFunctions {
-    
-    private final ScraperClient scraperClient;
-    
-    public ScrapingFunctions(ScraperClient scraperClient) {
+
+    private final ScraperClientInterface scraperClient;
+
+    public ScrapingFunctions(ScraperClientInterface scraperClient) {
         this.scraperClient = scraperClient;
     }
     
@@ -36,7 +37,7 @@ public class ScrapingFunctions {
         return request -> {
             log.info("LLM called scrapeWebsite: {}", request.website());
             
-            ScraperClient.ScrapingResponse response = scraperClient.scrapeWebsiteSync(
+            ScraperClientInterface.ScrapingResponse response = scraperClient.scrapeWebsiteSync(
                 request.website(),
                 request.deep()
             );

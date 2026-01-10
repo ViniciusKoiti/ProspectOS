@@ -1,6 +1,6 @@
 package dev.prospectos.ai.function;
 
-import dev.prospectos.ai.client.ScraperClient;
+import dev.prospectos.ai.client.ScraperClientInterface;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,10 +12,10 @@ import java.util.function.Function;
 @Slf4j
 @Configuration
 public class NewsSearchFunctions {
-    
-    private final ScraperClient scraperClient;
-    
-    public NewsSearchFunctions(ScraperClient scraperClient) {
+
+    private final ScraperClientInterface scraperClient;
+
+    public NewsSearchFunctions(ScraperClientInterface scraperClient) {
         this.scraperClient = scraperClient;
     }
     
