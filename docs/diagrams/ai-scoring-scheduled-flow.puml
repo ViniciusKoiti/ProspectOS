@@ -1,0 +1,41 @@
+@startuml AI Scoring - Scheduled Job Flow
+
+title AI Scoring - Scheduled Job (Development Profile)
+
+participant "Scheduler" as SCH
+participant "ScheduledCompanyScoringJob" as JOB
+participant "CompanyDataService" as CDS
+participant "CompanyScoringService" as CSS
+participant "ScoringAIService" as AIS
+participant "AIProvider" as AIP
+participant "CompanyDataService" as CDS2
+
+note over SCH, JOB: Enabled when profile=development
+note over JOB: Controlled by prospectos.scoring.enabled
+note over JOB: Uses prospectos.scoring.icp-id
+
+SCH -> JOB: trigger (cron)
+JOB -> JOB: resolve icp-id
+alt icp-id missing
+  JOB --> SCH: skip run (warn)
+else icp-id present
+  JOB -> CDS: findAllCompanies()
+  alt no companies
+    JOB --> SCH: skip run (info)
+  else companies found
+    loop each company
+      JOB -> CSS: scoreCompany(companyId, icpId)
+      CSS -> CDS: findCompany(companyId)
+      CSS -> CDS: findICP(icpId)
+      CSS -> AIS: scoreCompany(company, icp)
+      AIS -> AIP: calculateScore(prompt)
+      AIP --> AIS: ScoringResult
+      AIS --> CSS: ScoringResult
+      CSS -> CSS: map to ScoreDTO + fallback if needed
+      CSS -> CDS2: updateCompanyScore(companyId, ScoreDTO)
+      CSS --> JOB: done
+    end
+  end
+end
+
+@enduml

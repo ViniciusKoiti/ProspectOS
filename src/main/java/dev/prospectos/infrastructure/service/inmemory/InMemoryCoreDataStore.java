@@ -40,7 +40,7 @@ public class InMemoryCoreDataStore {
         return icpCompanies;
     }
 
-    Map<Long, ScoreDTO> companyScores() {
+    public Map<Long, ScoreDTO> companyScores() {
         return companyScores;
     }
 
