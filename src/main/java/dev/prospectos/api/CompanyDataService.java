@@ -4,6 +4,7 @@ import dev.prospectos.api.dto.CompanyDTO;
 import dev.prospectos.api.dto.ScoreDTO;
 import dev.prospectos.api.dto.request.CompanyCreateRequest;
 import dev.prospectos.api.dto.request.CompanyUpdateRequest;
+import org.springframework.lang.Nullable;
 
 import java.util.List;
 
@@ -12,12 +13,14 @@ import java.util.List;
  */
 public interface CompanyDataService {
 
+    @Nullable
     CompanyDTO findCompany(Long companyId);
 
     List<CompanyDTO> findAllCompanies();
 
     CompanyDTO createCompany(CompanyCreateRequest request);
 
+    @Nullable
     CompanyDTO updateCompany(Long companyId, CompanyUpdateRequest request);
 
     boolean deleteCompany(Long companyId);

@@ -36,9 +36,11 @@ public class CompanyDataServiceJpa implements CompanyDataService {
 
     @Override
     public CompanyDTO findCompany(Long companyId) {
-        return findCompanyByExternalId(companyId)
-            .map(this::toDTO)
-            .orElse(null);
+        Optional<Company> company = findCompanyByExternalId(companyId);
+        if (company.isEmpty()) {
+            return null;
+        }
+        return toDTO(company.get());
     }
 
     @Override

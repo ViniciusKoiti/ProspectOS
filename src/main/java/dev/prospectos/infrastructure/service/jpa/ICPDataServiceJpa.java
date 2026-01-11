@@ -28,9 +28,11 @@ public class ICPDataServiceJpa implements ICPDataService {
 
     @Override
     public ICPDto findICP(Long icpId) {
-        return findICPByExternalId(icpId)
-            .map(this::toDTO)
-            .orElse(null);
+        Optional<ICP> icp = findICPByExternalId(icpId);
+        if (icp.isEmpty()) {
+            return null;
+        }
+        return toDTO(icp.get());
     }
 
     @Override
