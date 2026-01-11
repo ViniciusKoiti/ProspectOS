@@ -1,0 +1,32 @@
+@startuml Lead Search Flow
+
+title Lead Search - Development Profile (Scraper)
+
+actor Usuario as U
+participant "LeadSearchController" as LS
+participant "ScraperLeadSearchService" as SLS
+participant "AllowedSourcesComplianceService" as ACS
+participant "ScraperClientInterface" as SCI
+participant "AIWebSearchScraperClient" as AISC
+participant "CompanyEnrichmentService" as CES
+participant "ScraperDataMapper" as SDM
+participant "CompanyDataService" as CDS
+participant "SourceProvenanceService" as SPS
+
+U -> LS: POST /api/leads/search
+LS -> SLS: searchLeads(request)
+SLS -> ACS: validateSources(request.sources)
+SLS -> SCI: scrapeWebsiteSync(query, false)
+SCI -> AISC: scrapeWebsiteSync()
+AISC --> SCI: ScrapingResponse(data)
+SCI --> SLS: ScrapingResponse(data)
+SLS -> SDM: fromScraperData(data, query)
+SDM --> SLS: EnrichmentRequest
+SLS -> CES: enrichCompanyData(request)
+CES --> SLS: EnrichmentResult
+SLS -> CDS: createCompany(CompanyCreateRequest)
+SLS -> SPS: record(company, SourceProvenanceDTO)
+SLS --> LS: LeadSearchResponse
+LS --> U: JSON response
+
+@enduml
