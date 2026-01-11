@@ -1,0 +1,46 @@
+@startuml Company CRUD Flow
+
+title Company CRUD - API Flow
+
+actor Usuario as U
+participant "CompanyController" as CC
+participant "CompanyDataService" as CDS
+participant "CompanyDataServiceJpa" as CDSJ
+participant "CompanyDomainRepository" as CDR
+
+U -> CC: POST /api/companies
+CC -> CDS: createCompany(request)
+CDS -> CDSJ: createCompany(request)
+CDSJ -> CDR: save(Company)
+CDRJ --> CDSJ: Company
+CDSJ --> CDS: CompanyDTO
+CDS --> CC: CompanyDTO
+CC --> U: 201 Created
+
+U -> CC: GET /api/companies/{id}
+CC -> CDS: findCompany(id)
+CDS -> CDSJ: findCompany(id)
+CDSJ -> CDR: findByExternalId(id)
+CDRJ --> CDSJ: Company
+CDSJ --> CDS: CompanyDTO
+CDS --> CC: CompanyDTO
+CC --> U: 200 OK
+
+U -> CC: PUT /api/companies/{id}
+CC -> CDS: updateCompany(id, request)
+CDS -> CDSJ: updateCompany(id, request)
+CDSJ -> CDR: save(Company)
+CDRJ --> CDSJ: Company
+CDSJ --> CDS: CompanyDTO
+CDS --> CC: CompanyDTO
+CC --> U: 200 OK
+
+U -> CC: DELETE /api/companies/{id}
+CC -> CDS: deleteCompany(id)
+CDS -> CDSJ: deleteCompany(id)
+CDSJ -> CDR: delete(Company)
+CDSJ --> CDS: boolean
+CDS --> CC: boolean
+CC --> U: 204 No Content
+
+@enduml

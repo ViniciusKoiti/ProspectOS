@@ -1,0 +1,52 @@
+@startuml ICP CRUD Flow
+
+title ICP CRUD - API Flow
+
+actor Usuario as U
+participant "ICPController" as IC
+participant "ICPDataService" as IDS
+participant "ICPDataServiceJpa" as IDSJ
+participant "ICPDomainRepository" as IDR
+participant "CompanyDataService" as CDS
+
+U -> IC: POST /api/icps
+IC -> IDS: createICP(request)
+IDS -> IDSJ: createICP(request)
+IDSJ -> IDR: save(ICP)
+IDR --> IDSJ: ICP
+IDSJ --> IDS: ICPDto
+IDS --> IC: ICPDto
+IC --> U: 201 Created
+
+U -> IC: GET /api/icps/{id}
+IC -> IDS: findICP(id)
+IDS -> IDSJ: findICP(id)
+IDSJ -> IDR: findByExternalId(id)
+IDR --> IDSJ: ICP
+IDSJ --> IDS: ICPDto
+IDS --> IC: ICPDto
+IC --> U: 200 OK
+
+U -> IC: PUT /api/icps/{id}
+IC -> IDS: updateICP(id, request)
+IDS -> IDSJ: updateICP(id, request)
+IDSJ -> IDR: save(ICP)
+IDR --> IDSJ: ICP
+IDSJ --> IDS: ICPDto
+IDS --> IC: ICPDto
+IC --> U: 200 OK
+
+U -> IC: DELETE /api/icps/{id}
+IC -> IDS: deleteICP(id)
+IDS -> IDSJ: deleteICP(id)
+IDSJ -> IDR: delete(ICP)
+IDSJ --> IDS: boolean
+IDS --> IC: boolean
+IC --> U: 204 No Content
+
+U -> IC: GET /api/icps/{id}/companies
+IC -> CDS: findCompaniesByICP(id)
+CDS --> IC: List<CompanyDTO>
+IC --> U: 200 OK
+
+@enduml
