@@ -1,97 +1,34 @@
-@startuml Prospect Enrichment - AI Enhancement Flow
-title 🤖 Prospect Enrichment - AI-Powered Data Enhancement
+@startuml Prospect Enrichment Flow
 
-actor "Sales Rep" as SR
-participant "Enrichment UI" as UI
-box "API Layer" #LightBlue
-    participant "ProspectController" as PC
-    participant "ProspectEnrichService" as PES
-end box
-box "AI Module" #LightGreen
-    participant "ProspectorAIService" as PAI
-    participant "ScoringAIService" as SAI
-    participant "StrategyAIService" as STAI
-    participant "ChatClient" as CC
-end box
-box "Core Domain" #LightYellow
-    participant "Company" as COMP
-    participant "Website" as WEB
-    participant "Score" as SCORE
-end box
+title Prospect Enrichment - API Flow
 
-== 1. Requisição de Enriquecimento ==
-SR -> UI: Enrich Company Data
-note right: Input: Company name, website, industry
-UI -> PC: POST /api/prospect/enrich\n{name, website, industry}
+actor Usuario as U
+participant "ProspectController" as PC
+participant "ProspectEnrichmentFacade" as PEF
+participant "ScraperClientInterface" as SCI
+participant "AIWebSearchScraperClient" as AISC
+participant "ScraperDataMapper" as SDM
+participant "CompanyEnrichmentService" as CES
+participant "ContactProcessor" as CP
+participant "ProspectEnrichService" as PES
+participant "ProspectorAIService" as PAS
 
-== 2. Validação e Criação ==
-PC -> PC: Validate request:\n- name not empty\n- website not empty
-PC -> COMP: Company.create(name, Website.of(url), industry)
-COMP -> WEB: Website.of(url)
-WEB -> WEB: ✅ URL validation & parsing
-WEB --> COMP: Valid Website object
-COMP -> COMP: Initialize:\n- Score = 0\n- Status = NEW\n- createdAt = now()
-
-== 3. AI Enrichment ==
-PC -> PES: enrichCompany(company)
-PES -> PAI: Enhanced company analysis
-
-PAI -> CC: AI Prompt:\n"Analyze company: {name}\nWebsite: {url}\nIndustry: {industry}"
-
-note right of CC
-**AI Analysis Prompt**
-- Company background research
-- Technology stack identification
-- Market position analysis
-- Growth signals detection
-- Contact information discovery
-- Competitive landscape
-end note
-
-CC -> CC: 🧠 LLM Processing:\n- Web search for company info\n- Extract structured data\n- Analyze business metrics
-CC --> PAI: Structured Analysis:\n{description, technologies[], signals[], contacts[]}
-
-== 4. AI Scoring (Opcional) ==
-PAI -> SAI: scoreCompany(analysisData)
-SAI -> CC: Scoring prompt with ICP criteria
-CC -> CC: 🧠 Calculate fit score (0-100)
-CC --> SAI: {score, reasoning, breakdown}
-SAI -> SCORE: Score.of(value)
-SCORE --> SAI: Score object
-SAI -> COMP: updateScore(score, reasoning)
-
-== 5. Strategy Recommendation ==
-PAI -> STAI: generateStrategy(company, analysis)
-STAI -> CC: Strategy prompt based on analysis
-CC -> CC: 🧠 Generate personalized approach
-CC --> STAI: Recommended strategy & messaging
-
-== 6. Response Assembly ==
-STAI --> PAI: Strategy recommendations
-PAI --> PES: Complete enrichment analysis
-PES --> PC: Enriched company data
-
-== 7. Response ==
-PC --> UI: ProspectEnrichResponse:\n{name, website, industry, analysis}
-UI --> SR: Display enriched data:\n- Company insights\n- Technology stack\n- Contact suggestions\n- Outreach strategy
-
-note left of SR
-**Enriched Data Includes:**
-✅ Company background & size
-✅ Technology stack used
-✅ Recent news & signals
-✅ Contact information
-✅ Market position
-✅ Recommended approach
-✅ Personalized messaging
-end note
-
-note right of COMP
-**Current State (MVP-004 TODO):**
-❌ No contact normalization
-❌ No email filtering/validation in enrichment
-❌ No duplicate detection
-❌ No data quality scoring
-end note
+U -> PC: POST /api/prospect/enrich
+PC -> PEF: enrich(request)
+PEF -> SCI: scrapeWebsiteSync(website, false)
+SCI -> AISC: scrapeWebsiteSync()
+AISC --> SCI: ScrapingResponse(data)
+SCI --> PEF: ScrapingResponse(data)
+PEF -> SDM: fromScraperData(data, website)
+SDM --> PEF: EnrichmentRequest
+PEF -> CES: enrichCompanyData(request)
+CES --> PEF: EnrichmentResult
+PEF -> CP: processContacts(validatedContacts)
+PEF -> PES: enrichCompany(company)
+PES -> PAS: enrichCompany(company)
+PAS --> PES: analysis text
+PES --> PEF: analysis text
+PEF --> PC: ProspectEnrichResponse
+PC --> U: JSON response
 
 @enduml
