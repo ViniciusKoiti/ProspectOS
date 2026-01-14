@@ -8,9 +8,9 @@ import dev.prospectos.api.ICPDataService;
 import dev.prospectos.api.dto.CompanyDTO;
 import dev.prospectos.api.dto.ICPDto;
 import dev.prospectos.api.dto.ScoreDTO;
+import dev.prospectos.api.mapper.CompanyMapper;
 import dev.prospectos.core.domain.Company;
 import dev.prospectos.core.domain.ICP;
-import dev.prospectos.core.domain.Website;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -52,25 +52,13 @@ public class CompanyScoringService {
             throw new IllegalArgumentException("ICP not found");
         }
 
-        Company company = toDomainCompany(companyDTO);
+        Company company = CompanyMapper.toDomain(companyDTO);
         ICP icp = toDomainICP(icpDTO);
 
         ScoreDTO score = scoreCompanySafely(company, icp);
         companyDataService.updateCompanyScore(companyId, score);
 
         return score;
-    }
-
-    private Company toDomainCompany(CompanyDTO companyDTO) {
-        Company company = Company.create(
-            companyDTO.name(),
-            Website.of(companyDTO.website()),
-            companyDTO.industry()
-        );
-        if (companyDTO.description() != null && !companyDTO.description().isBlank()) {
-            company.setDescription(companyDTO.description().trim());
-        }
-        return company;
     }
 
     private ICP toDomainICP(ICPDto icpDTO) {
