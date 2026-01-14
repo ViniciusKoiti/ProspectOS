@@ -6,7 +6,9 @@
       "Bash(mkdir:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "WebSearch"
+      "WebSearch",
+      "Read(//usr/**)",
+      "Bash(apt list:*)"
     ],
     "deny": [],
     "ask": []
