@@ -14,7 +14,6 @@ import java.util.UUID;
  */
 public interface CompanyDomainRepository {
     
-    // Basic CRUD operations
     Company save(Company company);
     Optional<Company> findById(UUID id);
     void delete(Company company);

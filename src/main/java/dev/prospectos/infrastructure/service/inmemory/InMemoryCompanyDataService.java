@@ -25,8 +25,7 @@ public class InMemoryCompanyDataService implements CompanyDataService {
     }
 
     @Override
-    public CompanyDTO findCompany(Long companyId) {
-        return store.companies().get(companyId);
+    public CompanyDTO findCompany(Long companyId) {return store.companies().get(companyId);
     }
 
     @Override
