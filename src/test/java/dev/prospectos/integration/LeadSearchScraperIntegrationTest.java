@@ -27,12 +27,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
+@SpringBootTest(properties = "spring.profiles.active=test")
 @AutoConfigureMockMvc
-@TestPropertySource(
-    locations = "file:.env",
-    properties = "prospectos.leads.allowed-sources=in-memory,scraper"
-)
+@TestPropertySource(properties = "prospectos.leads.allowed-sources=in-memory,scraper")
 @ActiveProfiles("test")
 class LeadSearchScraperIntegrationTest {
 

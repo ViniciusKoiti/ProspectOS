@@ -9,8 +9,7 @@ import dev.prospectos.ai.factory.AIProviderFactory;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.ActiveProfiles;import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -25,7 +24,7 @@ class AIProvidersIntegrationTest {
     @Test
     void factoryCreatesPrimaryProvider() {
         AIProvider provider = providerFactory.createPrimaryProvider();
-        
+
         assertThat(provider).isNotNull();
         assertThat(provider.getClient()).isNotNull();
         assertThat(provider.getClient().getProvider()).isNotNull();
@@ -35,7 +34,7 @@ class AIProvidersIntegrationTest {
     void factoryCreatesAllProviders() {
         for (LLMProvider providerType : LLMProvider.values()) {
             AIProvider provider = providerFactory.createProvider(providerType);
-            
+
             assertThat(provider).isNotNull();
             assertThat(provider.getClient()).isNotNull();
             assertThat(provider.getClient().getProvider()).isEqualTo(providerType);
@@ -46,9 +45,9 @@ class AIProvidersIntegrationTest {
     void providerHandlesICPFitAnalysis() {
         AIProvider provider = providerFactory.createPrimaryProvider();
         String prompt = "Company: TechCorp, Industry: Software. ICP: DevOps. Fit?";
-        
+
         boolean result = provider.analyzeICPFit(prompt);
-        
+
         assertThat(result).isNotNull();
     }
 
@@ -56,9 +55,9 @@ class AIProvidersIntegrationTest {
     void providerGeneratesScoringResults() {
         AIProvider provider = providerFactory.createPrimaryProvider();
         String prompt = "Score company TechCorp from Software industry for ICP DevOps";
-        
+
         ScoringResult result = provider.calculateScore(prompt, ScoringResult.class);
-        
+
         assertThat(result).isNotNull();
         assertThat(result.score()).isBetween(0, 100);
         assertThat(result.priority()).isNotNull();
@@ -69,9 +68,9 @@ class AIProvidersIntegrationTest {
     void providerGeneratesStrategyRecommendations() {
         AIProvider provider = providerFactory.createPrimaryProvider();
         String prompt = "Strategy for TechCorp from Software industry";
-        
+
         StrategyRecommendation result = provider.generateStrategy(prompt, StrategyRecommendation.class);
-        
+
         assertThat(result).isNotNull();
         assertThat(result.channel()).isIn("email", "linkedin", "phone", "event");
         assertThat(result.targetRole()).isNotBlank();
@@ -85,9 +84,9 @@ class AIProvidersIntegrationTest {
     void providerGeneratesOutreachMessages() {
         AIProvider provider = providerFactory.createPrimaryProvider();
         String prompt = "Outreach for TechCorp about DevOps";
-        
+
         OutreachMessage result = provider.generateOutreach(prompt, OutreachMessage.class);
-        
+
         assertThat(result).isNotNull();
         assertThat(result.subject()).isNotBlank();
         assertThat(result.body()).isNotBlank();
@@ -99,7 +98,7 @@ class AIProvidersIntegrationTest {
     @Test
     void providerHandlesErrorsGracefully() {
         AIProvider provider = providerFactory.createPrimaryProvider();
-        
+
         assertThatCode(() -> {
             provider.analyzeICPFit("");
             provider.analyzeICPFit(null);

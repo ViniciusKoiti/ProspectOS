@@ -9,21 +9,19 @@ import dev.prospectos.api.CompanyDataService;
 import dev.prospectos.api.ICPDataService;
 import dev.prospectos.api.dto.CompanyDTO;
 import dev.prospectos.api.dto.ICPDto;
+import dev.prospectos.api.mapper.CompanyMapper;
 import dev.prospectos.core.domain.Company;
 import dev.prospectos.core.domain.ICP;
-import dev.prospectos.core.domain.Website;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
 
-@SpringBootTest
-@TestPropertySource(locations = "file:.env")
+@SpringBootTest(properties = "spring.profiles.active=test")
 @ActiveProfiles("test")
 class AIServicesIntegrationTest {
 
@@ -63,7 +61,7 @@ class AIServicesIntegrationTest {
     void servicesHandleInputsGracefully() {
         Company company = createCompanyFromSeed();
         ICP icp = createIcpFromSeed();
-        
+
         assertThatCode(() -> {
             prospectorService.shouldInvestigateCompany(company, icp);
             prospectorService.enrichCompany(company);
@@ -77,19 +75,19 @@ class AIServicesIntegrationTest {
     void servicesCommunicateWithProvider() {
         Company company = createCompanyFromSeed();
         ICP icp = createIcpFromSeed();
-        
+
         boolean investigationResult = prospectorService.shouldInvestigateCompany(company, icp);
         assertThat(investigationResult).isNotNull();
-        
+
         String enrichmentResult = prospectorService.enrichCompany(company);
         assertThat(enrichmentResult).isNotBlank();
-        
+
         var scoringResult = scoringService.scoreCompany(company, icp);
         assertThat(scoringResult.score()).isBetween(0, 100);
-        
+
         var strategyResult = strategyService.recommendStrategy(company, icp);
         assertThat(strategyResult.channel()).isNotBlank();
-        
+
         var outreachResult = outreachService.generateOutreach(company, icp);
         assertThat(outreachResult.subject()).isNotBlank();
     }
@@ -98,21 +96,20 @@ class AIServicesIntegrationTest {
     void servicesProvideConsistentResults() {
         Company company = createCompanyFromSeed();
         ICP icp = createIcpFromSeed();
-        
+
         boolean result1 = prospectorService.shouldInvestigateCompany(company, icp);
         boolean result2 = prospectorService.shouldInvestigateCompany(company, icp);
-        
+
         assertThat(result1).isEqualTo(result2);
     }
 
     private Company createCompanyFromSeed() {
         CompanyDTO company = companyDataService.findCompany(1L);
-        assertThat(company).isNotNull();
-        return Company.create(
-            company.name(),
-            Website.of(company.website()),
-            company.industry()
-        );
+        assertThat(company)
+            .withFailMessage("Company with ID 1 should exist in test data store. " +
+                "Make sure InMemoryCompanyDataService is being used with test profile.")
+            .isNotNull();
+        return CompanyMapper.toDomain(company);
     }
 
     private ICP createIcpFromSeed() {
