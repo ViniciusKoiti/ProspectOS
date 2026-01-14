@@ -6,13 +6,13 @@ import dev.prospectos.ai.client.impl.MockLLMClient;
 import dev.prospectos.ai.client.impl.SpringAILLMClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
-import java.util.Optional;
 
 /**
  * Factory for creating LLMClients.
@@ -31,16 +31,16 @@ public class LLMClientFactory {
     @Value("${prospectos.ai.groq.api-key:}")
     private String groqKey;
 
-    private final Optional<ChatClient> chatClient;
-    private final Optional<ChatClient> scoringChatClient;
-    private final Optional<ChatClient> groqChatClient;
-    private final Optional<ChatClient> groqScoringChatClient;
+    private final ObjectProvider<ChatClient> chatClient;
+    private final ObjectProvider<ChatClient> scoringChatClient;
+    private final ObjectProvider<ChatClient> groqChatClient;
+    private final ObjectProvider<ChatClient> groqScoringChatClient;
     private final Environment environment;
     
-    public LLMClientFactory(@Qualifier("optionalChatClient") Optional<ChatClient> chatClient,
-                           @Qualifier("optionalScoringChatClient") Optional<ChatClient> scoringChatClient,
-                           @Qualifier("optionalGroqChatClient") Optional<ChatClient> groqChatClient,
-                           @Qualifier("optionalGroqScoringChatClient") Optional<ChatClient> groqScoringChatClient,
+    public LLMClientFactory(@Qualifier("chatClient") ObjectProvider<ChatClient> chatClient,
+                           @Qualifier("scoringChatClient") ObjectProvider<ChatClient> scoringChatClient,
+                           @Qualifier("groqChatClient") ObjectProvider<ChatClient> groqChatClient,
+                           @Qualifier("groqScoringChatClient") ObjectProvider<ChatClient> groqScoringChatClient,
                            Environment environment) {
         this.chatClient = chatClient;
         this.scoringChatClient = scoringChatClient;
@@ -89,14 +89,13 @@ public class LLMClientFactory {
      * Detects and creates the best available client.
      */
     public LLMClient createBestAvailableClient() {
-        if (isGroqAvailable()) {
-            log.info("Using Groq as primary provider");
-            return createClient(LLMProvider.GROQ, groqChatClient);
-        }
-
         if (isTestEnvironment()) {
             log.info("Test profile detected. Using Mock provider.");
             return createMockClient();
+        }
+        if (isGroqAvailable()) {
+            log.info("Using Groq as primary provider");
+            return createClient(LLMProvider.GROQ, groqChatClient);
         }
         if (isOpenAIAvailable()) {
             log.info("Using OpenAI as primary provider");
@@ -113,6 +112,10 @@ public class LLMClientFactory {
     }
 
     private LLMClient createBestAvailableScoringClient() {
+        if (isTestEnvironment()) {
+            log.info("Test profile detected. Using Mock provider for scoring.");
+            return createMockClient();
+        }
         if (isGroqAvailable()) {
             log.info("Using Groq for scoring");
             return createClient(LLMProvider.GROQ, groqScoringChatClient);
@@ -132,12 +135,13 @@ public class LLMClientFactory {
         return createMockClient();
     }
 
-    private LLMClient createClient(LLMProvider provider, Optional<ChatClient> chatClientOpt) {
+    private LLMClient createClient(LLMProvider provider, ObjectProvider<ChatClient> chatClientProvider) {
         boolean available = isProviderAvailable(provider);
-        
-        if (chatClientOpt.isPresent() && available) {
+
+        ChatClient client = chatClientProvider.getIfAvailable();
+        if (client != null && available) {
             log.debug("Creating {} client - available", provider.getDisplayName());
-            return new SpringAILLMClient(chatClientOpt.get(), provider, true);
+            return new SpringAILLMClient(client, provider, true);
         } else {
             log.debug("Creating {} client - mock (test env or not available)", provider.getDisplayName());
             // In tests, create SpringAILLMClient with mock behavior but keep the correct provider

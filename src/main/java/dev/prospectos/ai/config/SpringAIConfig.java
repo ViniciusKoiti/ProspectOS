@@ -2,6 +2,7 @@ package dev.prospectos.ai.config;
 
 import dev.prospectos.ai.client.AIProvider;
 import dev.prospectos.ai.factory.AIProviderFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -9,21 +10,21 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.beans.factory.annotation.Qualifier;
 
-import java.util.Optional;
-
 /**
  * Main configuration for the AI module.
  * Uses the Strategy pattern with factories.
  */
 @Configuration
+@Slf4j
 public class SpringAIConfig {
     
     /**
      * Primary ChatClient with default system prompt (optional).
      */
     @Bean
-    @ConditionalOnBean(ChatModel.class)
-    public ChatClient chatClient(ChatModel chatModel) {
+    @ConditionalOnBean(name = "primaryChatModel")
+    public ChatClient chatClient(@Qualifier("primaryChatModel") ChatModel chatModel) {
+        log.info("Creating default ChatClient (primary ChatModel present).");
         return buildDefaultChatClient(chatModel);
     }
     
@@ -31,20 +32,23 @@ public class SpringAIConfig {
      * Specialized ChatClient for scoring (optional).
      */
     @Bean("scoringChatClient")
-    @ConditionalOnBean(ChatModel.class)
-    public ChatClient scoringChatClient(ChatModel chatModel) {
+    @ConditionalOnBean(name = "primaryChatModel")
+    public ChatClient scoringChatClient(@Qualifier("primaryChatModel") ChatModel chatModel) {
+        log.info("Creating scoring ChatClient (primary ChatModel present).");
         return buildScoringChatClient(chatModel);
     }
 
     @Bean("groqChatClient")
     @ConditionalOnBean(name = "groqChatModel")
     public ChatClient groqChatClient(@Qualifier("groqChatModel") ChatModel chatModel) {
+        log.info("Creating Groq ChatClient.");
         return buildDefaultChatClient(chatModel);
     }
 
     @Bean("groqScoringChatClient")
     @ConditionalOnBean(name = "groqChatModel")
     public ChatClient groqScoringChatClient(@Qualifier("groqChatModel") ChatModel chatModel) {
+        log.info("Creating Groq scoring ChatClient.");
         return buildScoringChatClient(chatModel);
     }
     
@@ -55,34 +59,6 @@ public class SpringAIConfig {
     @Bean
     public AIProvider aiProvider(AIProviderFactory factory) {
         return factory.createPrimaryProvider();
-    }
-    
-    /**
-     * Exposes Optional<ChatClient> for the factory.
-     */
-    @Bean
-    public Optional<ChatClient> optionalChatClient(Optional<ChatClient> chatClient) {
-        return chatClient;
-    }
-    
-    /**
-     * Exposes scoring Optional<ChatClient> for the factory.
-     */
-    @Bean("optionalScoringChatClient")
-    public Optional<ChatClient> optionalScoringChatClient(Optional<ChatClient> scoringChatClient) {
-        return scoringChatClient;
-    }
-
-    @Bean("optionalGroqChatClient")
-    public Optional<ChatClient> optionalGroqChatClient(@Qualifier("groqChatClient") Optional<ChatClient> groqChatClient) {
-        return groqChatClient;
-    }
-
-    @Bean("optionalGroqScoringChatClient")
-    public Optional<ChatClient> optionalGroqScoringChatClient(
-        @Qualifier("groqScoringChatClient") Optional<ChatClient> groqScoringChatClient
-    ) {
-        return groqScoringChatClient;
     }
 
     private ChatClient buildDefaultChatClient(ChatModel chatModel) {

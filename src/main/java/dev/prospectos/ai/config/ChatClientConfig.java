@@ -1,5 +1,6 @@
 package dev.prospectos.ai.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -12,7 +13,8 @@ import org.springframework.context.annotation.Profile;
 import java.util.Optional;
 
 @Configuration
-@Profile("!mock & !test")
+@Profile("!mock")
+@Slf4j
 public class ChatClientConfig {
     
     @Value("${spring.ai.openai.api-key:}")
@@ -34,15 +36,26 @@ public class ChatClientConfig {
         @Qualifier("groqChatModel") @Autowired(required = false) ChatModel groqChatModel,
         @Qualifier("anthropicChatModel") @Autowired(required = false) ChatModel anthropicChatModel
     ) {
+        log.info("Selecting primary ChatModel. OpenAI key set: {}, Groq key set: {}, Anthropic key set: {}",
+            isValidApiKey(openaiKey),
+            isValidApiKey(groqKey),
+            isValidApiKey(anthropicKey));
+        log.info("ChatModel beans present. OpenAI: {}, Groq: {}, Anthropic: {}",
+            openAiChatModel != null,
+            groqChatModel != null,
+            anthropicChatModel != null);
         if (isValidApiKey(openaiKey) && openAiChatModel != null) {
+            log.info("Using OpenAI ChatModel as primary.");
             return openAiChatModel;
         }
 
         if (isValidApiKey(groqKey) && groqChatModel != null) {
+            log.info("Using Groq ChatModel as primary.");
             return groqChatModel;
         }
 
         if (isValidApiKey(anthropicKey) && anthropicChatModel != null) {
+            log.info("Using Anthropic ChatModel as primary.");
             return anthropicChatModel;
         }
         

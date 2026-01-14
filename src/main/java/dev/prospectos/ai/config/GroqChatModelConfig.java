@@ -1,5 +1,6 @@
 package dev.prospectos.ai.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
@@ -10,6 +11,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@Slf4j
 public class GroqChatModelConfig {
 
     @Value("${prospectos.ai.groq.api-key:}")
@@ -24,6 +26,7 @@ public class GroqChatModelConfig {
     @Bean("groqChatModel")
     @ConditionalOnProperty(name = "prospectos.ai.groq.api-key")
     public ChatModel groqChatModel() {
+        log.info("Groq base URL: {}", groqBaseUrl);
         OpenAiApi openAiApi = new OpenAiApi(groqApiKey, groqBaseUrl);
         OpenAiChatOptions options = OpenAiChatOptions.builder()
             .withModel(groqModel)
