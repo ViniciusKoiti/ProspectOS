@@ -7,6 +7,7 @@ import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.core.Ordered;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
+import org.springframework.core.env.Profiles;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -18,15 +19,25 @@ public class DotenvEnvironmentPostProcessor implements EnvironmentPostProcessor,
 
     @Override
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
+        if (environment.acceptsProfiles(Profiles.of("test"))) {
+            return;
+        }
+
         Dotenv dotenv = Dotenv.configure()
                 .ignoreIfMissing()
                 .load();
 
         Map<String, Object> props = new HashMap<>();
         for (Map.Entry<String, String> mapping : ENV_TO_PROPERTY.entrySet()) {
+            String propertyKey = mapping.getValue();
+            if ("spring.profiles.active".equals(propertyKey)
+                && environment.getProperty("spring.profiles.active") != null) {
+                continue;
+            }
+
             String value = dotenv.get(mapping.getKey(), null);
             if (value != null && !value.isBlank()) {
-                props.putIfAbsent(mapping.getValue(), value);
+                props.putIfAbsent(propertyKey, value);
             }
         }
 
@@ -48,8 +59,13 @@ public class DotenvEnvironmentPostProcessor implements EnvironmentPostProcessor,
         mappings.put("SPRING_AI_OPENAI_CHAT_MODEL", "spring.ai.openai.chat.model");
         mappings.put("SPRING_AI_OPENAI_CHAT_OPTIONS_TEMPERATURE", "spring.ai.openai.chat.options.temperature");
         mappings.put("SPRING_AI_OPENAI_CHAT_OPTIONS_MAX_TOKENS", "spring.ai.openai.chat.options.max-tokens");
+        mappings.put("SPRING_AI_OPENAI_ENABLED", "spring.ai.openai.enabled");
         mappings.put("SPRING_AI_ANTHROPIC_API_KEY", "spring.ai.anthropic.api-key");
         mappings.put("SPRING_AI_ANTHROPIC_CLAUDE_MODEL", "spring.ai.anthropic.claude.model");
+        mappings.put("SPRING_AI_ANTHROPIC_ENABLED", "spring.ai.anthropic.enabled");
+        mappings.put("PROSPECTOS_AI_GROQ_API_KEY", "prospectos.ai.groq.api-key");
+        mappings.put("PROSPECTOS_AI_GROQ_BASE_URL", "prospectos.ai.groq.base-url");
+        mappings.put("PROSPECTOS_AI_GROQ_MODEL", "prospectos.ai.groq.model");
 
         // Backwards-compatible keys
         mappings.put("OPENAI_API_KEY", "spring.ai.openai.api-key");
