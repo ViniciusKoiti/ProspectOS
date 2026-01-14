@@ -1,6 +1,7 @@
 package dev.prospectos.infrastructure.service.leads;
 
 import dev.prospectos.ai.client.ScraperClientInterface;
+import dev.prospectos.ai.client.ScrapingResponse;
 import dev.prospectos.api.CompanyDataService;
 import dev.prospectos.api.LeadSearchService;
 import dev.prospectos.api.SourceProvenanceService;
@@ -59,9 +60,9 @@ public class ScraperLeadSearchService implements LeadSearchService {
         int limit = request.limit() == null ? DEFAULT_LIMIT : request.limit();
         List<String> requestedSources = complianceService.validateSources(request.sources());
         String sourceName = resolveSourceName(requestedSources);
-        String query = request.query().trim();
+        String query = normalizeWebsiteOrQuery(request.query());
 
-        ScraperClientInterface.ScrapingResponse response = scraperClient.scrapeWebsiteSync(query, false);
+        ScrapingResponse response = scraperClient.scrapeWebsiteSync(query, false);
         if (!response.success() || response.data() == null) {
             return new LeadSearchResponse(
                 LeadSearchStatus.FAILED,
@@ -151,5 +152,22 @@ public class ScraperLeadSearchService implements LeadSearchService {
             return "scraper";
         }
         return sources.get(0);
+    }
+
+    private String normalizeWebsiteOrQuery(String value) {
+        if (value == null) {
+            return "";
+        }
+        String trimmed = value.trim();
+        if (trimmed.isEmpty()) {
+            return trimmed;
+        }
+        if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+            return trimmed;
+        }
+        if (trimmed.contains(" ")) {
+            return trimmed;
+        }
+        return "https://" + trimmed;
     }
 }

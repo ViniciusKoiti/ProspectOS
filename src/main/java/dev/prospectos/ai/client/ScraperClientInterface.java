@@ -23,20 +23,4 @@ public interface ScraperClientInterface {
      * @return news response with recent articles
      */
     NewsResponse searchNews(String companyName, int daysBack);
-
-    /**
-     * Response from website scraping operation.
-     */
-    record ScrapingResponse(
-        boolean success,
-        java.util.Map<String, Object> data,
-        String error
-    ) {}
-
-    /**
-     * Response from news search operation.
-     */
-    record NewsResponse(
-        java.util.List<String> news
-    ) {}
 }

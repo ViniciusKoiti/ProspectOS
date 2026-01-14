@@ -1,6 +1,8 @@
 package dev.prospectos.ai.example;
 
+import dev.prospectos.ai.client.NewsResponse;
 import dev.prospectos.ai.client.ScraperClientInterface;
+import dev.prospectos.ai.client.ScrapingResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -42,7 +44,7 @@ public class ScraperExample implements CommandLineRunner {
 
         log.info("Scraping website: {} (deep: {})", website, deepSearch);
 
-        ScraperClientInterface.ScrapingResponse response = scraperClient.scrapeWebsiteSync(website, deepSearch);
+        ScrapingResponse response = scraperClient.scrapeWebsiteSync(website, deepSearch);
 
         if (response.success()) {
             log.info("✅ Scraping successful!");
@@ -75,7 +77,7 @@ public class ScraperExample implements CommandLineRunner {
 
         log.info("Searching news for company: {} (last {} days)", companyName, daysBack);
 
-        ScraperClientInterface.NewsResponse response = scraperClient.searchNews(companyName, daysBack);
+        NewsResponse response = scraperClient.searchNews(companyName, daysBack);
 
         log.info("📰 Found {} news items:", response.news().size());
         for (int i = 0; i < Math.min(3, response.news().size()); i++) {

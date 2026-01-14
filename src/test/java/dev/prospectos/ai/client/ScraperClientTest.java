@@ -26,7 +26,7 @@ class ScraperClientTest {
 
     @Test
     void shouldScrapeWebsiteSuccessfully() {
-        ScraperClientInterface.ScrapingResponse response = scraperClient.scrapeWebsiteSync("https://example.com", false);
+        ScrapingResponse response = scraperClient.scrapeWebsiteSync("https://example.com", false);
 
         assertThat(response.success()).isTrue();
         assertThat(response.data()).isNotNull();
@@ -37,7 +37,7 @@ class ScraperClientTest {
 
     @Test
     void shouldSearchNewsSuccessfully() {
-        ScraperClientInterface.NewsResponse response = scraperClient.searchNews("Test Company", 30);
+        NewsResponse response = scraperClient.searchNews("Test Company", 30);
 
         assertThat(response.news()).isNotNull();
         assertThat(response.news()).isNotEmpty();

@@ -1,6 +1,7 @@
 package dev.prospectos.ai.function;
 
 import dev.prospectos.ai.client.ScraperClientInterface;
+import dev.prospectos.ai.client.ScrapingResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,7 +38,7 @@ public class ScrapingFunctions {
         return request -> {
             log.info("LLM called scrapeWebsite: {}", request.website());
             
-            ScraperClientInterface.ScrapingResponse response = scraperClient.scrapeWebsiteSync(
+            ScrapingResponse response = scraperClient.scrapeWebsiteSync(
                 request.website(),
                 request.deep()
             );
