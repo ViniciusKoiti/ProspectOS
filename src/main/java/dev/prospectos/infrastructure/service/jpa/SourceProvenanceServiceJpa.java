@@ -3,7 +3,7 @@ package dev.prospectos.infrastructure.service.jpa;
 import dev.prospectos.api.SourceProvenanceService;
 import dev.prospectos.api.dto.CompanyDTO;
 import dev.prospectos.api.dto.SourceProvenanceDTO;
-import dev.prospectos.infrastructure.jpa.SourceProvenance;
+import dev.prospectos.infrastructure.api.companies.SourceProvenance;
 import dev.prospectos.infrastructure.jpa.SourceProvenanceRepository;
 import org.springframework.stereotype.Service;
 

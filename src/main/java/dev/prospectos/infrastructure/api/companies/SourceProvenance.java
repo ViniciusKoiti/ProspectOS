@@ -1,4 +1,4 @@
-package dev.prospectos.infrastructure.jpa;
+package dev.prospectos.infrastructure.api.companies;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

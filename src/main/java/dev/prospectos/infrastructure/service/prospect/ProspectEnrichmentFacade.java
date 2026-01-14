@@ -4,6 +4,7 @@ import dev.prospectos.api.ProspectEnrichService;
 import dev.prospectos.api.dto.ProspectEnrichRequest;
 import dev.prospectos.api.dto.ProspectEnrichResponse;
 import dev.prospectos.ai.client.ScraperClientInterface;
+import dev.prospectos.ai.client.ScrapingResponse;
 import dev.prospectos.core.domain.Company;
 import dev.prospectos.core.domain.Website;
 import dev.prospectos.core.enrichment.CompanyEnrichmentService;
@@ -39,7 +40,7 @@ public class ProspectEnrichmentFacade {
         }
 
         String name = request.name() != null ? request.name().trim() : "";
-        String website = request.website() != null ? request.website().trim() : "";
+        String website = normalizeWebsite(request.website());
 
         if (name.isEmpty() || website.isEmpty()) {
             throw new IllegalArgumentException("Name and website are required");
@@ -48,7 +49,7 @@ public class ProspectEnrichmentFacade {
         String industry = request.industry() != null ? request.industry().trim() : null;
 
         EnrichmentResult enrichmentResult = null;
-        ScraperClientInterface.ScrapingResponse response = scraperClient.scrapeWebsiteSync(website, false);
+        ScrapingResponse response = scraperClient.scrapeWebsiteSync(website, false);
         if (response.success() && response.data() != null) {
             EnrichmentRequest enrichmentRequest = ScraperDataMapper.fromScraperData(response.data(), website);
             enrichmentRequest = mergeWithRequest(enrichmentRequest, name, industry);
@@ -135,5 +136,19 @@ public class ProspectEnrichmentFacade {
             return fallback.trim();
         }
         return null;
+    }
+
+    private String normalizeWebsite(String value) {
+        if (value == null) {
+            return "";
+        }
+        String trimmed = value.trim();
+        if (trimmed.isEmpty()) {
+            return trimmed;
+        }
+        if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+            return trimmed;
+        }
+        return "https://" + trimmed;
     }
 }

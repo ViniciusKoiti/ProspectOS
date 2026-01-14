@@ -1,5 +1,6 @@
 package dev.prospectos.infrastructure.jpa;
 
+import dev.prospectos.infrastructure.api.companies.SourceProvenance;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
