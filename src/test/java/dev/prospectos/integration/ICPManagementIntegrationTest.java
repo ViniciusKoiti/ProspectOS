@@ -40,7 +40,10 @@ class ICPManagementIntegrationTest {
             List.of("Software", "SaaS"),
             List.of("LATAM"),
             List.of("CTO", "Head of Growth"),
-            "Growth signals"
+            "Growth signals",
+            List.of(),
+            null,
+            null
         );
 
         String createResponse = mockMvc.perform(post("/api/icps")
@@ -66,7 +69,10 @@ class ICPManagementIntegrationTest {
             List.of("Technology"),
             List.of("Global"),
             List.of("VP Sales"),
-            "Updated theme"
+            "Updated theme",
+            List.of(),
+            null,
+            null
         );
 
         mockMvc.perform(put("/api/icps/{icpId}", icpId)

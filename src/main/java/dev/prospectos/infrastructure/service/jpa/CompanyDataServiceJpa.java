@@ -163,9 +163,10 @@ public class CompanyDataServiceJpa implements CompanyDataService {
     private CompanyDTO toDTO(Company company) {
         ScoreDTO scoreDTO = null;
         if (company.getProspectingScore() != null) {
+            Score score = company.getProspectingScore();
             scoreDTO = new ScoreDTO(
-                company.getProspectingScore().getValue(),
-                company.getProspectingScore().getPriority().name(),
+                score.getValue().intValue(),
+                toPriority(score),
                 "Score from database"
             );
         }
@@ -180,6 +181,17 @@ public class CompanyDataServiceJpa implements CompanyDataService {
             company.getLocation(),
             scoreDTO
         );
+    }
+
+    private String toPriority(Score score) {
+        if (score == null) {
+            return "COLD";
+        }
+        return switch (score.getCategory()) {
+            case HIGH -> "HOT";
+            case MEDIUM -> "WARM";
+            case LOW, VERY_LOW -> "COLD";
+        };
     }
 
     private Company.CompanySize parseCompanySize(String size) {

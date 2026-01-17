@@ -56,17 +56,20 @@ class CompanyScoringServiceTest {
                 "https://acme.com",
                 "Test company",
                 120,
-                "Austin"
+                "Austin",
+                null
         );
         ICPDto icp = new ICPDto(
                 1L,
                 "ICP",
                 "Desc",
                 List.of("Software"),
+                List.of("LATAM"),
                 List.of("Java"),
                 10,
                 500,
-                List.of("CTO")
+                List.of("CTO"),
+                "Growth signals"
         );
 
         when(companyDataService.findCompany(1L)).thenReturn(company);

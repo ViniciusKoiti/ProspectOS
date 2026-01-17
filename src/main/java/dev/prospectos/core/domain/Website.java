@@ -61,7 +61,13 @@ public final class Website {
             if (host == null) {
                 throw new IllegalArgumentException("Cannot extract domain from URL: " + url);
             }
-            return host.toLowerCase();
+
+            String normalizedHost = host.toLowerCase();
+            if (normalizedHost.startsWith("www.")) {
+                normalizedHost = normalizedHost.substring(4);
+            }
+
+            return normalizedHost;
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException("Invalid URL for domain extraction: " + url, e);
         }
