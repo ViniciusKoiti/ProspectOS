@@ -1,0 +1,33 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "filesystem": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/mnt/d/Cursos/VectorSeek",
+        "/mnt/d/Cursos/VectorSeekFrontend",
+        "/mnt/d/Cursos/alurafake-main",
+        "/mnt/d/Cursos/prospectos"
+      ],
+      "environment": {},
+      "enabled": true
+    },
+    "git": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-git",
+        "/mnt/d/Cursos/VectorSeek",
+        "/mnt/d/Cursos/VectorSeekFrontend",
+        "/mnt/d/Cursos/alurafake-main",
+        "/mnt/d/Cursos/prospectos"
+      ],
+      "environment": {},
+      "enabled": true
+    },
+  }
+}
