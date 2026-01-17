@@ -1,15 +1,23 @@
 package dev.prospectos.infrastructure.service.inmemory;
 
+import dev.prospectos.api.ICPDataService;
 import dev.prospectos.api.LeadSearchService;
+import dev.prospectos.api.dto.CompanyCandidateDTO;
 import dev.prospectos.api.dto.CompanyDTO;
+import dev.prospectos.api.dto.ICPDto;
 import dev.prospectos.api.dto.LeadResultDTO;
 import dev.prospectos.api.dto.LeadSearchRequest;
 import dev.prospectos.api.dto.LeadSearchResponse;
 import dev.prospectos.api.dto.LeadSearchStatus;
 import dev.prospectos.api.dto.ScoreDTO;
 import dev.prospectos.api.dto.SourceProvenanceDTO;
-import dev.prospectos.api.SourceProvenanceService;
+import dev.prospectos.api.mapper.CompanyMapper;
+import dev.prospectos.core.domain.Company;
+import dev.prospectos.core.domain.ICP;
+import dev.prospectos.core.util.LeadKeyGenerator;
+import dev.prospectos.infrastructure.config.LeadSearchProperties;
 import dev.prospectos.infrastructure.service.compliance.AllowedSourcesComplianceService;
+import dev.prospectos.infrastructure.service.scoring.CompanyScoringService;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
@@ -29,17 +37,23 @@ public class InMemoryLeadSearchService implements LeadSearchService {
     private static final int DEFAULT_LIMIT = 10;
 
     private final InMemoryCoreDataStore store;
+    private final ICPDataService icpDataService;
+    private final CompanyScoringService scoringService;
     private final AllowedSourcesComplianceService complianceService;
-    private final SourceProvenanceService sourceProvenanceService;
+    private final LeadSearchProperties properties;
 
     public InMemoryLeadSearchService(
         InMemoryCoreDataStore store,
+        ICPDataService icpDataService,
+        CompanyScoringService scoringService,
         AllowedSourcesComplianceService complianceService,
-        SourceProvenanceService sourceProvenanceService
+        LeadSearchProperties properties
     ) {
         this.store = store;
+        this.icpDataService = icpDataService;
+        this.scoringService = scoringService;
         this.complianceService = complianceService;
-        this.sourceProvenanceService = sourceProvenanceService;
+        this.properties = properties;
     }
 
     @Override
@@ -53,13 +67,18 @@ public class InMemoryLeadSearchService implements LeadSearchService {
         List<String> requestedSources = complianceService.validateSources(request.sources());
         String sourceName = resolveSourceName(requestedSources);
 
+        Long icpId = resolveIcpId(request.icpId());
+        ICPDto icpDto = icpDataService.findICP(icpId);
+        if (icpDto == null) {
+            throw new IllegalArgumentException("ICP not found with id: " + icpId);
+        }
+        ICP icp = toDomainICP(icpDto);
+
         List<LeadResultDTO> leads = store.companies().values().stream()
             .filter(company -> matchesQuery(company, tokens))
             .limit(limit)
-            .map(company -> toLeadResult(company, sourceName))
+            .map(company -> toLeadResult(company, sourceName, icp))
             .toList();
-
-        leads.forEach(result -> sourceProvenanceService.record(result.company(), result.source()));
 
         return new LeadSearchResponse(
             LeadSearchStatus.COMPLETED,
@@ -85,14 +104,50 @@ public class InMemoryLeadSearchService implements LeadSearchService {
         return false;
     }
 
-    private LeadResultDTO toLeadResult(CompanyDTO company, String sourceName) {
-        ScoreDTO score = store.companyScores().get(company.id());
+    private LeadResultDTO toLeadResult(CompanyDTO companyDTO, String sourceName, ICP icp) {
+        Company company = CompanyMapper.toDomain(companyDTO);
+        ScoreDTO score = scoringService.scoreCandidate(company, icp);
+
+        CompanyCandidateDTO candidate = new CompanyCandidateDTO(
+            companyDTO.name(),
+            companyDTO.website(),
+            companyDTO.industry(),
+            companyDTO.description(),
+            companyDTO.size(),
+            companyDTO.location(),
+            List.of() // in-memory doesn't have contact data
+        );
+
+        String leadKey = LeadKeyGenerator.generate(companyDTO.website(), sourceName);
+
         SourceProvenanceDTO provenance = new SourceProvenanceDTO(
             sourceName,
-            company.website(),
+            companyDTO.website(),
             Instant.now()
         );
-        return new LeadResultDTO(company, score, provenance);
+
+        return new LeadResultDTO(candidate, score, provenance, leadKey);
+    }
+
+    private Long resolveIcpId(Long requestIcpId) {
+        if (requestIcpId != null) {
+            return requestIcpId;
+        }
+        if (properties.getDefaultIcpId() == null) {
+            throw new IllegalArgumentException("ICP ID is required. Provide icpId in request or configure prospectos.leads.default-icp-id");
+        }
+        return properties.getDefaultIcpId();
+    }
+
+    private ICP toDomainICP(ICPDto icpDTO) {
+        return ICP.create(
+            icpDTO.name(),
+            icpDTO.description(),
+            icpDTO.targetIndustries() != null ? icpDTO.targetIndustries() : List.of(),
+            icpDTO.regions() != null ? icpDTO.regions() : List.of(),
+            icpDTO.targetRoles() != null ? icpDTO.targetRoles() : List.of(),
+            icpDTO.interestTheme()
+        );
     }
 
     private String resolveSourceName(List<String> sources) {

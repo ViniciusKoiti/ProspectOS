@@ -2,28 +2,35 @@ package dev.prospectos.infrastructure.service.leads;
 
 import dev.prospectos.ai.client.ScraperClientInterface;
 import dev.prospectos.ai.client.ScrapingResponse;
-import dev.prospectos.api.CompanyDataService;
+import dev.prospectos.api.ICPDataService;
 import dev.prospectos.api.LeadSearchService;
-import dev.prospectos.api.SourceProvenanceService;
-import dev.prospectos.api.dto.CompanyDTO;
+import dev.prospectos.api.dto.CompanyCandidateDTO;
+import dev.prospectos.api.dto.ICPDto;
 import dev.prospectos.api.dto.LeadResultDTO;
 import dev.prospectos.api.dto.LeadSearchRequest;
 import dev.prospectos.api.dto.LeadSearchResponse;
 import dev.prospectos.api.dto.LeadSearchStatus;
+import dev.prospectos.api.dto.ScoreDTO;
 import dev.prospectos.api.dto.SourceProvenanceDTO;
-import dev.prospectos.api.dto.request.CompanyCreateRequest;
+import dev.prospectos.core.domain.Company;
+import dev.prospectos.core.domain.CompanySize;
+import dev.prospectos.core.domain.ICP;
 import dev.prospectos.core.domain.Website;
 import dev.prospectos.core.enrichment.CompanyEnrichmentService;
 import dev.prospectos.core.enrichment.EnrichmentRequest;
 import dev.prospectos.core.enrichment.EnrichmentResult;
 import dev.prospectos.core.enrichment.ScraperDataMapper;
+import dev.prospectos.core.util.LeadKeyGenerator;
+import dev.prospectos.infrastructure.config.LeadSearchProperties;
 import dev.prospectos.infrastructure.service.compliance.AllowedSourcesComplianceService;
+import dev.prospectos.infrastructure.service.scoring.CompanyScoringService;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @Profile("development")
@@ -33,22 +40,25 @@ public class ScraperLeadSearchService implements LeadSearchService {
 
     private final ScraperClientInterface scraperClient;
     private final CompanyEnrichmentService enrichmentService;
-    private final CompanyDataService companyDataService;
-    private final SourceProvenanceService sourceProvenanceService;
+    private final ICPDataService icpDataService;
+    private final CompanyScoringService scoringService;
     private final AllowedSourcesComplianceService complianceService;
+    private final LeadSearchProperties properties;
 
     public ScraperLeadSearchService(
         ScraperClientInterface scraperClient,
         CompanyEnrichmentService enrichmentService,
-        CompanyDataService companyDataService,
-        SourceProvenanceService sourceProvenanceService,
-        AllowedSourcesComplianceService complianceService
+        ICPDataService icpDataService,
+        CompanyScoringService scoringService,
+        AllowedSourcesComplianceService complianceService,
+        LeadSearchProperties properties
     ) {
         this.scraperClient = scraperClient;
         this.enrichmentService = enrichmentService;
-        this.companyDataService = companyDataService;
-        this.sourceProvenanceService = sourceProvenanceService;
+        this.icpDataService = icpDataService;
+        this.scoringService = scoringService;
         this.complianceService = complianceService;
+        this.properties = properties;
     }
 
     @Override
@@ -75,8 +85,8 @@ public class ScraperLeadSearchService implements LeadSearchService {
         EnrichmentRequest enrichmentRequest = ScraperDataMapper.fromScraperData(response.data(), query);
         EnrichmentResult enrichmentResult = enrichmentService.enrichCompanyData(enrichmentRequest);
 
-        CompanyDTO company = persistCompany(enrichmentResult, query);
-        if (company == null || limit <= 0) {
+        Company candidateCompany = buildCandidateCompany(enrichmentResult, query);
+        if (candidateCompany == null || limit <= 0) {
             return new LeadSearchResponse(
                 LeadSearchStatus.COMPLETED,
                 List.of(),
@@ -85,14 +95,26 @@ public class ScraperLeadSearchService implements LeadSearchService {
             );
         }
 
+        Long icpId = resolveIcpId(request.icpId());
+        ICPDto icpDto = icpDataService.findICP(icpId);
+        if (icpDto == null) {
+            throw new IllegalArgumentException("ICP not found with id: " + icpId);
+        }
+
+        ICP icp = toDomainICP(icpDto);
+        ScoreDTO score = scoringService.scoreCandidate(candidateCompany, icp);
+
+        CompanyCandidateDTO candidate = toCompanyCandidateDTO(candidateCompany, enrichmentResult);
+        String websiteUrl = resolveSourceUrl(enrichmentResult, query);
+        String leadKey = LeadKeyGenerator.generate(websiteUrl, sourceName);
+
         SourceProvenanceDTO provenance = new SourceProvenanceDTO(
             sourceName,
-            resolveSourceUrl(enrichmentResult, query),
+            websiteUrl,
             Instant.now()
         );
-        sourceProvenanceService.record(company, provenance);
 
-        LeadResultDTO lead = new LeadResultDTO(company, null, provenance);
+        LeadResultDTO lead = new LeadResultDTO(candidate, score, provenance, leadKey);
 
         return new LeadSearchResponse(
             LeadSearchStatus.COMPLETED,
@@ -102,33 +124,69 @@ public class ScraperLeadSearchService implements LeadSearchService {
         );
     }
 
-    private CompanyDTO persistCompany(EnrichmentResult enrichmentResult, String fallbackQuery) {
+    private Company buildCandidateCompany(EnrichmentResult enrichmentResult, String fallbackQuery) {
         String name = enrichmentResult.normalizedCompanyName();
         if (name == null || name.isBlank()) {
             name = fallbackQuery;
         }
 
         String industry = enrichmentResult.standardizedIndustry();
-        String website = resolveSourceUrl(enrichmentResult, fallbackQuery);
+        String websiteUrl = resolveSourceUrl(enrichmentResult, fallbackQuery);
 
-        if (!isValidWebsite(website)) {
+        if (!isValidWebsite(websiteUrl)) {
             return null;
         }
 
+        Website website = Website.of(websiteUrl);
         String description = enrichmentResult.cleanDescription();
-        String size = enrichmentResult.size() != null ? enrichmentResult.size().name() : null;
+        CompanySize size = enrichmentResult.size();
 
-        CompanyCreateRequest createRequest = new CompanyCreateRequest(
+        return Company.create(
             name.trim(),
             industry == null ? "Other" : industry.trim(),
             website,
-            description,
-            null,
-            null,
-            size
-        );
+            description
+        ).withSize(size);
+    }
 
-        return companyDataService.createCompany(createRequest);
+    private CompanyCandidateDTO toCompanyCandidateDTO(Company company, EnrichmentResult enrichmentResult) {
+        List<String> contacts = enrichmentResult.validatedContacts() != null
+            ? enrichmentResult.validatedContacts().stream()
+                .filter(c -> c.isUsable())
+                .map(c -> c.getEmail())
+                .collect(Collectors.toList())
+            : List.of();
+
+        return new CompanyCandidateDTO(
+            company.getName(),
+            company.getWebsite().getUrl(),
+            company.getIndustry(),
+            company.getDescription(),
+            company.getSize() != null ? company.getSize().name() : null,
+            null, // location not available from scraper
+            contacts
+        );
+    }
+
+    private Long resolveIcpId(Long requestIcpId) {
+        if (requestIcpId != null) {
+            return requestIcpId;
+        }
+        if (properties.getDefaultIcpId() == null) {
+            throw new IllegalArgumentException("ICP ID is required. Provide icpId in request or configure prospectos.leads.default-icp-id");
+        }
+        return properties.getDefaultIcpId();
+    }
+
+    private ICP toDomainICP(ICPDto icpDTO) {
+        return ICP.create(
+            icpDTO.name(),
+            icpDTO.description(),
+            icpDTO.targetIndustries() != null ? icpDTO.targetIndustries() : List.of(),
+            icpDTO.regions() != null ? icpDTO.regions() : List.of(),
+            icpDTO.targetRoles() != null ? icpDTO.targetRoles() : List.of(),
+            icpDTO.interestTheme()
+        );
     }
 
     private boolean isValidWebsite(String website) {
