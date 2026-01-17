@@ -2,22 +2,51 @@ package dev.prospectos.integration;
 
 import dev.prospectos.ai.client.AIProvider;
 import dev.prospectos.ai.client.LLMProvider;
+import dev.prospectos.ai.dto.OutreachMessage;
 import dev.prospectos.ai.dto.ScoringResult;
 import dev.prospectos.ai.dto.StrategyRecommendation;
-import dev.prospectos.ai.dto.OutreachMessage;
 import dev.prospectos.ai.factory.AIProviderFactory;
+import io.github.cdimascio.dotenv.Dotenv;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
-@TestPropertySource(locations = "file:.env", ignoreResourceNotFound = true)
 @ActiveProfiles("test")
 class AIProvidersIntegrationTest {
+
+    @DynamicPropertySource
+    static void dotenvProperties(DynamicPropertyRegistry registry) {
+        Dotenv dotenv = Dotenv.configure()
+            .ignoreIfMissing()
+            .load();
+
+        registerIfPresent(registry, "spring.ai.openai.api-key",
+            firstNonBlank(dotenv.get("SPRING_AI_OPENAI_API_KEY", ""), dotenv.get("OPENAI_API_KEY", "")));
+        registerIfPresent(registry, "spring.ai.anthropic.api-key",
+            firstNonBlank(dotenv.get("SPRING_AI_ANTHROPIC_API_KEY", ""), dotenv.get("ANTHROPIC_API_KEY", "")));
+        registerIfPresent(registry, "prospectos.ai.groq.api-key",
+            dotenv.get("PROSPECTOS_AI_GROQ_API_KEY", ""));
+    }
+
+    private static void registerIfPresent(DynamicPropertyRegistry registry, String key, String value) {
+        if (value == null || value.isBlank()) {
+            return;
+        }
+        registry.add(key, () -> value);
+    }
+
+    private static String firstNonBlank(String primary, String fallback) {
+        if (primary != null && !primary.isBlank()) {
+            return primary;
+        }
+        return fallback;
+    }
 
     @Autowired
     private AIProviderFactory providerFactory;
