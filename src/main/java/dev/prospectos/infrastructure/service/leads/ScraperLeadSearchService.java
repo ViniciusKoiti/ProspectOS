@@ -161,7 +161,7 @@ public class ScraperLeadSearchService implements LeadSearchService {
         List<String> contacts = enrichmentResult.validatedContacts() != null
             ? enrichmentResult.validatedContacts().stream()
                 .filter(c -> c.isUsable())
-                .map(c -> c.getEmail())
+                .map(c -> c.email().getAddress())
                 .collect(Collectors.toList())
             : List.of();
 
