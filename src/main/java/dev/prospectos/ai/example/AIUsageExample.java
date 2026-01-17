@@ -38,7 +38,8 @@ public class AIUsageExample {
             "https://techcorp.com",
             "Leading tech company",
             150,
-            "Sao Paulo"
+            "Sao Paulo",
+            null
         );
 
         ICPDto icp = new ICPDto(

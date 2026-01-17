@@ -60,7 +60,8 @@ public class InMemoryCoreDataStore {
             "https://techcorp.com",
             "Leading software company",
             150,
-            "San Francisco, CA"
+            "San Francisco, CA",
+            null
         );
         CompanyDTO cloudTech = new CompanyDTO(
             2L,
@@ -69,7 +70,8 @@ public class InMemoryCoreDataStore {
             "https://cloudtech.com",
             "Cloud infrastructure specialists",
             220,
-            "Austin, TX"
+            "Austin, TX",
+            null
         );
         CompanyDTO localRestaurant = new CompanyDTO(
             3L,
@@ -78,7 +80,8 @@ public class InMemoryCoreDataStore {
             "https://localrestaurant.com",
             "Neighborhood dining spot",
             25,
-            "Curitiba, BR"
+            "Curitiba, BR",
+            null
         );
         CompanyDTO techStart1 = new CompanyDTO(
             4L,
@@ -87,7 +90,8 @@ public class InMemoryCoreDataStore {
             "https://techstart1.com",
             "Early-stage software startup",
             40,
-            "Sao Paulo, BR"
+            "Sao Paulo, BR",
+            null
         );
         CompanyDTO techStart2 = new CompanyDTO(
             5L,
@@ -96,7 +100,8 @@ public class InMemoryCoreDataStore {
             "https://techstart2.com",
             "Growing SaaS platform",
             55,
-            "Toronto, CA"
+            "Toronto, CA",
+            null
         );
         CompanyDTO techStart3 = new CompanyDTO(
             6L,
@@ -105,7 +110,8 @@ public class InMemoryCoreDataStore {
             "https://techstart3.com",
             "Product-led startup",
             65,
-            "Miami, FL"
+            "Miami, FL",
+            null
         );
         CompanyDTO minimalCorp = new CompanyDTO(
             7L,
@@ -114,7 +120,8 @@ public class InMemoryCoreDataStore {
             "https://minimal.com",
             "Minimal company profile",
             10,
-            "Remote"
+            "Remote",
+            null
         );
         ICPDto icp = new ICPDto(
             1L,

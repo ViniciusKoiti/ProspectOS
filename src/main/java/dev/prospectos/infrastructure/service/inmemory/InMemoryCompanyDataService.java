@@ -43,7 +43,8 @@ public class InMemoryCompanyDataService implements CompanyDataService {
             request.website(),
             request.description(),
             null,
-            formatLocation(request.country(), request.city())
+            formatLocation(request.country(), request.city()),
+            null // score will be set separately via updateCompanyScore
         );
         store.companies().put(companyId, company);
         return company;
@@ -54,6 +55,7 @@ public class InMemoryCompanyDataService implements CompanyDataService {
         if (!store.companies().containsKey(companyId)) {
             return null;
         }
+        CompanyDTO existing = store.companies().get(companyId);
         CompanyDTO company = new CompanyDTO(
             companyId,
             request.name(),
@@ -61,7 +63,8 @@ public class InMemoryCompanyDataService implements CompanyDataService {
             request.website(),
             request.description(),
             null,
-            formatLocation(request.country(), request.city())
+            formatLocation(request.country(), request.city()),
+            existing != null ? existing.score() : null // preserve existing score
         );
         store.companies().put(companyId, company);
         return company;
@@ -78,6 +81,22 @@ public class InMemoryCompanyDataService implements CompanyDataService {
             throw new IllegalArgumentException("Company not found: " + companyId);
         }
         store.companyScores().put(companyId, score);
+        
+        // Update the CompanyDTO with the new score
+        CompanyDTO existing = store.companies().get(companyId);
+        if (existing != null) {
+            CompanyDTO updated = new CompanyDTO(
+                existing.id(),
+                existing.name(),
+                existing.industry(),
+                existing.website(),
+                existing.description(),
+                existing.employeeCount(),
+                existing.location(),
+                score
+            );
+            store.companies().put(companyId, updated);
+        }
     }
 
     @Override

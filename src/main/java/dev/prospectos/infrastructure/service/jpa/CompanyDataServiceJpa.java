@@ -161,6 +161,15 @@ public class CompanyDataServiceJpa implements CompanyDataService {
     }
 
     private CompanyDTO toDTO(Company company) {
+        ScoreDTO scoreDTO = null;
+        if (company.getProspectingScore() != null) {
+            scoreDTO = new ScoreDTO(
+                company.getProspectingScore().getValue(),
+                company.getProspectingScore().getPriority().name(),
+                "Score from database"
+            );
+        }
+        
         return new CompanyDTO(
             company.getId().getMostSignificantBits(),
             company.getName(),
@@ -168,7 +177,8 @@ public class CompanyDataServiceJpa implements CompanyDataService {
             company.getWebsite() != null ? company.getWebsite().getUrl() : null,
             company.getDescription(),
             null,
-            company.getLocation()
+            company.getLocation(),
+            scoreDTO
         );
     }
 

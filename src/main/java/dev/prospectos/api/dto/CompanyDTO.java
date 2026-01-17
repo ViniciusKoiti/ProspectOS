@@ -11,7 +11,8 @@ public record CompanyDTO(
     String website,
     String description,
     Integer employeeCount,
-    String location
+    String location,
+    ScoreDTO score
 ) {
     
     /**
@@ -25,7 +26,8 @@ public record CompanyDTO(
             "https://techcorp.com",
             "Leading software company",
             150,
-            "San Francisco, CA"
+            "San Francisco, CA",
+            new ScoreDTO(75, "WARM", "Good fit")
         );
     }
 }
