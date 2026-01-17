@@ -15,10 +15,7 @@ import dev.prospectos.api.dto.SourceProvenanceDTO;
 import dev.prospectos.core.domain.Company;
 import dev.prospectos.core.domain.ICP;
 import dev.prospectos.core.domain.Website;
-import dev.prospectos.core.enrichment.CompanyEnrichmentService;
-import dev.prospectos.core.enrichment.EnrichmentRequest;
-import dev.prospectos.core.enrichment.EnrichmentResult;
-import dev.prospectos.core.enrichment.ScraperDataMapper;
+import dev.prospectos.core.enrichment.*;
 import dev.prospectos.core.util.LeadKeyGenerator;
 import dev.prospectos.infrastructure.config.LeadSearchProperties;
 import dev.prospectos.infrastructure.service.compliance.AllowedSourcesComplianceService;
@@ -145,22 +142,22 @@ public class ScraperLeadSearchService implements LeadSearchService {
             website,
             industry == null ? "Other" : industry.trim()
         );
-        
+
         if (description != null) {
             company.setDescription(description);
         }
-        
+
         if (size != null) {
             company.setSize(size);
         }
-        
+
         return company;
     }
 
     private CompanyCandidateDTO toCompanyCandidateDTO(Company company, EnrichmentResult enrichmentResult) {
         List<String> contacts = enrichmentResult.validatedContacts() != null
             ? enrichmentResult.validatedContacts().stream()
-                .filter(c -> c.isUsable())
+                .filter(ValidatedContact::isUsable)
                 .map(c -> c.email().getAddress())
                 .collect(Collectors.toList())
             : List.of();

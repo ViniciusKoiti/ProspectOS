@@ -113,7 +113,7 @@ public class InMemoryLeadSearchService implements LeadSearchService {
             companyDTO.website(),
             companyDTO.industry(),
             companyDTO.description(),
-            companyDTO.size(),
+            inferSizeFromEmployeeCount(companyDTO.employeeCount()),
             companyDTO.location(),
             List.of() // in-memory doesn't have contact data
         );
@@ -127,6 +127,23 @@ public class InMemoryLeadSearchService implements LeadSearchService {
         );
 
         return new LeadResultDTO(candidate, score, provenance, leadKey);
+    }
+
+    private String inferSizeFromEmployeeCount(Integer employeeCount) {
+        if (employeeCount == null) {
+            return null;
+        }
+        if (employeeCount <= 10) {
+            return "STARTUP";
+        } else if (employeeCount <= 50) {
+            return "SMALL";
+        } else if (employeeCount <= 200) {
+            return "MEDIUM";
+        } else if (employeeCount <= 1000) {
+            return "LARGE";
+        } else {
+            return "ENTERPRISE";
+        }
     }
 
     private Long resolveIcpId(Long requestIcpId) {

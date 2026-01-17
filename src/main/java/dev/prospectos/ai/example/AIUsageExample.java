@@ -46,10 +46,12 @@ public class AIUsageExample {
             "SaaS B2B",
             "Growing software companies",
             List.of("Software", "Technology"),
+            List.of("North America", "South America"),
             List.of("Docker", "Kubernetes", "AWS"),
             50,
             500,
-            List.of("CTO", "VP Engineering")
+            List.of("CTO", "VP Engineering"),
+            "Cloud transformation and DevOps adoption"
         );
 
         log.info("=== AI ARCHITECTURE DEMONSTRATION ===");
