@@ -180,10 +180,10 @@ public class ScraperLeadSearchService implements LeadSearchService {
         if (requestIcpId != null) {
             return requestIcpId;
         }
-        if (properties.getDefaultIcpId() == null) {
+        if (properties.defaultIcpId() == null) {
             throw new IllegalArgumentException("ICP ID is required. Provide icpId in request or configure prospectos.leads.default-icp-id");
         }
-        return properties.getDefaultIcpId();
+        return properties.defaultIcpId();
     }
 
     private ICP toDomainICP(ICPDto icpDTO) {
