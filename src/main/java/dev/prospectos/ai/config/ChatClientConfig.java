@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Profile;
 import java.util.Optional;
 
 @Configuration
-@Profile("!mock")
+@Profile("!mock & !test")
 @Slf4j
 public class ChatClientConfig {
     

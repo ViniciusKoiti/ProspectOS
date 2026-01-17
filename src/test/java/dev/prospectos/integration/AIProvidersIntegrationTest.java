@@ -9,12 +9,13 @@ import dev.prospectos.ai.factory.AIProviderFactory;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
-@TestPropertySource(locations = "file:.env")
+@TestPropertySource(locations = "file:.env", ignoreResourceNotFound = true)
 @ActiveProfiles("test")
 class AIProvidersIntegrationTest {
 
