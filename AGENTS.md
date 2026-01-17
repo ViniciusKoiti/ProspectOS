@@ -80,6 +80,11 @@ Diagnostics:
 - Back-compat env vars also map through dotenv:
   - `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`
 
+### Lead search configuration
+- `prospectos.leads.allowed-sources`: comma-separated list of allowed sources (default: `in-memory`)
+- `prospectos.leads.default-icp-id`: default ICP ID to use when not provided in request (default: `1`)
+  - If not set and request doesn't include `icpId`, lead search will return 400 error
+
 ## Coding Style (match existing code)
 ### Formatting
 - 4-space indentation; keep diffs minimal; avoid large refactors/rewraps unrelated to the task.
