@@ -43,6 +43,11 @@ class LeadSearchIntegrationTest {
             .andExpect(jsonPath("$.status").value("COMPLETED"))
             .andExpect(jsonPath("$.leads").isArray())
             .andExpect(jsonPath("$.leads.length()").value(3))
+            .andExpect(jsonPath("$.leads[0].candidate").exists())
+            .andExpect(jsonPath("$.leads[0].candidate.name").exists())
+            .andExpect(jsonPath("$.leads[0].candidate.website").exists())
+            .andExpect(jsonPath("$.leads[0].leadKey").isNotEmpty())
+            .andExpect(jsonPath("$.leads[0].score").exists())
             .andExpect(jsonPath("$.leads[0].source.sourceName").value("in-memory"));
     }
 
