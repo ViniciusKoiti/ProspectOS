@@ -13,7 +13,6 @@ import dev.prospectos.api.dto.LeadSearchStatus;
 import dev.prospectos.api.dto.ScoreDTO;
 import dev.prospectos.api.dto.SourceProvenanceDTO;
 import dev.prospectos.core.domain.Company;
-import dev.prospectos.core.domain.CompanySize;
 import dev.prospectos.core.domain.ICP;
 import dev.prospectos.core.domain.Website;
 import dev.prospectos.core.enrichment.CompanyEnrichmentService;
@@ -139,14 +138,23 @@ public class ScraperLeadSearchService implements LeadSearchService {
 
         Website website = Website.of(websiteUrl);
         String description = enrichmentResult.cleanDescription();
-        CompanySize size = enrichmentResult.size();
+        Company.CompanySize size = enrichmentResult.size();
 
-        return Company.create(
+        Company company = Company.create(
             name.trim(),
-            industry == null ? "Other" : industry.trim(),
             website,
-            description
-        ).withSize(size);
+            industry == null ? "Other" : industry.trim()
+        );
+        
+        if (description != null) {
+            company.setDescription(description);
+        }
+        
+        if (size != null) {
+            company.setSize(size);
+        }
+        
+        return company;
     }
 
     private CompanyCandidateDTO toCompanyCandidateDTO(Company company, EnrichmentResult enrichmentResult) {
