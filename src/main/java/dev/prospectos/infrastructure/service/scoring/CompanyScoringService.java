@@ -61,14 +61,33 @@ public class CompanyScoringService {
         return score;
     }
 
+    /**
+     * Scores a company candidate (preview mode - no persistence).
+     * This method calculates score without requiring the company to be persisted.
+     * 
+     * @param company Company domain object (can be transient)
+     * @param icp ICP domain object
+     * @return ScoreDTO with calculated score
+     */
+    public ScoreDTO scoreCandidate(Company company, ICP icp) {
+        if (company == null) {
+            throw new IllegalArgumentException("Company cannot be null");
+        }
+        if (icp == null) {
+            throw new IllegalArgumentException("ICP cannot be null");
+        }
+
+        return scoreCompanySafely(company, icp);
+    }
+
     private ICP toDomainICP(ICPDto icpDTO) {
         return ICP.create(
             icpDTO.name(),
             icpDTO.description(),
-            icpDTO.targetIndustries(),
-            List.of(),
-            icpDTO.targetRoles(),
-            null
+            icpDTO.targetIndustries() != null ? icpDTO.targetIndustries() : List.of(),
+            icpDTO.regions() != null ? icpDTO.regions() : List.of(),
+            icpDTO.targetRoles() != null ? icpDTO.targetRoles() : List.of(),
+            icpDTO.interestTheme()
         );
     }
 

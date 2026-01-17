@@ -39,11 +39,13 @@ public class InMemoryICPDataService implements ICPDataService {
             icpId,
             request.name(),
             request.description(),
-            request.industries(),
-            List.of(),
-            null,
-            null,
-            request.targetRoles()
+            request.industries() != null ? request.industries() : List.of(),
+            request.regions() != null ? request.regions() : List.of(),
+            request.targetTechnologies() != null ? request.targetTechnologies() : List.of(),
+            request.minEmployeeCount(),
+            request.maxEmployeeCount(),
+            request.targetRoles() != null ? request.targetRoles() : List.of(),
+            request.interestTheme()
         );
         store.icps().put(icpId, icp);
         return icp;
@@ -58,11 +60,13 @@ public class InMemoryICPDataService implements ICPDataService {
             icpId,
             request.name(),
             request.description(),
-            request.industries(),
-            List.of(),
-            null,
-            null,
-            request.targetRoles()
+            request.industries() != null ? request.industries() : List.of(),
+            request.regions() != null ? request.regions() : List.of(),
+            request.targetTechnologies() != null ? request.targetTechnologies() : List.of(),
+            request.minEmployeeCount(),
+            request.maxEmployeeCount(),
+            request.targetRoles() != null ? request.targetRoles() : List.of(),
+            request.interestTheme()
         );
         store.icps().put(icpId, icp);
         return icp;

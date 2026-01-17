@@ -1,11 +1,13 @@
 package dev.prospectos.api.dto;
 
 /**
- * Result DTO for a single lead.
+ * Result DTO for a single lead from search preview.
+ * Contains candidate data (not yet persisted) with leadKey for idempotent accept.
  */
 public record LeadResultDTO(
-    CompanyDTO company,
+    CompanyCandidateDTO candidate,
     ScoreDTO score,
-    SourceProvenanceDTO source
+    SourceProvenanceDTO source,
+    String leadKey
 ) {
 }

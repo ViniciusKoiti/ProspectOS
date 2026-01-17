@@ -13,6 +13,9 @@ public record ICPUpdateRequest(
     List<String> industries,
     List<String> regions,
     List<String> targetRoles,
-    String interestTheme
+    String interestTheme,
+    List<String> targetTechnologies,
+    Integer minEmployeeCount,
+    Integer maxEmployeeCount
 ) {
 }

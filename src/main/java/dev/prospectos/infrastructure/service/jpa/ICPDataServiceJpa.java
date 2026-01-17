@@ -48,9 +48,9 @@ public class ICPDataServiceJpa implements ICPDataService {
         ICP icp = ICP.create(
             request.name(),
             request.description(),
-            request.industries(),
-            request.regions(),
-            request.targetRoles(),
+            request.industries() != null ? request.industries() : List.of(),
+            request.regions() != null ? request.regions() : List.of(),
+            request.targetRoles() != null ? request.targetRoles() : List.of(),
             request.interestTheme()
         );
         return toDTO(icpRepository.save(icp));
@@ -66,9 +66,9 @@ public class ICPDataServiceJpa implements ICPDataService {
         icp.updateProfile(
             request.name(),
             request.description(),
-            request.industries(),
-            request.regions(),
-            request.targetRoles(),
+            request.industries() != null ? request.industries() : List.of(),
+            request.regions() != null ? request.regions() : List.of(),
+            request.targetRoles() != null ? request.targetRoles() : List.of(),
             request.interestTheme()
         );
         return toDTO(icpRepository.save(icp));
@@ -104,10 +104,12 @@ public class ICPDataServiceJpa implements ICPDataService {
             icp.getName(),
             icp.getDescription(),
             icp.getIndustries(),
-            List.of(),
-            null,
-            null,
-            icp.getTargetRoles()
+            icp.getRegions(),
+            List.of(), // targetTechnologies - not in domain yet
+            null, // minEmployeeCount - not in domain yet
+            null, // maxEmployeeCount - not in domain yet
+            icp.getTargetRoles(),
+            icp.getInterestTheme()
         );
     }
 }

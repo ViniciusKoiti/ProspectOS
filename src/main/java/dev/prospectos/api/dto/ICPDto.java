@@ -10,10 +10,12 @@ public record ICPDto(
     String name,
     String description,
     List<String> targetIndustries,
+    List<String> regions,
     List<String> targetTechnologies,
     Integer minEmployeeCount,
     Integer maxEmployeeCount,
-    List<String> targetRoles
+    List<String> targetRoles,
+    String interestTheme
 ) {
     
     /**
@@ -25,10 +27,12 @@ public record ICPDto(
             "DevOps Teams",
             "Target companies with active DevOps practices",
             List.of("Software", "Technology", "SaaS"),
+            List.of("North America", "Europe"),
             List.of("Docker", "Kubernetes", "AWS", "Jenkins"),
             50,
             500,
-            List.of("CTO", "DevOps Engineer", "Platform Engineer")
+            List.of("CTO", "DevOps Engineer", "Platform Engineer"),
+            "DevOps transformation and cloud migration"
         );
     }
 }

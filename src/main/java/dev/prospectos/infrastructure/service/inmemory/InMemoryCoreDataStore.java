@@ -121,10 +121,12 @@ public class InMemoryCoreDataStore {
             "DevOps Teams",
             "Target companies with active DevOps practices",
             List.of("Software", "Technology", "SaaS"),
+            List.of("North America", "Europe", "Brazil"),
             List.of("Docker", "Kubernetes", "AWS", "Jenkins"),
             50,
             500,
-            List.of("CTO", "DevOps Engineer", "Platform Engineer")
+            List.of("CTO", "DevOps Engineer", "Platform Engineer"),
+            "DevOps transformation and cloud migration"
         );
 
         companies.put(techCorp.id(), techCorp);
