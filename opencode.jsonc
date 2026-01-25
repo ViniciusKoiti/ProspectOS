@@ -1,5 +1,19 @@
 {
   "$schema": "https://opencode.ai/config.json",
+  "rules": {
+    "project": [
+      "Respeite os limites de módulos do Spring Modulith: core não depende de ai ou infrastructure; api expõe contratos e DTOs estáveis; infrastructure concentra controllers, adapters e integrações.",
+      "Mantenha regras de negócio no domínio (core) e encapsule validações e invariantes nos agregados e value objects.",
+      "Use value objects imutáveis com factories estáticas e validação explícita (ex.: Score.of, Website.of).",
+      "Dispare eventos de domínio a partir dos agregados quando houver mudanças relevantes.",
+      "Controllers REST devem usar ResponseEntity, validar requests com @Valid e retornar 404 com ResponseStatusException quando o recurso não existir.",
+      "Falhas de validação e IllegalArgumentException devem resultar em HTTP 400 (tratadas pelo ApiExceptionHandler).",
+      "DTOs e requests devem preferir record quando fizer sentido.",
+      "Siga o estilo do projeto: 4 espaços, sem wildcard imports, imports agrupados, e linhas até 120 caracteres.",
+      "No domínio, use IllegalArgumentException para entradas inválidas e IllegalStateException para transições inválidas.",
+      "Evite logar segredos (tokens, chaves, valores de .env) e mantenha logs objetivos."
+    ]
+  },
   "mcp": {
     "filesystem": {
       "type": "local",
