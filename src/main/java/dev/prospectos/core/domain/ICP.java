@@ -39,10 +39,10 @@ public class ICP {
         // For JPA
     }
     
-    private ICP(String name, String description, List<String> industries, 
-               List<String> regions, List<String> targetRoles, String interestTheme) {
+    private ICP(String name, String description, List<String> industries,
+               List<String> regions, List<String> targetRoles, String interestTheme, Long externalId) {
         this.id = UUID.randomUUID();
-        this.externalId = toExternalId(this.id);
+        this.externalId = externalId != null ? validateExternalId(externalId) : toExternalId(this.id);
         this.name = validateName(name);
         this.description = description;
         this.industries = industries;
@@ -53,7 +53,19 @@ public class ICP {
     
     public static ICP create(String name, String description, List<String> industries,
                            List<String> regions, List<String> targetRoles, String interestTheme) {
-        return new ICP(name, description, industries, regions, targetRoles, interestTheme);
+        return new ICP(name, description, industries, regions, targetRoles, interestTheme, null);
+    }
+
+    public static ICP createWithExternalId(
+        Long externalId,
+        String name,
+        String description,
+        List<String> industries,
+        List<String> regions,
+        List<String> targetRoles,
+        String interestTheme
+    ) {
+        return new ICP(name, description, industries, regions, targetRoles, interestTheme, externalId);
     }
 
     public void updateProfile(String name, String description, List<String> industries,
@@ -82,6 +94,13 @@ public class ICP {
 
     private static long toExternalId(UUID id) {
         return id.getMostSignificantBits();
+    }
+
+    private Long validateExternalId(Long externalId) {
+        if (externalId == null || externalId <= 0) {
+            throw new IllegalArgumentException("ICP externalId must be a positive number");
+        }
+        return externalId;
     }
     
     public UUID getId() { return id; }

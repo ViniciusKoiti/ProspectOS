@@ -47,21 +47,8 @@ public class ScoringAIService {
                 3. Company size and maturity (20 points)
                 4. Timing and urgency (15 points)
                 5. Contact accessibility (10 points)
-                
-                Return JSON with exactly this structure:
-                {
-                  "score": 75,
-                  "priority": "HOT",
-                  "reasoning": "Company X...",
-                  "breakdown": {
-                    "icpFit": 28,
-                    "signals": 20,
-                    "companySize": 15,
-                    "timing": 12,
-                    "accessibility": 8
-                  },
-                  "recommendation": "Prioritize immediate contact because..."
-                }
+
+                Provide your answer as structured output compatible with ScoringResult.
                 """,
                 company.getName(),
                 company.getIndustry(),

@@ -1,8 +1,5 @@
 package dev.prospectos.ai.client;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.prospectos.ai.config.ScraperProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -28,14 +25,18 @@ import java.util.function.Supplier;
 public class AIWebSearchScraperClient implements ScraperClientInterface {
 
     private final ChatClient chatClient;
-    private final ObjectMapper objectMapper;
     private final ScraperProperties scraperProperties;
+    private final LlmScrapingResponseConverter responseConverter;
     private final ExecutorService executorService;
 
-    public AIWebSearchScraperClient(ChatClient chatClient, ScraperProperties scraperProperties) {
+    public AIWebSearchScraperClient(
+        ChatClient chatClient,
+        ScraperProperties scraperProperties,
+        LlmScrapingResponseConverter responseConverter
+    ) {
         this.chatClient = chatClient;
-        this.objectMapper = new ObjectMapper();
         this.scraperProperties = scraperProperties;
+        this.responseConverter = responseConverter;
         this.executorService = Executors.newCachedThreadPool();
     }
 
@@ -64,7 +65,7 @@ public class AIWebSearchScraperClient implements ScraperClientInterface {
                     scraperProperties.ai().timeout()
                 );
 
-                Map<String, Object> extractedData = parseAIResponse(response);
+                Map<String, Object> extractedData = responseConverter.convert(response);
 
                 log.debug("AI extracted data for {}: {}", website, extractedData.keySet());
                 return new ScrapingResponse(true, extractedData, null);
@@ -111,6 +112,9 @@ public class AIWebSearchScraperClient implements ScraperClientInterface {
 
             If you cannot find specific information, use null for that field.
             Only include verified information from reliable sources.
+            Return ONLY valid JSON.
+            Do not use markdown code fences.
+            Do not include references, citations, comments, or explanatory text outside JSON.
             """.formatted(website, searchDepth);
         return prompt;
     }
@@ -169,90 +173,6 @@ public class AIWebSearchScraperClient implements ScraperClientInterface {
         log.error("AI news search failed for company: {} after {} attempts", companyName, maxRetries + 1, lastException);
         return new NewsResponse(List.of("Error searching news after " + (maxRetries + 1) + " attempts: " +
             (lastException != null ? lastException.getMessage() : "Unknown error")));
-    }
-
-    /**
-     * Parses AI response to extract structured company data.
-     */
-    private Map<String, Object> parseAIResponse(String response) {
-        try {
-            String jsonPart = extractJsonFromResponse(response);
-
-            if (jsonPart != null) {
-                return objectMapper.readValue(jsonPart, new TypeReference<Map<String, Object>>() {});
-            }
-
-            return Map.of(
-                "description", response.trim(),
-                "ai_processed", true,
-                "source", "ai_web_search"
-            );
-
-        } catch (JsonProcessingException e) {
-            log.warn("Failed to parse AI response as JSON, using fallback: {}", e.getMessage());
-            return Map.of(
-                "description", response.trim(),
-                "ai_processed", true,
-                "parse_error", e.getMessage()
-            );
-        }
-    }
-
-    /**
-     * Extracts JSON content from AI response text.
-     */
-    private String extractJsonFromResponse(String response) {
-        if (response == null) return null;
-
-        int fenceStart = response.indexOf("```json");
-        if (fenceStart != -1) {
-            int jsonBlockStart = response.indexOf('\n', fenceStart);
-            int fenceEnd = response.indexOf("```", jsonBlockStart + 1);
-            if (jsonBlockStart != -1 && fenceEnd != -1) {
-                return response.substring(jsonBlockStart + 1, fenceEnd).trim();
-            }
-        }
-
-        return extractFirstBalancedJsonObject(response);
-    }
-
-    private String extractFirstBalancedJsonObject(String s) {
-        int start = s.indexOf('{');
-        if (start == -1) return null;
-
-        int depth = 0;
-        boolean inString = false;
-        boolean escape = false;
-
-        for (int i = start; i < s.length(); i++) {
-            char c = s.charAt(i);
-
-            if (inString) {
-                if (escape) {
-                    escape = false;
-                } else if (c == '\\') {
-                    escape = true;
-                } else if (c == '"') {
-                    inString = false;
-                }
-                continue;
-            } else {
-                if (c == '"') {
-                    inString = true;
-                    continue;
-                }
-            }
-
-            if (c == '{') depth++;
-            else if (c == '}') {
-                depth--;
-                if (depth == 0) {
-                    return s.substring(start, i + 1);
-                }
-            }
-        }
-
-        return null;
     }
 
     /**
