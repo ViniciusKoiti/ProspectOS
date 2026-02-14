@@ -27,4 +27,6 @@ public interface ICPJpaRepository extends JpaRepository<ICP, UUID> {
     
     @Query("SELECT i FROM ICP i WHERE i.name = 'Default'")
     ICP findDefaultICP();
+
+    Optional<ICP> findByExternalId(Long externalId);
 }

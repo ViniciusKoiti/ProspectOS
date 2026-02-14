@@ -17,23 +17,22 @@ import java.util.stream.Collectors;
 public class AllowedSourcesComplianceService {
 
     private final Set<String> allowedSources;
+    private final List<String> defaultSources;
 
     @Autowired
     public AllowedSourcesComplianceService(AllowedSourcesProperties properties) {
-        this(properties.allowedSources());
+        this(properties.allowedSources(), properties.defaultSources());
     }
 
-    AllowedSourcesComplianceService(List<String> allowedSources) {
+    AllowedSourcesComplianceService(List<String> allowedSources, List<String> defaultSources) {
         this.allowedSources = normalizeAllowedSources(allowedSources);
+        this.defaultSources = normalizeDefaultSources(defaultSources);
     }
 
     public List<String> validateSources(List<String> requestedSources) {
-        if (requestedSources == null || requestedSources.isEmpty()) {
-            return List.of();
-        }
-
+        List<String> effectiveSources = resolveEffectiveSources(requestedSources);
         LinkedHashSet<String> normalized = new LinkedHashSet<>();
-        for (String source : requestedSources) {
+        for (String source : effectiveSources) {
             if (source == null) {
                 continue;
             }
@@ -57,6 +56,18 @@ public class AllowedSourcesComplianceService {
         return List.copyOf(normalized);
     }
 
+    private List<String> resolveEffectiveSources(List<String> requestedSources) {
+        if (requestedSources == null || requestedSources.isEmpty()) {
+            return defaultSources;
+        }
+
+        boolean hasAnyNonBlank = requestedSources.stream()
+            .filter(Objects::nonNull)
+            .map(String::trim)
+            .anyMatch(source -> !source.isBlank());
+        return hasAnyNonBlank ? requestedSources : defaultSources;
+    }
+
     private Set<String> normalizeAllowedSources(List<String> sources) {
         if (sources == null || sources.isEmpty()) {
             return Set.of();
@@ -67,6 +78,19 @@ public class AllowedSourcesComplianceService {
             .map(this::normalize)
             .filter(source -> !source.isBlank())
             .collect(Collectors.toUnmodifiableSet());
+    }
+
+    private List<String> normalizeDefaultSources(List<String> sources) {
+        if (sources == null || sources.isEmpty()) {
+            return List.of();
+        }
+
+        return sources.stream()
+            .filter(Objects::nonNull)
+            .map(this::normalize)
+            .filter(source -> !source.isBlank())
+            .distinct()
+            .toList();
     }
 
     private String normalize(String source) {

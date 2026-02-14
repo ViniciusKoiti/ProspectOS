@@ -15,6 +15,7 @@ public interface ICPDomainRepository {
     // Basic CRUD operations
     ICP save(ICP icp);
     Optional<ICP> findById(UUID id);
+    Optional<ICP> findByExternalId(Long externalId);
     void delete(ICP icp);
     List<ICP> findAll();
     

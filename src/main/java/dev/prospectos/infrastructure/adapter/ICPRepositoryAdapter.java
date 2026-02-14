@@ -30,6 +30,11 @@ public class ICPRepositoryAdapter implements ICPDomainRepository {
     public Optional<ICP> findById(UUID id) {
         return jpaRepository.findById(id);
     }
+
+    @Override
+    public Optional<ICP> findByExternalId(Long externalId) {
+        return jpaRepository.findByExternalId(externalId);
+    }
     
     @Override
     public void delete(ICP icp) {

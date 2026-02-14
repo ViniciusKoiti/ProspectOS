@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 /**
  * Repository-backed ICP data service for non-test profiles.
@@ -88,26 +87,19 @@ public class ICPDataServiceJpa implements ICPDataService {
         if (externalId == null) {
             return Optional.empty();
         }
-        return icpRepository.findAll()
-            .stream()
-            .filter(icp -> matchesExternalId(icp.getId(), externalId))
-            .findFirst();
-    }
-
-    private boolean matchesExternalId(UUID id, Long externalId) {
-        return id != null && id.getMostSignificantBits() == externalId;
+        return icpRepository.findByExternalId(externalId);
     }
 
     private ICPDto toDTO(ICP icp) {
         return new ICPDto(
-            icp.getId().getMostSignificantBits(),
+            icp.getExternalId(),
             icp.getName(),
             icp.getDescription(),
             icp.getIndustries(),
             icp.getRegions(),
-            List.of(), // targetTechnologies - not in domain yet
-            null, // minEmployeeCount - not in domain yet
-            null, // maxEmployeeCount - not in domain yet
+            List.of(),
+            null,
+            null,
             icp.getTargetRoles(),
             icp.getInterestTheme()
         );

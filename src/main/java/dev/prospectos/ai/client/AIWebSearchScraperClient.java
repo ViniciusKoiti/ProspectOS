@@ -176,14 +176,12 @@ public class AIWebSearchScraperClient implements ScraperClientInterface {
      */
     private Map<String, Object> parseAIResponse(String response) {
         try {
-            // Try to extract JSON from the response
             String jsonPart = extractJsonFromResponse(response);
 
             if (jsonPart != null) {
                 return objectMapper.readValue(jsonPart, new TypeReference<Map<String, Object>>() {});
             }
 
-            // Fallback: create basic structure from text response
             return Map.of(
                 "description", response.trim(),
                 "ai_processed", true,
@@ -206,12 +204,52 @@ public class AIWebSearchScraperClient implements ScraperClientInterface {
     private String extractJsonFromResponse(String response) {
         if (response == null) return null;
 
-        // Look for JSON block in response
-        int jsonStart = response.indexOf('{');
-        int jsonEnd = response.lastIndexOf('}');
+        int fenceStart = response.indexOf("```json");
+        if (fenceStart != -1) {
+            int jsonBlockStart = response.indexOf('\n', fenceStart);
+            int fenceEnd = response.indexOf("```", jsonBlockStart + 1);
+            if (jsonBlockStart != -1 && fenceEnd != -1) {
+                return response.substring(jsonBlockStart + 1, fenceEnd).trim();
+            }
+        }
 
-        if (jsonStart != -1 && jsonEnd != -1 && jsonEnd > jsonStart) {
-            return response.substring(jsonStart, jsonEnd + 1);
+        return extractFirstBalancedJsonObject(response);
+    }
+
+    private String extractFirstBalancedJsonObject(String s) {
+        int start = s.indexOf('{');
+        if (start == -1) return null;
+
+        int depth = 0;
+        boolean inString = false;
+        boolean escape = false;
+
+        for (int i = start; i < s.length(); i++) {
+            char c = s.charAt(i);
+
+            if (inString) {
+                if (escape) {
+                    escape = false;
+                } else if (c == '\\') {
+                    escape = true;
+                } else if (c == '"') {
+                    inString = false;
+                }
+                continue;
+            } else {
+                if (c == '"') {
+                    inString = true;
+                    continue;
+                }
+            }
+
+            if (c == '{') depth++;
+            else if (c == '}') {
+                depth--;
+                if (depth == 0) {
+                    return s.substring(start, i + 1);
+                }
+            }
         }
 
         return null;

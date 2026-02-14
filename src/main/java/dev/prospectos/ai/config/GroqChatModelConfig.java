@@ -17,7 +17,7 @@ public class GroqChatModelConfig {
     @Value("${prospectos.ai.groq.api-key:}")
     private String groqApiKey;
 
-    @Value("${prospectos.ai.groq.base-url:https://api.groq.com/openai/v1}")
+    @Value("${prospectos.ai.groq.base-url:https://api.groq.com/openai}")
     private String groqBaseUrl;
 
     @Value("${prospectos.ai.groq.model:llama3-70b-8192}")
@@ -26,11 +26,27 @@ public class GroqChatModelConfig {
     @Bean("groqChatModel")
     @ConditionalOnProperty(name = "prospectos.ai.groq.api-key")
     public ChatModel groqChatModel() {
-        log.info("Groq base URL: {}", groqBaseUrl);
-        OpenAiApi openAiApi = new OpenAiApi(groqApiKey, groqBaseUrl);
+        String normalizedBaseUrl = normalizeBaseUrl(groqBaseUrl);
+        log.info("Groq base URL: {}", normalizedBaseUrl);
+        OpenAiApi openAiApi = new OpenAiApi(normalizedBaseUrl, groqApiKey);
         OpenAiChatOptions options = OpenAiChatOptions.builder()
             .withModel(groqModel)
             .build();
         return new OpenAiChatModel(openAiApi, options);
+    }
+
+    private String normalizeBaseUrl(String baseUrl) {
+        if (baseUrl == null || baseUrl.isBlank()) {
+            return "https://api.groq.com/openai";
+        }
+
+        String normalized = baseUrl.trim();
+        while (normalized.endsWith("/")) {
+            normalized = normalized.substring(0, normalized.length() - 1);
+        }
+        if (normalized.endsWith("/v1")) {
+            normalized = normalized.substring(0, normalized.length() - 3);
+        }
+        return normalized;
     }
 }
