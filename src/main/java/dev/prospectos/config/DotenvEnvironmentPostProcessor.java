@@ -19,7 +19,7 @@ public class DotenvEnvironmentPostProcessor implements EnvironmentPostProcessor,
 
     @Override
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
-        if (environment.acceptsProfiles(Profiles.of("test"))) {
+        if (isTestExecution() || environment.acceptsProfiles(Profiles.of("test"))) {
             return;
         }
 
@@ -49,6 +49,11 @@ public class DotenvEnvironmentPostProcessor implements EnvironmentPostProcessor,
     @Override
     public int getOrder() {
         return Ordered.HIGHEST_PRECEDENCE;
+    }
+
+    private boolean isTestExecution() {
+        return System.getProperty("org.gradle.test.worker") != null
+            || System.getProperty("surefire.test.class.path") != null;
     }
 
     private static Map<String, String> buildEnvMappings() {
