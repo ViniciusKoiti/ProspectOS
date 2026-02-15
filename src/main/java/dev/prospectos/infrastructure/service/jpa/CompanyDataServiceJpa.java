@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -41,6 +40,25 @@ public class CompanyDataServiceJpa implements CompanyDataService {
             return null;
         }
         return toDTO(company.get());
+    }
+
+    @Override
+    public CompanyDTO findByWebsite(String website) {
+        if (website == null || website.isBlank()) {
+            return null;
+        }
+
+        String domain;
+        try {
+            domain = Website.of(website).getDomain();
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
+
+        return companyRepository.findByWebsiteDomain(domain).stream()
+            .findFirst()
+            .map(this::toDTO)
+            .orElse(null);
     }
 
     @Override
@@ -140,24 +158,14 @@ public class CompanyDataServiceJpa implements CompanyDataService {
         if (externalId == null) {
             return Optional.empty();
         }
-        return companyRepository.findAll()
-            .stream()
-            .filter(company -> matchesExternalId(company.getId(), externalId))
-            .findFirst();
+        return companyRepository.findByExternalId(externalId);
     }
 
     private Optional<ICP> findICPByExternalId(Long externalId) {
         if (externalId == null) {
             return Optional.empty();
         }
-        return icpRepository.findAll()
-            .stream()
-            .filter(icp -> matchesExternalId(icp.getId(), externalId))
-            .findFirst();
-    }
-
-    private boolean matchesExternalId(UUID id, Long externalId) {
-        return id != null && id.getMostSignificantBits() == externalId;
+        return icpRepository.findByExternalId(externalId);
     }
 
     private CompanyDTO toDTO(Company company) {

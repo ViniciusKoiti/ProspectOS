@@ -1,83 +1,122 @@
 # ProspectOS
 
-ProspectOS is a Spring Boot (Java 21) application that helps with B2B prospecting: search leads, enrich company data, score fit against an ICP (Ideal Customer Profile), and generate strategy/outreach suggestions.
+ProspectOS is a **Spring Boot + Spring Modulith** application for B2B prospecting workflows:
 
-The codebase is organized as a Spring Modulith modular monolith with clear boundaries:
-- `dev.prospectos.core`: domain + business rules
-- `dev.prospectos.api`: service contracts + DTOs
-- `dev.prospectos.ai`: AI/provider plumbing (Spring AI)
-- `dev.prospectos.infrastructure`: web controllers, JPA adapters, jobs, integrations
+- discover leads
+- enrich company signals
+- score fit against ICPs (Ideal Customer Profiles)
+- support outreach strategy decisions
 
-## What You Can Do Today (MVP)
-- Manage Companies (CRUD) and update scoring
-- Manage ICPs (CRUD) and list companies by ICP
-- Run lead search (on-demand)
-- Enrich a prospect (basic flow)
+The project is a modular monolith designed for teams that want fast iteration with explicit architectural boundaries.
 
-Related endpoints (web layer):
-- `GET/POST /api/companies`, `GET/PUT/DELETE /api/companies/{id}`, `PUT /api/companies/{id}/score`
-- `GET/POST /api/icps`, `GET/PUT/DELETE /api/icps/{id}`, `GET /api/icps/{id}/companies`
-- `POST /api/leads/search`
-- `POST /api/prospect/enrich`
+## Why This Project Is Interesting For Spring Teams
 
-## Local Setup
+- **Spring Modulith boundaries** validated by tests
+- **Spring AI integration** with provider abstraction
+- **Clear module contracts** (`api`) between domain and infrastructure
+- **Profile-driven runtime behavior** (`mock`, `development`, `test`)
+- **Pragmatic test strategy** (unit + integration)
 
-### Requirements
-- JDK 21 (Gradle uses a Java 21 toolchain)
-- Use the Gradle wrapper shipped with the repo: `./gradlew`
+## Architecture
 
-If you see errors like "JAVA_HOME is not set", install JDK 21 and set `JAVA_HOME`.
+Main packages/modules:
 
-### Profiles + .env
-- Default profile is `mock` (`src/main/resources/application.properties`)
-- `.env` is supported via `DotenvEnvironmentPostProcessor` (skipped when `test` profile is active)
-- Create your local env file from `.env.example` (never commit `.env`)
+- `dev.prospectos.core`: domain model + business rules
+- `dev.prospectos.api`: cross-module contracts and DTOs
+- `dev.prospectos.ai`: LLM/provider integration and converters
+- `dev.prospectos.infrastructure`: web, JPA adapters, scheduled jobs, integrations
 
-Preferred env vars for AI providers:
-- `SPRING_AI_OPENAI_API_KEY`
-- `SPRING_AI_ANTHROPIC_API_KEY`
-- `PROSPECTOS_AI_GROQ_API_KEY`
+Boundary verification lives in Modulith tests under `src/test/java/dev/prospectos/modules`.
 
-### Common Commands
+## Tech Stack
+
+- Java 21
+- Spring Boot 3.5.x (snapshot)
+- Spring Modulith 1.4.x
+- Spring AI 1.0.0-M4
+- Spring Data JPA
+- H2 (dev/test)
+- Gradle 8 (wrapper)
+- JUnit 5, Mockito, AssertJ
+
+## Quick Start
+
+### Prerequisites
+
+- JDK 21
+- `JAVA_HOME` configured
+
+### Run locally
+
 ```bash
 ./gradlew clean
-./gradlew build
-./gradlew test
 ./gradlew bootRun
 ```
 
-Run a single test (most important):
+Default profile is `mock` (safe local startup without real AI providers).
+
+### Run tests
+
 ```bash
-./gradlew test --tests 'dev.prospectos.core.domain.CompanyTest'
-./gradlew test --tests 'dev.prospectos.core.domain.CompanyTest.someTestMethod'
+./gradlew test
 ```
 
-Coverage:
-- `./gradlew test` produces JaCoCo output at `build/reports/jacoco/test/html/index.html`
+Single test examples:
 
-## CI
-A GitHub Actions workflow lives at `.github/workflows/ci.yml` and runs tests on:
-- Pull Requests targeting `main`
-- Pushes to `main`
+```bash
+./gradlew test --tests 'dev.prospectos.core.domain.CompanyTest'
+./gradlew test --tests 'dev.prospectos.integration.LeadDiscoveryIntegrationTest'
+```
 
-Recommended: enable Branch Protection on `main` requiring the CI check to pass.
+Coverage report:
 
-## Current Pending Work (Known Gaps)
+- `build/reports/jacoco/test/html/index.html`
 
-High priority tech debt (see `docs/technical-debt/README.md`):
-- TD-002 (CRITICAL): `.env` is currently present in the repository. It should be removed from git and any leaked secrets must be rotated.
-- TD-001 (CRITICAL): build uses SNAPSHOT/Milestone dependencies (Spring Boot/Spring AI). Migrate to stable versions when possible.
+## Configuration Profiles
 
-Product/MVP backlog (see `docs/tasks/index.md` and diagrams under `docs/diagrams/`):
-- MVP-004: enrichment + email validation improvements (in progress)
-- MVP-006: flow orchestration + persistence improvements (pending)
+- `mock`: local-safe defaults, no real provider dependency
+- `development`: local development with extended discovery setup
+- `test`: deterministic integration tests with in-memory DB
 
-## Docs
-- MVP backlog index: `docs/tasks/index.md`
-- Implementation roadmap: `docs/implementation-roadmap.md`
-- Diagrams (PlantUML): `docs/diagrams/README.md`
+`.env` loading is supported by `DotenvEnvironmentPostProcessor` and skipped in `test` profile.
+Use `.env.example` as baseline and never commit secrets.
 
-## Notes For Contributors
-- Follow `.editorconfig` (4 spaces for Java/Gradle/properties, max line length 120)
-- Keep diffs focused and respect Modulith boundaries (core must not depend on ai/infrastructure)
-- Never commit secrets (.env, tokens, api keys)
+## API Surface (MVP)
+
+- Companies
+- `GET/POST /api/companies`
+- `GET/PUT/DELETE /api/companies/{id}`
+- `PUT /api/companies/{id}/score`
+
+- ICPs
+- `GET/POST /api/icps`
+- `GET/PUT/DELETE /api/icps/{id}`
+- `GET /api/icps/{id}/companies`
+
+- Lead flows
+- `POST /api/leads/discover`
+- `POST /api/leads/accept`
+
+- Enrichment
+- `POST /api/prospect/enrich`
+
+## Current Engineering Focus
+
+Technical debt and execution history:
+
+- `docs/technical-debt/README.md`
+- `docs/technical-debt/TD-018-discovery-and-scoring-hardening.md`
+
+Backlog and roadmap:
+
+- `docs/tasks/index.md`
+- `docs/implementation-roadmap.md`
+- `docs/diagrams/README.md`
+
+## Contributing
+
+- Keep changes small and module-aware
+- Respect Modulith boundaries (`core` must not depend on `ai`/`infrastructure`)
+- Follow `.editorconfig`
+- Add tests for behavioral changes
+- Never commit `.env`, keys, or tokens

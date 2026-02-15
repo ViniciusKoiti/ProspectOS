@@ -32,6 +32,11 @@ public class CompanyRepositoryAdapter implements CompanyDomainRepository {
     public Optional<Company> findById(UUID id) {
         return jpaRepository.findById(id);
     }
+
+    @Override
+    public Optional<Company> findByExternalId(Long externalId) {
+        return jpaRepository.findByExternalId(externalId);
+    }
     
     @Override
     public void delete(Company company) {

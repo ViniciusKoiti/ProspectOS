@@ -15,6 +15,8 @@ import java.util.UUID;
  * Contains JPA-specific implementations and queries.
  */
 public interface CompanyJpaRepository extends JpaRepository<Company, UUID> {
+
+    Optional<Company> findByExternalId(Long externalId);
     
     Optional<Company> findByWebsiteUrl(String websiteUrl);
     

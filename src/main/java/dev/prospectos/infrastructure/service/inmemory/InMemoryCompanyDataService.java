@@ -5,6 +5,7 @@ import dev.prospectos.api.dto.CompanyDTO;
 import dev.prospectos.api.dto.ScoreDTO;
 import dev.prospectos.api.dto.request.CompanyCreateRequest;
 import dev.prospectos.api.dto.request.CompanyUpdateRequest;
+import dev.prospectos.core.domain.Website;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +27,26 @@ public class InMemoryCompanyDataService implements CompanyDataService {
 
     @Override
     public CompanyDTO findCompany(Long companyId) {return store.companies().get(companyId);
+    }
+
+    @Override
+    public CompanyDTO findByWebsite(String website) {
+        if (website == null || website.isBlank()) {
+            return null;
+        }
+
+        String targetDomain;
+        try {
+            targetDomain = Website.of(website).getDomain();
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
+
+        return store.companies().values().stream()
+            .filter(company -> company.website() != null)
+            .filter(company -> hasSameDomain(company.website(), targetDomain))
+            .findFirst()
+            .orElse(null);
     }
 
     @Override
@@ -119,5 +140,13 @@ public class InMemoryCompanyDataService implements CompanyDataService {
             return country;
         }
         return null;
+    }
+
+    private boolean hasSameDomain(String website, String targetDomain) {
+        try {
+            return Website.of(website).getDomain().equalsIgnoreCase(targetDomain);
+        } catch (IllegalArgumentException ex) {
+            return false;
+        }
     }
 }

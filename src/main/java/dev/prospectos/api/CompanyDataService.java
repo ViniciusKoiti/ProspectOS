@@ -16,6 +16,9 @@ public interface CompanyDataService {
     @Nullable
     CompanyDTO findCompany(Long companyId);
 
+    @Nullable
+    CompanyDTO findByWebsite(String website);
+
     List<CompanyDTO> findAllCompanies();
 
     CompanyDTO createCompany(CompanyCreateRequest request);

@@ -16,6 +16,7 @@ public interface CompanyDomainRepository {
     
     Company save(Company company);
     Optional<Company> findById(UUID id);
+    Optional<Company> findByExternalId(Long externalId);
     void delete(Company company);
     List<Company> findAll();
     

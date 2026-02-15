@@ -76,7 +76,7 @@ public class DefaultLeadDiscoveryService implements LeadDiscoveryService {
         for (String sourceName : validatedSources) {
             LeadDiscoverySource source = sourceRegistry.get(sourceName);
             if (source == null) {
-                continue;
+                throw new IllegalArgumentException("Configured source without implementation: " + sourceName);
             }
             discovered.addAll(source.discover(context));
         }

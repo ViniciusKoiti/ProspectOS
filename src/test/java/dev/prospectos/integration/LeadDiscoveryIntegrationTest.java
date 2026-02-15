@@ -2,16 +2,10 @@ package dev.prospectos.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.prospectos.api.dto.LeadDiscoveryRequest;
-import dev.prospectos.infrastructure.service.discovery.DiscoveredLeadCandidate;
-import dev.prospectos.infrastructure.service.discovery.DiscoveryContext;
-import dev.prospectos.infrastructure.service.discovery.LeadDiscoverySource;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
@@ -107,33 +101,5 @@ class LeadDiscoveryIntegrationTest {
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.error").isNotEmpty());
-    }
-
-    @TestConfiguration
-    static class LeadDiscoveryTestConfig {
-
-        @Bean
-        @Primary
-        LeadDiscoverySource testLlmDiscoverySource() {
-            return new LeadDiscoverySource() {
-                @Override
-                public String sourceName() {
-                    return "llm-discovery";
-                }
-
-                @Override
-                public List<DiscoveredLeadCandidate> discover(DiscoveryContext context) {
-                    return List.of(new DiscoveredLeadCandidate(
-                        "Acme Foods",
-                        "https://acmefoods.com",
-                        "Food Distribution",
-                        "Regional food supplier",
-                        "Maringa, PR",
-                        List.of("contact@acmefoods.com"),
-                        "llm-discovery"
-                    ));
-                }
-            };
-        }
     }
 }

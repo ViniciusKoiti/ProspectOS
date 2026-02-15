@@ -1,7 +1,7 @@
 package dev.prospectos.infrastructure.service.discovery;
 
 import dev.prospectos.ai.client.AIProvider;
-import org.springframework.context.annotation.Profile;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -10,7 +10,7 @@ import java.util.List;
  * LLM-first textual discovery strategy.
  */
 @Component
-@Profile("!test")
+@ConditionalOnProperty(prefix = "prospectos.discovery.llm", name = "enabled", havingValue = "true")
 public class LlmLeadDiscoverySource implements LeadDiscoverySource {
 
     private static final String SOURCE_NAME = "llm-discovery";

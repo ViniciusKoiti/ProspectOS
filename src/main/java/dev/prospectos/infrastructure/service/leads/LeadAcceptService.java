@@ -49,9 +49,7 @@ public class LeadAcceptService {
         CompanyCandidateDTO candidate = request.candidate();
         ScoreDTO sanitizedScore = sanitizeScore(request.score());
 
-        // Check for existing company by website domain
-        // TODO: Add findCompanyByWebsite method to CompanyDataService for deduplication
-        CompanyDTO existingCompany = findExistingCompanyByWebsite(candidate.website());
+        CompanyDTO existingCompany = companyDataService.findByWebsite(candidate.website());
 
         CompanyDTO company;
         String message;
@@ -86,15 +84,6 @@ public class LeadAcceptService {
         }
 
         return new AcceptLeadResponse(company, message);
-    }
-
-    private CompanyDTO findExistingCompanyByWebsite(String website) {
-        // Simple implementation: search all companies and filter by website
-        // TODO: Add index on website field or dedicated query method for better performance
-        return companyDataService.findAllCompanies().stream()
-            .filter(c -> c.website() != null && c.website().equalsIgnoreCase(website))
-            .findFirst()
-            .orElse(null);
     }
 
     private void validateLeadKey(String leadKey) {

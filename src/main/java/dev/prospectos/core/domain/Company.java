@@ -23,6 +23,9 @@ public class Company extends AbstractAggregateRoot<Company> {
     @Id
     @Column(name = "id")
     private UUID id;
+
+    @Column(name = "external_id", nullable = false, unique = true)
+    private Long externalId;
     private String name;
     @Embedded
     private Website website;
@@ -58,6 +61,7 @@ public class Company extends AbstractAggregateRoot<Company> {
     
     private Company(String name, Website website, String industry) {
         this.id = UUID.randomUUID();
+        this.externalId = toExternalId(this.id);
         this.name = validateName(name);
         this.website = website;
         this.industry = industry;
@@ -73,6 +77,17 @@ public class Company extends AbstractAggregateRoot<Company> {
     
     public static Company create(String name, Website website, String industry) {
         return new Company(name, website, industry);
+    }
+
+    @PrePersist
+    void ensureExternalId() {
+        if (this.externalId == null && this.id != null) {
+            this.externalId = toExternalId(this.id);
+        }
+    }
+
+    private static long toExternalId(UUID id) {
+        return id.getMostSignificantBits();
     }
 
     public void updateProfile(String name, Website website, String industry) {
@@ -181,6 +196,7 @@ public class Company extends AbstractAggregateRoot<Company> {
     
     // Getters
     public UUID getId() { return id; }
+    public Long getExternalId() { return externalId; }
     public String getName() { return name; }
     public Website getWebsite() { return website; }
     public String getIndustry() { return industry; }
