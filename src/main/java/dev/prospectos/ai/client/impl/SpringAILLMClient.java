@@ -2,7 +2,10 @@ package dev.prospectos.ai.client.impl;
 
 import dev.prospectos.ai.client.LLMClient;
 import dev.prospectos.ai.client.LLMProvider;
+import dev.prospectos.ai.client.LlmScoringResponseConverter;
+import dev.prospectos.ai.client.LlmStructuredResponseSanitizer;
 import dev.prospectos.ai.client.mock.MockResponseFactory;
+import dev.prospectos.ai.dto.ScoringResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 
@@ -16,11 +19,22 @@ public class SpringAILLMClient implements LLMClient {
     private final ChatClient chatClient;
     private final LLMProvider provider;
     private final boolean available;
+    private final LlmScoringResponseConverter scoringResponseConverter;
     
     public SpringAILLMClient(ChatClient chatClient, LLMProvider provider, boolean available) {
+        this(chatClient, provider, available, new LlmScoringResponseConverter(new LlmStructuredResponseSanitizer()));
+    }
+
+    public SpringAILLMClient(
+        ChatClient chatClient,
+        LLMProvider provider,
+        boolean available,
+        LlmScoringResponseConverter scoringResponseConverter
+    ) {
         this.chatClient = chatClient;
         this.provider = provider;
         this.available = available;
+        this.scoringResponseConverter = scoringResponseConverter;
     }
     
     @Override
@@ -75,7 +89,15 @@ public class SpringAILLMClient implements LLMClient {
         try {
             log.debug("Executing structured query on {}: {}", provider.getDisplayName(), 
                 responseClass.getSimpleName());
-            
+
+            if (ScoringResult.class.equals(responseClass)) {
+                String content = chatClient.prompt()
+                    .user(prompt)
+                    .call()
+                    .content();
+                return responseClass.cast(scoringResponseConverter.convert(content));
+            }
+
             return chatClient.prompt()
                 .user(prompt)
                 .call()

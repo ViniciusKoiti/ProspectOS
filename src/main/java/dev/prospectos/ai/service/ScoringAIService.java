@@ -48,7 +48,13 @@ public class ScoringAIService {
                 4. Timing and urgency (15 points)
                 5. Contact accessibility (10 points)
 
-                Provide your answer as structured output compatible with ScoringResult.
+                Output requirements:
+                - Return only valid JSON
+                - No markdown code fences
+                - No comments or citations
+                - Keep all strings in a single line
+                - Use priority as one of: HOT, WARM, COLD, IGNORE
+                - Use breakdown keys exactly: icpFit, signals, companySize, timing, accessibility
                 """,
                 company.getName(),
                 company.getIndustry(),
