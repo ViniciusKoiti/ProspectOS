@@ -10,7 +10,14 @@ class HashingTextEmbeddingServiceTest {
 
     @Test
     void embed_ReturnsConfiguredDimensionAndDeterministicVector() {
-        VectorizationProperties properties = new VectorizationProperties("hashing-v1", 64, 5, 0.2d);
+        VectorizationProperties properties = new VectorizationProperties(
+            "in-memory",
+            "hashing-v1",
+            64,
+            5,
+            0.2d,
+            null
+        );
         HashingTextEmbeddingService service = new HashingTextEmbeddingService(properties);
 
         float[] first = service.embed("agile scrum kanban software engineering");
@@ -24,7 +31,14 @@ class HashingTextEmbeddingServiceTest {
 
     @Test
     void embed_SupportsUnicodeTokensForPortugueseText() {
-        VectorizationProperties properties = new VectorizationProperties("hashing-v1", 64, 5, 0.2d);
+        VectorizationProperties properties = new VectorizationProperties(
+            "in-memory",
+            "hashing-v1",
+            64,
+            5,
+            0.2d,
+            null
+        );
         HashingTextEmbeddingService service = new HashingTextEmbeddingService(properties);
 
         float[] vector = service.embed("metodologias ágeis para desenvolvimento de software");

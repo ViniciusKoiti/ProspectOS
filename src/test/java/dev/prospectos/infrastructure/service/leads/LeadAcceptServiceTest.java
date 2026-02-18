@@ -13,7 +13,6 @@ import dev.prospectos.core.util.LeadKeyGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -36,6 +35,7 @@ class LeadAcceptServiceTest {
     @Mock
     private SourceProvenanceService sourceProvenanceService;
 
+    @Mock
     private LeadAcceptService service;
 
     @BeforeEach

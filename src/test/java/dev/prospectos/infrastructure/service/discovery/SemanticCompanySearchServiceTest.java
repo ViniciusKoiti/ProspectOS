@@ -11,15 +11,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -30,34 +25,37 @@ class SemanticCompanySearchServiceTest {
 
     @Test
     void search_ReturnsSemanticMatchesFromKnownCompanies() {
-        when(companyDataService.findAllCompanies()).thenReturn(List.of(
-            new CompanyDTO(
-                1L,
-                "AgileSoft",
-                "Software",
-                "https://agilesoft.com",
-                "Software consultancy using scrum and kanban with agile engineering teams",
-                120,
-                "Sao Paulo, BR",
-                null
-            ),
-            new CompanyDTO(
-                2L,
-                "SteelWorks",
-                "Manufacturing",
-                "https://steelworks.com",
-                "Heavy industry for steel production",
-                800,
-                "Belo Horizonte, BR",
-                null
-            )
-        ));
+        CompanyDTO agileSoft = new CompanyDTO(
+            1L,
+            "AgileSoft",
+            "Software",
+            "https://agilesoft.com",
+            "Software consultancy using scrum and kanban with agile engineering teams",
+            120,
+            "Sao Paulo, BR",
+            null
+        );
+        when(companyDataService.findCompany(1L)).thenReturn(agileSoft);
 
-        VectorizationProperties properties = new VectorizationProperties("hashing-v1", 128, 5, 0.10d);
+        VectorizationProperties properties = new VectorizationProperties(
+            "in-memory",
+            "hashing-v1",
+            128,
+            5,
+            0.10d,
+            null
+        );
+        HashingTextEmbeddingService embeddingService = new HashingTextEmbeddingService(properties);
+        InMemoryVectorIndex vectorIndex = new InMemoryVectorIndex(embeddingService);
+        vectorIndex.upsert(
+            "company:1",
+            "AgileSoft. Software consultancy using scrum and kanban with agile engineering teams",
+            Map.of("companyId", 1L)
+        );
+
         SemanticCompanySearchService service = new SemanticCompanySearchService(
             companyDataService,
-            new HashingTextEmbeddingService(properties),
-            new InMemoryVectorIndex(properties),
+            vectorIndex,
             properties
         );
 
@@ -65,57 +63,5 @@ class SemanticCompanySearchServiceTest {
 
         assertFalse(matches.isEmpty());
         assertEquals("AgileSoft", matches.getFirst().company().name());
-    }
-
-    @Test
-    void search_IsSafeUnderConcurrentAccess() throws ExecutionException, InterruptedException {
-        when(companyDataService.findAllCompanies()).thenReturn(List.of(
-            new CompanyDTO(
-                1L,
-                "AgileSoft",
-                "Software",
-                "https://agilesoft.com",
-                "Software consultancy using scrum and kanban",
-                120,
-                "Sao Paulo, BR",
-                null
-            ),
-            new CompanyDTO(
-                2L,
-                "CloudOps",
-                "Software",
-                "https://cloudops.com",
-                "Cloud engineering and devops teams",
-                90,
-                "Curitiba, BR",
-                null
-            )
-        ));
-
-        VectorizationProperties properties = new VectorizationProperties("hashing-v1", 128, 5, 0.05d);
-        SemanticCompanySearchService service = new SemanticCompanySearchService(
-            companyDataService,
-            new HashingTextEmbeddingService(properties),
-            new InMemoryVectorIndex(properties),
-            properties
-        );
-
-        ExecutorService executor = Executors.newFixedThreadPool(4);
-        try {
-            Callable<List<SemanticCompanyMatch>> task = () -> service.search("agile cloud software", 2);
-            List<Future<List<SemanticCompanyMatch>>> futures = List.of(
-                executor.submit(task),
-                executor.submit(task),
-                executor.submit(task),
-                executor.submit(task)
-            );
-
-            for (Future<List<SemanticCompanyMatch>> future : futures) {
-                List<SemanticCompanyMatch> result = future.get();
-                assertNotNull(result);
-            }
-        } finally {
-            executor.shutdownNow();
-        }
     }
 }

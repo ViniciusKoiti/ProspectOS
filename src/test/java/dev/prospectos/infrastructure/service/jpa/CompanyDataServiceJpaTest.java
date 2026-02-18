@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.List;
 import java.util.Optional;
@@ -31,11 +32,14 @@ class CompanyDataServiceJpaTest {
     @Mock
     private ICPDomainRepository icpRepository;
 
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+
     private CompanyDataServiceJpa service;
 
     @BeforeEach
     void setUp() {
-        service = new CompanyDataServiceJpa(companyRepository, icpRepository);
+        service = new CompanyDataServiceJpa(companyRepository, icpRepository, eventPublisher);
     }
 
     @Test

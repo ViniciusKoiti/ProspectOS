@@ -100,21 +100,19 @@ Use `.env.example` as baseline and never commit secrets.
 - Enrichment
 - `POST /api/prospect/enrich`
 
-## Vectorization Flow (In-Memory First)
+## Vectorization Flow (Backend-Switchable)
 
-ProspectOS now supports an initial semantic discovery path using in-memory vectorization.
-This is designed to be provider-agnostic so you can later swap embeddings/model/store with minimal changes.
+ProspectOS supports semantic discovery through a backend-switchable vector architecture.
+The discovery flow stays stable while vector storage can run in-memory or via PGVector.
 
 ### Current flow
 
 1. `POST /api/leads/discover` receives a natural language query.
 2. When source `vector-company` is requested, `VectorCompanyLeadDiscoverySource` is used.
-3. `SemanticCompanySearchService`:
-   - loads companies from `CompanyDataService`
-   - builds semantic text per company (name/industry/description/location/website)
-   - generates embeddings via `TextEmbeddingService`
-   - indexes/searches vectors via `VectorIndex`
-4. Matches are converted to `LeadResultDTO` and continue through the same scoring/leadKey flow.
+3. Company changes (create/update/accept) publish vector reindex events.
+4. `CompanyVectorIndexingListener` triggers `CompanyVectorIndexingService` to upsert into `VectorIndex` incrementally.
+5. `SemanticCompanySearchService` queries `VectorIndex` and resolves matched companies by `companyId` metadata.
+6. Matches are converted to `LeadResultDTO` and continue through the same scoring/leadKey flow.
 
 ### Abstractions for future model/store changes
 
@@ -124,20 +122,36 @@ This is designed to be provider-agnostic so you can later swap embeddings/model/
 
 Because both embedding service and vector index validate dimensions, changing model or embedding size is a configuration/update concern instead of a discovery-flow rewrite.
 
-### Default implementation included
+### Implementations included
 
 - `HashingTextEmbeddingService` (deterministic local embeddings for dev/test)
-- `InMemoryVectorIndex` (cosine similarity, in-memory)
+- `InMemoryVectorIndex` (cosine similarity, in-memory backend)
+- `SpringAiVectorStoreIndex` (adapter over Spring AI `VectorStore`, used for PGVector backend)
 - `VectorCompanyLeadDiscoverySource` (source name: `vector-company`)
 
 ### Key properties
 
 ```properties
 prospectos.discovery.vector.enabled=true
+prospectos.vectorization.backend=in-memory
 prospectos.vectorization.model-id=hashing-v1
 prospectos.vectorization.embedding-dimension=256
 prospectos.vectorization.top-k=5
 prospectos.vectorization.min-similarity=0.20
+prospectos.vectorization.pgvector.table-name=company_vectors
+prospectos.vectorization.pgvector.initialize-schema=true
+```
+
+### PGVector runtime properties
+
+```properties
+prospectos.vectorization.backend=pgvector
+spring.datasource.url=jdbc:postgresql://localhost:5432/prospectos
+spring.datasource.username=prospectos
+spring.datasource.password=prospectos
+spring.ai.vectorstore.pgvector.initialize-schema=true
+spring.ai.vectorstore.pgvector.table-name=company_vectors
+spring.ai.vectorstore.pgvector.dimensions=256
 ```
 
 ### Allowed source configuration
@@ -148,11 +162,13 @@ To enable semantic discovery through the public API, include `vector-company` in
 prospectos.leads.allowed-sources=in-memory,vector-company
 ```
 
-### Migration path to provider/vector DB (next step)
+### Backend switch strategy
 
-1. Implement a new `TextEmbeddingService` backed by real provider embeddings.
-2. Implement a new `VectorIndex` backed by your target store (e.g. PGVector).
-3. Keep `VectorCompanyLeadDiscoverySource` and `SemanticCompanySearchService` unchanged.
+1. Keep discovery use case (`VectorCompanyLeadDiscoverySource`, `SemanticCompanySearchService`) unchanged.
+2. Switch vector backend by property:
+   - `in-memory` for local/test fast feedback
+   - `pgvector` for persistent semantic index
+3. Keep index freshness through incremental events instead of rebuild-per-request.
 
 ## Current Engineering Focus
 

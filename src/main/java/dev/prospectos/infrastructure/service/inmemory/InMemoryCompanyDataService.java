@@ -6,6 +6,8 @@ import dev.prospectos.api.dto.ScoreDTO;
 import dev.prospectos.api.dto.request.CompanyCreateRequest;
 import dev.prospectos.api.dto.request.CompanyUpdateRequest;
 import dev.prospectos.core.domain.Website;
+import dev.prospectos.infrastructure.service.discovery.CompanyVectorReindexRequested;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
@@ -20,9 +22,11 @@ import java.util.Objects;
 public class InMemoryCompanyDataService implements CompanyDataService {
 
     private final InMemoryCoreDataStore store;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public InMemoryCompanyDataService(InMemoryCoreDataStore store) {
+    public InMemoryCompanyDataService(InMemoryCoreDataStore store, ApplicationEventPublisher eventPublisher) {
         this.store = store;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -68,6 +72,7 @@ public class InMemoryCompanyDataService implements CompanyDataService {
             null // score will be set separately via updateCompanyScore
         );
         store.companies().put(companyId, company);
+        publishReindex(companyId);
         return company;
     }
 
@@ -88,12 +93,17 @@ public class InMemoryCompanyDataService implements CompanyDataService {
             existing != null ? existing.score() : null // preserve existing score
         );
         store.companies().put(companyId, company);
+        publishReindex(companyId);
         return company;
     }
 
     @Override
     public boolean deleteCompany(Long companyId) {
-        return store.companies().remove(companyId) != null;
+        boolean deleted = store.companies().remove(companyId) != null;
+        if (deleted) {
+            publishReindex(companyId);
+        }
+        return deleted;
     }
 
     @Override
@@ -118,6 +128,7 @@ public class InMemoryCompanyDataService implements CompanyDataService {
             );
             store.companies().put(companyId, updated);
         }
+        publishReindex(companyId);
     }
 
     @Override
@@ -148,5 +159,9 @@ public class InMemoryCompanyDataService implements CompanyDataService {
         } catch (IllegalArgumentException ex) {
             return false;
         }
+    }
+
+    private void publishReindex(Long companyId) {
+        eventPublisher.publishEvent(new CompanyVectorReindexRequested(companyId));
     }
 }

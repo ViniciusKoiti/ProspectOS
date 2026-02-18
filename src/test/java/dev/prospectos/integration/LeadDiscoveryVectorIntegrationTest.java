@@ -1,7 +1,9 @@
 package dev.prospectos.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.prospectos.api.CompanyDataService;
 import dev.prospectos.api.dto.LeadDiscoveryRequest;
+import dev.prospectos.api.dto.request.CompanyCreateRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -28,6 +30,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class LeadDiscoveryVectorIntegrationTest {
 
     @Autowired
+    private CompanyDataService companyDataService;
+
+    @Autowired
     private MockMvc mockMvc;
 
     @Autowired
@@ -35,6 +40,16 @@ class LeadDiscoveryVectorIntegrationTest {
 
     @Test
     void leadDiscovery_ReturnsResultsFromVectorSource() throws Exception {
+        companyDataService.createCompany(new CompanyCreateRequest(
+            "Agile Discovery Co",
+            "Software",
+            "https://agilediscovery.com",
+            "Software team focused on scrum and cloud engineering",
+            "BR",
+            "Sao Paulo",
+            "MEDIUM"
+        ));
+
         LeadDiscoveryRequest request = new LeadDiscoveryRequest(
             "software startups with cloud teams",
             "SUPPLIER",
@@ -52,6 +67,7 @@ class LeadDiscoveryVectorIntegrationTest {
             .andExpect(jsonPath("$.leads[0]").exists())
             .andExpect(jsonPath("$.leads[0].source.sourceName").value("vector-company"))
             .andExpect(jsonPath("$.leads[0].leadKey").isNotEmpty())
+            .andExpect(jsonPath("$.leads[0].candidate.name").value("Agile Discovery Co"))
             .andExpect(jsonPath("$.leads[0].candidate.website").isNotEmpty());
     }
 }

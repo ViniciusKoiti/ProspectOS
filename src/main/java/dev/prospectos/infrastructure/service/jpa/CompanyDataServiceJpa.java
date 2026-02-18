@@ -11,7 +11,9 @@ import dev.prospectos.core.domain.Score;
 import dev.prospectos.core.domain.Website;
 import dev.prospectos.core.repository.CompanyDomainRepository;
 import dev.prospectos.core.repository.ICPDomainRepository;
+import dev.prospectos.infrastructure.service.discovery.CompanyVectorReindexRequested;
 import org.springframework.context.annotation.Profile;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -27,10 +29,16 @@ public class CompanyDataServiceJpa implements CompanyDataService {
 
     private final CompanyDomainRepository companyRepository;
     private final ICPDomainRepository icpRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public CompanyDataServiceJpa(CompanyDomainRepository companyRepository, ICPDomainRepository icpRepository) {
+    public CompanyDataServiceJpa(
+        CompanyDomainRepository companyRepository,
+        ICPDomainRepository icpRepository,
+        ApplicationEventPublisher eventPublisher
+    ) {
         this.companyRepository = companyRepository;
         this.icpRepository = icpRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -85,7 +93,9 @@ public class CompanyDataServiceJpa implements CompanyDataService {
         if (request.country() != null || request.city() != null) {
             company.setLocation(request.country(), request.city());
         }
-        return toDTO(companyRepository.save(company));
+        CompanyDTO created = toDTO(companyRepository.save(company));
+        publishReindex(created.id());
+        return created;
     }
 
     @Override
@@ -109,7 +119,9 @@ public class CompanyDataServiceJpa implements CompanyDataService {
         if (request.country() != null || request.city() != null) {
             company.setLocation(request.country(), request.city());
         }
-        return toDTO(companyRepository.save(company));
+        CompanyDTO updated = toDTO(companyRepository.save(company));
+        publishReindex(updated.id());
+        return updated;
     }
 
     @Override
@@ -119,6 +131,7 @@ public class CompanyDataServiceJpa implements CompanyDataService {
             return false;
         }
         companyRepository.delete(existing.get());
+        publishReindex(companyId);
         return true;
     }
 
@@ -128,6 +141,7 @@ public class CompanyDataServiceJpa implements CompanyDataService {
             .orElseThrow(() -> new IllegalArgumentException("Company not found: " + companyId));
         company.updateScore(Score.of(score.value()), score.reasoning());
         companyRepository.save(company);
+        publishReindex(companyId);
     }
 
     @Override
@@ -211,5 +225,9 @@ public class CompanyDataServiceJpa implements CompanyDataService {
         } catch (IllegalArgumentException ex) {
             throw new IllegalArgumentException("Invalid company size: " + size);
         }
+    }
+
+    private void publishReindex(Long companyId) {
+        eventPublisher.publishEvent(new CompanyVectorReindexRequested(companyId));
     }
 }

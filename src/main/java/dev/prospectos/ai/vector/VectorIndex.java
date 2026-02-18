@@ -12,7 +12,9 @@ public interface VectorIndex {
 
     void clear();
 
-    void upsert(String id, float[] vector, Map<String, Object> metadata);
+    void upsert(String id, String content, Map<String, Object> metadata);
 
-    List<VectorSearchMatch> similaritySearch(float[] queryVector, int topK, double minSimilarity);
+    void delete(String id);
+
+    List<VectorSearchMatch> similaritySearch(String query, int topK, double minSimilarity);
 }
