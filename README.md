@@ -100,6 +100,60 @@ Use `.env.example` as baseline and never commit secrets.
 - Enrichment
 - `POST /api/prospect/enrich`
 
+## Vectorization Flow (In-Memory First)
+
+ProspectOS now supports an initial semantic discovery path using in-memory vectorization.
+This is designed to be provider-agnostic so you can later swap embeddings/model/store with minimal changes.
+
+### Current flow
+
+1. `POST /api/leads/discover` receives a natural language query.
+2. When source `vector-company` is requested, `VectorCompanyLeadDiscoverySource` is used.
+3. `SemanticCompanySearchService`:
+   - loads companies from `CompanyDataService`
+   - builds semantic text per company (name/industry/description/location/website)
+   - generates embeddings via `TextEmbeddingService`
+   - indexes/searches vectors via `VectorIndex`
+4. Matches are converted to `LeadResultDTO` and continue through the same scoring/leadKey flow.
+
+### Abstractions for future model/store changes
+
+- `TextEmbeddingService`: embedding generation contract.
+- `VectorIndex`: vector storage + similarity search contract.
+- `EmbeddingModelDescriptor`: explicit model id + dimensions contract.
+
+Because both embedding service and vector index validate dimensions, changing model or embedding size is a configuration/update concern instead of a discovery-flow rewrite.
+
+### Default implementation included
+
+- `HashingTextEmbeddingService` (deterministic local embeddings for dev/test)
+- `InMemoryVectorIndex` (cosine similarity, in-memory)
+- `VectorCompanyLeadDiscoverySource` (source name: `vector-company`)
+
+### Key properties
+
+```properties
+prospectos.discovery.vector.enabled=true
+prospectos.vectorization.model-id=hashing-v1
+prospectos.vectorization.embedding-dimension=256
+prospectos.vectorization.top-k=5
+prospectos.vectorization.min-similarity=0.20
+```
+
+### Allowed source configuration
+
+To enable semantic discovery through the public API, include `vector-company` in allowed sources:
+
+```properties
+prospectos.leads.allowed-sources=in-memory,vector-company
+```
+
+### Migration path to provider/vector DB (next step)
+
+1. Implement a new `TextEmbeddingService` backed by real provider embeddings.
+2. Implement a new `VectorIndex` backed by your target store (e.g. PGVector).
+3. Keep `VectorCompanyLeadDiscoverySource` and `SemanticCompanySearchService` unchanged.
+
 ## Current Engineering Focus
 
 Technical debt and execution history:
