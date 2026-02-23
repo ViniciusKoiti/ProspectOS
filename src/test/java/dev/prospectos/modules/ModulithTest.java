@@ -24,6 +24,8 @@ class ModulithTest {
 
         assertThat(coreModule.getDirectDependencies(modules))
                 .as("O módulo 'core' não deve depender diretamente de nenhum outro módulo")
-                .isEmpty();
+                .satisfies(dependencies -> assertThat(dependencies.stream().count())
+                        .as("Dependências diretas encontradas para o módulo 'core'")
+                        .isZero());
     }
 }
