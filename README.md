@@ -31,13 +31,29 @@ Boundary verification lives in Modulith tests under `src/test/java/dev/prospecto
 ## Tech Stack
 
 - Java 21
-- Spring Boot 3.5.x (snapshot)
+- Spring Boot 3.4.5 (GA)
 - Spring Modulith 1.4.x
-- Spring AI 1.0.0-M4
+- Spring AI 1.0.3 (GA)
 - Spring Data JPA
 - H2 (dev/test)
 - Gradle 8 (wrapper)
 - JUnit 5, Mockito, AssertJ
+
+
+## Version Compatibility Matrix
+
+To keep builds reproducible and avoid pre-release artifacts, the project pins GA releases:
+
+| Component | Version | Source |
+| --- | --- | --- |
+| Java | 21 | Gradle toolchain (`build.gradle`) |
+| Spring Boot Gradle Plugin | 3.4.5 | `build.gradle` |
+| Spring Modulith BOM | 1.4.4 | `build.gradle` |
+| Spring AI BOM | 1.0.3 | `build.gradle` |
+| Dependency plugin | 1.1.7 | `build.gradle` |
+| Repositories | Maven Central + Gradle Plugin Portal | `build.gradle` / `settings.gradle` |
+
+> Note: snapshot/milestone repositories were removed to ensure only stable artifacts are resolved during CI and local builds.
 
 ## Quick Start
 
