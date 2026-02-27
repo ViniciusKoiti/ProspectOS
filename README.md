@@ -81,6 +81,29 @@ Coverage report:
 `.env` loading is supported by `DotenvEnvironmentPostProcessor` and skipped in `test` profile.
 Use `.env.example` as baseline and never commit secrets.
 
+## Operational Secrets Hygiene
+
+Minimum operating rules for local and shared environments:
+
+1. Never commit `.env` or any real key/token/secret value.
+2. Keep real secrets only in local environment variables or a secret manager.
+3. Treat any committed secret as compromised and rotate it immediately.
+4. Keep `.env.example` with placeholders only, and explicit comments for required vs optional values.
+5. Before merge, run a quick check:
+   - `git diff --cached | rg -n "api[_-]?key|secret|token|password"`
+   - confirm no real value is staged.
+
+Incident baseline:
+
+1. Contain: remove exposed values from current branch and close sharing channels.
+2. Rotate: regenerate keys/secrets in provider consoles.
+3. Verify: ensure old credentials no longer work.
+4. Record: register evidence and owner/date in WS3 docs.
+
+WS3 operational checklist/runbook:
+
+- `docs/workspaces/p0/ws3-seguranca-operacional/RUNBOOK.md`
+
 ## API Surface (MVP)
 
 - Companies
