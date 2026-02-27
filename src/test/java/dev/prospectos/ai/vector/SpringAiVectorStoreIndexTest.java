@@ -40,11 +40,7 @@ class SpringAiVectorStoreIndexTest {
         VectorizationProperties properties = new VectorizationProperties("pgvector", "test", 128, 5, 0.2d, null);
         SpringAiVectorStoreIndex index = new SpringAiVectorStoreIndex(vectorStore, properties);
 
-        Document doc = Document.builder()
-            .withId("company:1")
-            .withContent("AgileSoft")
-            .withMetadata(Map.of("companyId", 1L, "score", 0.93d))
-            .build();
+        Document doc = new Document("company:1", "AgileSoft", Map.of("companyId", 1L, "score", 0.93d));
         when(vectorStore.similaritySearch(any(SearchRequest.class))).thenReturn(List.of(doc));
 
         List<VectorSearchMatch> matches = index.similaritySearch("agile software", 3, 0.2d);

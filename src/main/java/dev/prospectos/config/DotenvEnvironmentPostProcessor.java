@@ -75,6 +75,7 @@ public class DotenvEnvironmentPostProcessor implements EnvironmentPostProcessor,
         // Backwards-compatible keys
         mappings.put("OPENAI_API_KEY", "spring.ai.openai.api-key");
         mappings.put("ANTHROPIC_API_KEY", "spring.ai.anthropic.api-key");
+        mappings.put("GROQ_API_KEY", "prospectos.ai.groq.api-key");
 
         // Application configuration
         mappings.put("SPRING_PROFILES_ACTIVE", "spring.profiles.active");

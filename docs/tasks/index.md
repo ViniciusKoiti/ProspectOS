@@ -16,3 +16,6 @@ Reference: docs/lead-flow-a-on-demand.puml.
 
 ## Core module
 - [MVP-004 Enrichment and email validation](mvp-004-enrichment-email-validation.md)
+
+## Governance module
+- [MVP-008 Doc-drift control](mvp-008-doc-drift-control.md)

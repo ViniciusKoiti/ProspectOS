@@ -1,3 +1,4 @@
+
 # ProspectOS
 
 ProspectOS is a **Spring Boot + Spring Modulith** application for B2B prospecting workflows:
@@ -103,6 +104,22 @@ Incident baseline:
 WS3 operational checklist/runbook:
 
 - `docs/workspaces/p0/ws3-seguranca-operacional/RUNBOOK.md`
+
+### AI Provider Configuration
+
+Environment variables for AI providers (copy from `.env.example` and set your keys):
+
+**Preferred naming conventions:**
+- `SPRING_AI_OPENAI_API_KEY` - OpenAI GPT models
+- `SPRING_AI_ANTHROPIC_API_KEY` - Anthropic Claude models  
+- `PROSPECTOS_AI_GROQ_API_KEY` - Groq/Llama models (preferred)
+
+**Backward-compatible aliases:**
+- `OPENAI_API_KEY` → maps to `spring.ai.openai.api-key`
+- `ANTHROPIC_API_KEY` → maps to `spring.ai.anthropic.api-key`
+- `GROQ_API_KEY` → maps to `prospectos.ai.groq.api-key`
+
+The application will automatically select the best available AI provider based on configured API keys.
 
 ## API Surface (MVP)
 

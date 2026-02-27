@@ -70,7 +70,7 @@ public class SpringAILLMClient implements LLMClient {
             
             return chatClient.prompt()
                 .user(prompt)
-                .functions(functions)
+                .tools((Object[]) functions)  // Cast para Object[] conforme warning
                 .call()
                 .content();
                 
