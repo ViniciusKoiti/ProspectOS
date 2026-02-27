@@ -5,10 +5,15 @@ import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.openai.api.OpenAiApi;
+import org.springframework.ai.model.SimpleApiKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestClient;
+import org.springframework.util.MultiValueMap;
+import org.springframework.util.LinkedMultiValueMap;
+import java.util.Map;
 
 @Configuration
 @Slf4j
@@ -28,11 +33,23 @@ public class GroqChatModelConfig {
     public ChatModel groqChatModel() {
         String normalizedBaseUrl = normalizeBaseUrl(groqBaseUrl);
         log.info("Groq base URL: {}", normalizedBaseUrl);
-        OpenAiApi openAiApi = new OpenAiApi(normalizedBaseUrl, groqApiKey);
+        
+        OpenAiApi openAiApi = new OpenAiApi(
+            normalizedBaseUrl,
+            new SimpleApiKey(groqApiKey),
+            new LinkedMultiValueMap<>(), // headers
+            null,     // userAgent  
+            null,     // threadExecutorServiceName
+            RestClient.builder(),
+            null,     // WebClient.Builder
+            null      // ResponseErrorHandler
+        );
+        
         OpenAiChatOptions options = OpenAiChatOptions.builder()
-            .withModel(groqModel)
+            .model(groqModel)  // removido 'with' prefix
             .build();
-        return new OpenAiChatModel(openAiApi, options);
+            
+        return new OpenAiChatModel(openAiApi, options, null, null, null);
     }
 
     private String normalizeBaseUrl(String baseUrl) {
