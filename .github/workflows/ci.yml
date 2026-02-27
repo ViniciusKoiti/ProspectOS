@@ -27,8 +27,30 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
 
+      - name: Start PostgreSQL with pgvector
+        run: |
+          docker run -d \
+            --name postgres-test \
+            -e POSTGRES_DB=prospectos \
+            -e POSTGRES_USER=prospectos \
+            -e POSTGRES_PASSWORD=prospectos \
+            -p 5432:5432 \
+            pgvector/pgvector:pg16
+          
+          # Wait for PostgreSQL to be ready
+          docker exec postgres-test sh -c 'until pg_isready -U prospectos; do sleep 1; done'
+          
+          # Verify pgvector extension is available
+          docker exec postgres-test psql -U prospectos -d prospectos -c "CREATE EXTENSION IF NOT EXISTS vector;"
+
       - name: Run tests
         run: ./gradlew --no-daemon clean test
+
+      - name: Stop PostgreSQL container
+        if: always()
+        run: |
+          docker stop postgres-test || true
+          docker rm postgres-test || true
 
       - name: Upload test report (on failure)
         if: failure()

@@ -1,48 +1,22 @@
 {
   "mcpServers": {
     "filesystem": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-filesystem",
-        "/mnt/d/Cursos/VectorSeek",
-        "/mnt/d/Cursos/VectorSeekFrontend",
-        "/mnt/d/Cursos/alurafake-main",
-        "/mnt/d/Cursos/prospectos"
-      ],
-      "env": {}
+      "type": "stdio",
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "@modelcontextprotocol/server-filesystem", "D:\\cursos\\prospectos"]
     },
-    "git": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-git",
-        "/mnt/d/Cursos/VectorSeek",
-        "/mnt/d/Cursos/VectorSeekFrontend",
-        "/mnt/d/Cursos/alurafake-main",
-        "/mnt/d/Cursos/prospectos"
-      ],
-      "env": {}
+    "memory": {
+      "type": "stdio",
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "@modelcontextprotocol/server-memory"]
     },
-    "docs-mcp-server": {
-      "transport": "sse",
-      "url": "http://localhost:6280/sse",
-      "disabled": false,
-      "autoApprove": []
-    },
-    "lsp": {
-      "command": "docker",
-      "args": [
-        "run",
-        "-i",
-        "--rm",
-        "-v",
-        "/mnt/d/Cursos:/work:rw",
-        "-w",
-        "/work",
-        "docker.io/jonrad/lsp-mcp:0.3.1"
-      ],
-      "env": {}
+    "fetch": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["mcp-server-fetch"],
+      "env": {
+        "PYTHONIOENCODING": "utf-8"
+      }
     }
   }
 }

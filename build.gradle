@@ -21,7 +21,7 @@ repositories {
 
 ext {
     set('springModulithVersion', "1.4.4")
-    set('springAiVersion', "1.0.1")
+    set('springAiVersion', "1.1.2")
 }
 
 dependencies {

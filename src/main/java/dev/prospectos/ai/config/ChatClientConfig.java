@@ -60,7 +60,7 @@ public class ChatClientConfig {
         }
         
         throw new IllegalStateException(
-            "No LLM API key configured. Set OPENAI_API_KEY, ANTHROPIC_API_KEY, or GROQ_API_KEY"
+            "No LLM API key configured. Set OPENAI_API_KEY, ANTHROPIC_API_KEY, or PROSPECTOS_AI_GROQ_API_KEY"
         );
     }
 

@@ -32,7 +32,7 @@ spring.ai.anthropic.api-key=${ANTHROPIC_API_KEY:dummy-key}
 spring.ai.anthropic.enabled=${ANTHROPIC_ENABLED:false}
 
 # Lead search configuration
-prospectos.leads.allowed-sources=in-memory
+prospectos.leads.allowed-sources=in-memory,vector-company
 
 # Database configuration - use in-memory H2
 spring.datasource.url=jdbc:h2:mem:testdb

@@ -137,7 +137,7 @@ class LeadDiscoveryVectorPgIntegrationTest {
 
         @Override
         public float[] embed(Document document) {
-            return embedText(document == null ? "" : document.getContent());
+            return embedText(document == null ? "" : document.getText());
         }
 
         private float[] embedText(String text) {
