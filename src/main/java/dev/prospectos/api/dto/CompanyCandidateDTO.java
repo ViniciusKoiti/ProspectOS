@@ -1,5 +1,6 @@
 package dev.prospectos.api.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import java.util.List;
 
 /**
@@ -7,7 +8,9 @@ import java.util.List;
  * Unlike CompanyDTO, this does not have an id since the company hasn't been persisted yet.
  */
 public record CompanyCandidateDTO(
+    @NotBlank(message = "candidate.name is required")
     String name,
+    @NotBlank(message = "candidate.website is required")
     String website,
     String industry,
     String description,
