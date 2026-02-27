@@ -8,9 +8,19 @@
       "Bash(git commit:*)",
       "WebSearch",
       "Read(//usr/**)",
-      "Bash(apt list:*)"
+      "Bash(apt list:*)",
+      "WebFetch(domain:docs.spring.io)",
+      "WebFetch(domain:github.com)",
+      "Bash(gh pr list)",
+      "Bash(gh pr view 5)",
+      "Bash(gh pr diff 5)"
     ],
     "deny": [],
     "ask": []
-  }
+  },
+  "enabledMcpjsonServers": [
+    "filesystem",
+    "memory",
+    "fetch"
+  ]
 }

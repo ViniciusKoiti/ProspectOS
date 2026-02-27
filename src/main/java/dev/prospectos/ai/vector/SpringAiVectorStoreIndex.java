@@ -43,11 +43,7 @@ public class SpringAiVectorStoreIndex implements VectorIndex {
         delete(id);
 
         Map<String, Object> safeMetadata = metadata == null ? Map.of() : Map.copyOf(metadata);
-        Document document = Document.builder()
-            .withId(id)
-            .withContent(content == null ? "" : content)
-            .withMetadata(safeMetadata)
-            .build();
+        Document document = new Document(id, content == null ? "" : content, safeMetadata);
         vectorStore.add(List.of(document));
     }
 
@@ -65,9 +61,11 @@ public class SpringAiVectorStoreIndex implements VectorIndex {
             return List.of();
         }
 
-        SearchRequest request = SearchRequest.query(query)
-            .withTopK(topK)
-            .withSimilarityThreshold(minSimilarity);
+        SearchRequest request = SearchRequest.builder()
+            .query(query)
+            .topK(topK)
+            .similarityThreshold(minSimilarity)
+            .build();
 
         List<Document> documents = vectorStore.similaritySearch(request);
         if (documents == null || documents.isEmpty()) {
