@@ -21,11 +21,17 @@ import static dev.prospectos.ai.config.AIConfigurationProperties.*;
 @Slf4j
 public class GroqEmbeddingConfig {
 
+    private final UrlNormalizationService urlNormalizationService;
+
     @Value("${" + GROQ_API_KEY + ":}")
     private String groqApiKey;
 
     @Value("${" + GROQ_BASE_URL + ":" + DEFAULT_GROQ_BASE_URL + "}")
     private String groqBaseUrl;
+
+    public GroqEmbeddingConfig(UrlNormalizationService urlNormalizationService) {
+        this.urlNormalizationService = urlNormalizationService;
+    }
 
     @Bean("groqEmbeddingModel")
     @ConditionalOnProperty(
@@ -40,7 +46,7 @@ public class GroqEmbeddingConfig {
             throw new IllegalArgumentException("Groq API key is required but not configured");
         }
 
-        String normalizedBaseUrl = normalizeBaseUrl(groqBaseUrl);
+        String normalizedBaseUrl = urlNormalizationService.normalizeGroqUrl(groqBaseUrl);
         log.info("Creating Groq EmbeddingModel with base URL: {}", normalizedBaseUrl);
 
         try {
@@ -60,19 +66,5 @@ public class GroqEmbeddingConfig {
             log.error("Failed to create Groq EmbeddingModel: {}", e.getMessage(), e);
             throw new IllegalStateException("Unable to initialize Groq EmbeddingModel", e);
         }
-    }
-
-    private String normalizeBaseUrl(String baseUrl) {
-        if (baseUrl == null || baseUrl.trim().isEmpty()) {
-            return "https://api.groq.com/openai/v1";
-        }
-        String normalized = baseUrl.trim();
-        while (normalized.endsWith("/")) {
-            normalized = normalized.substring(0, normalized.length() - 1);
-        }
-        if (!normalized.endsWith("/v1")) {
-            normalized = normalized + "/v1";
-        }
-        return normalized;
     }
 }

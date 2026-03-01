@@ -22,6 +22,8 @@ import static dev.prospectos.ai.config.AIConfigurationProperties.*;
 @Slf4j
 public class GroqChatModelConfig {
 
+    private final UrlNormalizationService urlNormalizationService;
+
     @Value("${" + GROQ_API_KEY + ":}")
     private String groqApiKey;
 
@@ -30,6 +32,10 @@ public class GroqChatModelConfig {
 
     @Value("${" + GROQ_MODEL + ":" + DEFAULT_GROQ_MODEL + "}")
     private String groqModel;
+
+    public GroqChatModelConfig(UrlNormalizationService urlNormalizationService) {
+        this.urlNormalizationService = urlNormalizationService;
+    }
 
     @Bean("groqChatModel")
     @ConditionalOnProperty(
@@ -44,7 +50,7 @@ public class GroqChatModelConfig {
             throw new IllegalArgumentException("Groq API key is required but not configured");
         }
 
-        String normalizedBaseUrl = normalizeBaseUrl(groqBaseUrl);
+        String normalizedBaseUrl = urlNormalizationService.normalizeGroqUrl(groqBaseUrl);
         log.info("Groq base URL: {}", normalizedBaseUrl);
 
         try {
@@ -68,20 +74,5 @@ public class GroqChatModelConfig {
             log.error("Failed to create Groq ChatModel: {}", e.getMessage(), e);
             throw new IllegalStateException("Unable to initialize Groq ChatModel", e);
         }
-    }
-
-    private String normalizeBaseUrl(String baseUrl) {
-        if (baseUrl == null || baseUrl.isBlank()) {
-            return "https://api.groq.com/openai/v1";
-        }
-
-        String normalized = baseUrl.trim();
-        while (normalized.endsWith("/")) {
-            normalized = normalized.substring(0, normalized.length() - 1);
-        }
-        if (!normalized.endsWith("/v1")) {
-            normalized = normalized + "/v1";
-        }
-        return normalized;
     }
 }
