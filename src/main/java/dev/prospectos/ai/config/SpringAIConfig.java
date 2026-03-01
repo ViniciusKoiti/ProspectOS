@@ -1,21 +1,21 @@
 package dev.prospectos.ai.config;
 
-import dev.prospectos.ai.client.AIProvider;
-import dev.prospectos.ai.factory.AIProviderFactory;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.beans.factory.annotation.Qualifier;
 
 import static dev.prospectos.ai.config.AIConfigurationProperties.*;
 
 /**
  * Main configuration for the AI module.
- * Uses the Strategy pattern with factories.
+ * 
+ * This configuration has been refactored to separate concerns:
+ * - AIChatClientConfig: Handles ChatClient creation and configuration
+ * - AIProviderConfig: Handles AIProvider creation
+ * - AIPromptService: Manages system prompts from external files
+ * 
+ * This class now serves mainly as a coordination point and can be used
+ * for any cross-cutting AI configuration concerns.
  */
 @Configuration
 @ConditionalOnProperty(
@@ -26,94 +26,7 @@ import static dev.prospectos.ai.config.AIConfigurationProperties.*;
 @Slf4j
 public class SpringAIConfig {
 
-    /**
-     * Primary ChatClient with default system prompt (optional).
-     */
-    @Bean
-    @ConditionalOnBean(name = "primaryChatModel")
-    public ChatClient chatClient(@Qualifier("primaryChatModel") ChatModel chatModel) {
-        log.info("Creating default ChatClient (primary ChatModel present).");
-        return buildDefaultChatClient(chatModel);
-    }
-
-    /**
-     * Specialized ChatClient for scoring (optional).
-     */
-    @Bean("scoringChatClient")
-    @ConditionalOnBean(name = "primaryChatModel")
-    public ChatClient scoringChatClient(@Qualifier("primaryChatModel") ChatModel chatModel) {
-        log.info("Creating scoring ChatClient (primary ChatModel present).");
-        return buildScoringChatClient(chatModel);
-    }
-
-    @Bean("groqChatClient")
-    @ConditionalOnBean(name = "groqChatModel")
-    public ChatClient groqChatClient(@Qualifier("groqChatModel") ChatModel chatModel) {
-        log.info("Creating Groq ChatClient.");
-        return buildDefaultChatClient(chatModel);
-    }
-
-    @Bean("groqScoringChatClient")
-    @ConditionalOnBean(name = "groqChatModel")
-    public ChatClient groqScoringChatClient(@Qualifier("groqChatModel") ChatModel chatModel) {
-        log.info("Creating Groq scoring ChatClient.");
-        return buildScoringChatClient(chatModel);
-    }
-
-    /**
-     * Primary AIProvider - configuration entry point.
-     * Uses the factory to detect the best available provider.
-     */
-    @Bean
-    public AIProvider aiProvider(AIProviderFactory factory) {
-        return factory.createPrimaryProvider();
-    }
-
-    private ChatClient buildDefaultChatClient(ChatModel chatModel) {
-        return ChatClient.builder(chatModel)
-            .defaultSystem("""
-                You are a B2B prospecting and company analysis expert.
-
-                Your responsibilities:
-                1. Analyze if companies fit the ICP (Ideal Customer Profile)
-                2. Calculate fit scores (0-100) based on concrete data
-                3. Recommend personalized outreach strategies
-                4. Generate highly personalized outreach messages
-                5. Identify buying interest signals
-
-                Principles:
-                - Base all decisions on DATA, not assumptions
-                - Be objective and direct
-                - Use available functions when you need more information
-                - Provide clear reasoning for your conclusions
-                - Scores must be justified with specific criteria
-
-                Output format:
-                - Always return structured JSON when requested
-                - Be concise but complete
-                - Prioritize actionable information
-                """)
-            .build();
-    }
-
-    private ChatClient buildScoringChatClient(ChatModel chatModel) {
-        return ChatClient.builder(chatModel)
-            .defaultSystem("""
-                You are a B2B prospecting scoring system.
-
-                Calculate scores (0-100) based on:
-                1. ICP fit (30 points)
-                2. Interest signals (25 points)
-                3. Company size and maturity (20 points)
-                4. Timing and urgency (15 points)
-                5. Contact accessibility (10 points)
-
-                ALWAYS return JSON with:
-                - score (0-100)
-                - reasoning (detailed justification)
-                - breakdown (points per category)
-                - priority (HOT/WARM/COLD/IGNORE)
-                """)
-            .build();
+    public SpringAIConfig() {
+        log.info("✅ AI module configuration initialized - responsibilities properly separated");
     }
 }
