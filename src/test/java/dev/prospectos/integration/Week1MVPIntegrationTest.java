@@ -3,8 +3,8 @@ package dev.prospectos.integration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.prospectos.api.dto.CompanyDTO;
 import dev.prospectos.api.dto.ICPDto;
-import dev.prospectos.api.dto.request.LeadSearchRequest;
-import dev.prospectos.api.dto.response.LeadSearchResponse;
+import dev.prospectos.api.dto.LeadSearchRequest;
+import dev.prospectos.api.dto.LeadSearchResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
@@ -101,7 +101,7 @@ class Week1MVPIntegrationTest {
     @Test
     void shouldSearchLeadsForFintech() throws Exception {
         // Given
-        LeadSearchRequest request = new LeadSearchRequest("fintech", null, null, 5);
+        LeadSearchRequest request = new LeadSearchRequest("fintech", 5, null, null);
 
         // When & Then
         MvcResult result = mockMvc.perform(post("/api/leads/search")
@@ -135,7 +135,7 @@ class Week1MVPIntegrationTest {
     @Test
     void shouldSearchLeadsForTechnology() throws Exception {
         // Given
-        LeadSearchRequest request = new LeadSearchRequest("tecnologia", null, null, 5);
+        LeadSearchRequest request = new LeadSearchRequest("tecnologia", 5, null, null);
 
         // When & Then  
         MvcResult result = mockMvc.perform(post("/api/leads/search")
@@ -169,7 +169,7 @@ class Week1MVPIntegrationTest {
     @Test  
     void shouldSearchLeadsForAgribusiness() throws Exception {
         // Given
-        LeadSearchRequest request = new LeadSearchRequest("agronegócio", null, null, 5);
+        LeadSearchRequest request = new LeadSearchRequest("agronegócio", 5, null, null);
 
         // When & Then
         MvcResult result = mockMvc.perform(post("/api/leads/search")
@@ -289,7 +289,7 @@ class Week1MVPIntegrationTest {
     @Test  
     void shouldReturnBrazilianCompaniesInResults() throws Exception {
         // Given
-        LeadSearchRequest request = new LeadSearchRequest("empresa Brasil", null, null, 20);
+        LeadSearchRequest request = new LeadSearchRequest("empresa Brasil", 20, null, null);
 
         // When  
         MvcResult result = mockMvc.perform(post("/api/leads/search")
@@ -318,7 +318,7 @@ class Week1MVPIntegrationTest {
     @Test
     void shouldReturnValidScoreDistribution() throws Exception {
         // Given - busca ampla para ver distribuição de scores
-        LeadSearchRequest request = new LeadSearchRequest("startup tecnologia", null, null, 20);
+        LeadSearchRequest request = new LeadSearchRequest("startup tecnologia", 20, null, null);
 
         // When
         MvcResult result = mockMvc.perform(post("/api/leads/search")
@@ -365,7 +365,7 @@ class Week1MVPIntegrationTest {
     @Test
     void shouldRespondWithinAcceptableTime() throws Exception {
         // Given
-        LeadSearchRequest request = new LeadSearchRequest("tecnologia", null, null, 10);
+        LeadSearchRequest request = new LeadSearchRequest("tecnologia", 10, null, null);
         
         // When - medir tempo de resposta
         long startTime = System.currentTimeMillis();
@@ -389,7 +389,7 @@ class Week1MVPIntegrationTest {
     void shouldSupportDemoScenario_CTOStartups() throws Exception {
         // Given - cenário realista de demo
         String demoQuery = "CTO startup tecnologia São Paulo";
-        LeadSearchRequest request = new LeadSearchRequest(demoQuery, null, null, 5);
+        LeadSearchRequest request = new LeadSearchRequest(demoQuery, 5, null, null);
 
         // When & Then
         MvcResult result = mockMvc.perform(post("/api/leads/search")

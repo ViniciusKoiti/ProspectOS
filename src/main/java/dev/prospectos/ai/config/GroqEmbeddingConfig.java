@@ -17,37 +17,59 @@ import lombok.extern.slf4j.Slf4j;
 @Configuration
 @Slf4j
 public class GroqEmbeddingConfig {
-    
+
     @Value("${prospectos.ai.groq.api-key:}")
     private String groqApiKey;
-    
+
     @Value("${prospectos.ai.groq.base-url:https://api.groq.com/openai}")
     private String groqBaseUrl;
-    
+
     @Bean("groqEmbeddingModel")
-    @ConditionalOnProperty(name = "prospectos.ai.groq.api-key")
+    @ConditionalOnProperty(
+        name = "prospectos.ai.groq.enabled",
+        havingValue = "true",
+        matchIfMissing = false
+    )
+    @org.springframework.context.annotation.Profile("!test")
     public EmbeddingModel groqEmbeddingModel() {
+        // Validate API key first
+        if (groqApiKey == null || groqApiKey.trim().isEmpty()) {
+            throw new IllegalArgumentException("Groq API key is required but not configured");
+        }
+
         String normalizedBaseUrl = normalizeBaseUrl(groqBaseUrl);
         log.info("Creating Groq EmbeddingModel with base URL: {}", normalizedBaseUrl);
-        
-        OpenAiApi openAiApi = new OpenAiApi(
-            normalizedBaseUrl,
-            new SimpleApiKey(groqApiKey),
-            new LinkedMultiValueMap<>(), // headers
-            null,     // userAgent
-            null,     // threadExecutorServiceName
-            RestClient.builder(),
-            null,     // WebClient.Builder  
-            null      // ResponseErrorHandler
-        );
-        
-        return new OpenAiEmbeddingModel(openAiApi, null, null, null);
+
+        try {
+            OpenAiApi openAiApi = new OpenAiApi(
+                normalizedBaseUrl,
+                new SimpleApiKey(groqApiKey),
+                new LinkedMultiValueMap<>(), // headers
+                null,     // userAgent
+                null,     // threadExecutorServiceName
+                RestClient.builder(),
+                null,     // WebClient.Builder
+                null      // ResponseErrorHandler
+            );
+
+            return new OpenAiEmbeddingModel(openAiApi, null, null, null);
+        } catch (Exception e) {
+            log.error("Failed to create Groq EmbeddingModel: {}", e.getMessage(), e);
+            throw new IllegalStateException("Unable to initialize Groq EmbeddingModel", e);
+        }
     }
-    
+
     private String normalizeBaseUrl(String baseUrl) {
         if (baseUrl == null || baseUrl.trim().isEmpty()) {
-            return "https://api.groq.com/openai";
+            return "https://api.groq.com/openai/v1";
         }
-        return baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
+        String normalized = baseUrl.trim();
+        while (normalized.endsWith("/")) {
+            normalized = normalized.substring(0, normalized.length() - 1);
+        }
+        if (!normalized.endsWith("/v1")) {
+            normalized = normalized + "/v1";
+        }
+        return normalized;
     }
 }

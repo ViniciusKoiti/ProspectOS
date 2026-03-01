@@ -6,27 +6,33 @@ import dev.prospectos.core.domain.Company;
 import dev.prospectos.core.domain.ICP;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 /**
  * Scoring service using AI with structured output.
  */
 @Slf4j
 @Service
+@ConditionalOnProperty(
+    name = "prospectos.ai.enabled",
+    havingValue = "true",
+    matchIfMissing = true
+)
 public class ScoringAIService {
-    
+
     private final AIProvider aiProvider;
-    
+
     public ScoringAIService(AIProvider aiProvider) {
         this.aiProvider = aiProvider;
     }
-    
+
     /**
      * Calculates a company score (0-100) using AI.
      * Returns a structured object parsed automatically.
      */
     public ScoringResult scoreCompany(Company company, ICP icp) {
         log.info("AI calculating score: {}", company.getName());
-        
+
         String prompt = String.format("""
                 COMPANY:
                 Name: %s
@@ -34,12 +40,12 @@ public class ScoringAIService {
                 Location: %s
                 AI Analysis: %s
                 Active Signals: %s
-                
+
                 TARGET ICP:
                 Industries: %s
                 Regions: %s
                 Theme: %s
-                
+
                 TASK:
                 Calculate the score (0-100) for this company based on the criteria:
                 1. ICP fit (30 points)
@@ -64,16 +70,16 @@ public class ScoringAIService {
                 String.join(", ", icp.getIndustries()),
                 String.join(", ", icp.getRegions()),
                 icp.getInterestTheme());
-        
+
         // AI parses into ScoringResult automatically.
         ScoringResult result = aiProvider.calculateScore(prompt, ScoringResult.class);
-        
-        log.info("   Score calculated: {} ({}) - {}", 
-            result.score(), 
+
+        log.info("   Score calculated: {} ({}) - {}",
+            result.score(),
             result.priority(),
             company.getName()
         );
-        
+
         return result;
     }
 }

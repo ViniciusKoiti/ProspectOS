@@ -1,0 +1,64 @@
+@startuml
+!theme cerulean-outline
+title Arquitetura Atual - Lead Discovery (Simples Loop)
+
+actor Usuario as "SDR/Usuario"
+participant Controller as "LeadDiscoveryController"
+participant Service as "DefaultLeadDiscoveryService"
+participant Compliance as "AllowedSourcesComplianceService"
+participant ICP as "ICPDataService"
+participant Scoring as "CompanyScoringService"
+
+box "Lead Sources (Sequential)" #LightBlue
+    participant InMemory as "InMemoryLeadDiscoverySource"
+    participant Vector as "VectorCompanyLeadDiscoverySource"
+    participant LLM as "LlmLeadDiscoverySource"
+end box
+
+Usuario -> Controller: POST /api/leads/discover\n{"query": "CTOs fintech SP", "limit": 10}
+
+Controller -> Service: discoverLeads(request)
+
+note over Service #FFAAAA
+    **PROBLEMA: Loop Sequencial Simples**
+    - Sem análise inteligente da query
+    - Fontes fixas por configuração
+    - Sem cross-referência
+    - Sem adaptação aos resultados
+end note
+
+Service -> Service: validateRequest()
+Service -> ICP: findICP(icpId)
+Service -> Compliance: validateSources(sources)
+
+note over Compliance
+    Retorna: ["in-memory", "vector-company", "llm-discovery"]
+    (configuração estática)
+end note
+
+loop Para cada fonte (SEQUENCIAL)
+    Service -> InMemory: discover(context)
+    InMemory -> Service: List<DiscoveredLeadCandidate>
+    
+    Service -> Vector: discover(context)  
+    Vector -> Service: List<DiscoveredLeadCandidate>
+    
+    Service -> LLM: discover(context)
+    LLM -> Service: List<DiscoveredLeadCandidate>
+end
+
+note over Service #FFAAAA
+    **LIMITAÇÕES:**
+    ⏱️ Tempo: ~45s (sequencial)
+    🎯 Qualidade: ~60% relevantes
+    🔗 Cross-ref: Manual/inexistente
+    📈 Learning: Zero
+end note
+
+Service -> Scoring: scoreAll(candidates, icp)
+Service -> Service: toLeadResults(candidates)
+Service -> Controller: LeadSearchResponse
+
+Controller -> Usuario: JSON Response\n[{"company": "...", "score": 75}]
+
+@enduml

@@ -29,40 +29,55 @@ public class GroqChatModelConfig {
     private String groqModel;
 
     @Bean("groqChatModel")
-    @ConditionalOnProperty(name = "prospectos.ai.groq.api-key")
+    @ConditionalOnProperty(
+        name = "prospectos.ai.groq.enabled",
+        havingValue = "true",
+        matchIfMissing = false
+    )
+    @org.springframework.context.annotation.Profile("!test")
     public ChatModel groqChatModel() {
+        // Validate API key first
+        if (groqApiKey == null || groqApiKey.trim().isEmpty()) {
+            throw new IllegalArgumentException("Groq API key is required but not configured");
+        }
+
         String normalizedBaseUrl = normalizeBaseUrl(groqBaseUrl);
         log.info("Groq base URL: {}", normalizedBaseUrl);
-        
-        OpenAiApi openAiApi = new OpenAiApi(
-            normalizedBaseUrl,
-            new SimpleApiKey(groqApiKey),
-            new LinkedMultiValueMap<>(), // headers
-            null,     // userAgent  
-            null,     // threadExecutorServiceName
-            RestClient.builder(),
-            null,     // WebClient.Builder
-            null      // ResponseErrorHandler
-        );
-        
-        OpenAiChatOptions options = OpenAiChatOptions.builder()
-            .model(groqModel)  // removido 'with' prefix
-            .build();
-            
-        return new OpenAiChatModel(openAiApi, options, null, null, null);
+
+        try {
+            OpenAiApi openAiApi = new OpenAiApi(
+                normalizedBaseUrl,
+                new SimpleApiKey(groqApiKey),
+                new LinkedMultiValueMap<>(), // headers
+                null,     // userAgent
+                null,     // threadExecutorServiceName
+                RestClient.builder(),
+                null,     // WebClient.Builder
+                null      // ResponseErrorHandler
+            );
+
+            OpenAiChatOptions options = OpenAiChatOptions.builder()
+                .model(groqModel)
+                .build();
+
+            return new OpenAiChatModel(openAiApi, options, null, null, null);
+        } catch (Exception e) {
+            log.error("Failed to create Groq ChatModel: {}", e.getMessage(), e);
+            throw new IllegalStateException("Unable to initialize Groq ChatModel", e);
+        }
     }
 
     private String normalizeBaseUrl(String baseUrl) {
         if (baseUrl == null || baseUrl.isBlank()) {
-            return "https://api.groq.com/openai";
+            return "https://api.groq.com/openai/v1";
         }
 
         String normalized = baseUrl.trim();
         while (normalized.endsWith("/")) {
             normalized = normalized.substring(0, normalized.length() - 1);
         }
-        if (normalized.endsWith("/v1")) {
-            normalized = normalized.substring(0, normalized.length() - 3);
+        if (!normalized.endsWith("/v1")) {
+            normalized = normalized + "/v1";
         }
         return normalized;
     }

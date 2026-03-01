@@ -6,29 +6,35 @@ import dev.prospectos.core.domain.Company;
 import dev.prospectos.core.domain.ICP;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 /**
  * Outreach strategy service using AI.
  */
 @Slf4j
 @Service
+@ConditionalOnProperty(
+    name = "prospectos.ai.enabled",
+    havingValue = "true",
+    matchIfMissing = true
+)
 public class StrategyAIService {
-    
+
     private final AIProvider aiProvider;
-    
+
     public StrategyAIService(AIProvider aiProvider) {
         this.aiProvider = aiProvider;
     }
-    
+
     /**
      * Generates an outreach strategy recommendation.
      */
     public StrategyRecommendation recommendStrategy(Company company, ICP icp) {
         log.info("AI generating strategy: {}", company.getName());
-        
+
         String prompt = String.format("""
                 Analyze the company and recommend the best outreach strategy.
-                
+
                 COMPANY:
                 Name: %s
                 Industry: %s
@@ -36,14 +42,14 @@ public class StrategyAIService {
                 Location: %s
                 AI Analysis: %s
                 Score: %s
-                
+
                 ICP:
                 Theme: %s
                 Target Roles: %s
-                
+
                 TASK:
                 Based on the analysis, recommend the best outreach strategy.
-                
+
                 Return JSON with this exact structure:
                 {
                   "channel": "email|linkedin|phone|event",
@@ -62,7 +68,7 @@ public class StrategyAIService {
                 company.getProspectingScore().getValue(),
                 icp.getInterestTheme(),
                 String.join(", ", icp.getTargetRoles()));
-        
+
         return aiProvider.generateStrategy(prompt, StrategyRecommendation.class);
     }
 }
