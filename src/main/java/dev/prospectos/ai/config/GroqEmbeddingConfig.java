@@ -16,6 +16,7 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 
 import static dev.prospectos.ai.config.AIConfigurationProperties.*;
+import dev.prospectos.ai.exception.AIConfigurationException;
 
 @Configuration
 @Slf4j
@@ -43,7 +44,8 @@ public class GroqEmbeddingConfig {
     public EmbeddingModel groqEmbeddingModel() {
         // Validate API key first
         if (groqApiKey == null || groqApiKey.trim().isEmpty()) {
-            throw new IllegalArgumentException("Groq API key is required but not configured");
+            log.error("Groq API key is missing or empty");
+            throw new AIConfigurationException("groq", "api-key", "API key is required but not configured");
         }
 
         String normalizedBaseUrl = urlNormalizationService.normalizeGroqUrl(groqBaseUrl);
@@ -61,10 +63,20 @@ public class GroqEmbeddingConfig {
                 null      // ResponseErrorHandler
             );
 
+            log.info("✅ Groq EmbeddingModel created successfully");
             return new OpenAiEmbeddingModel(openAiApi, null, null, null);
+            
+        } catch (IllegalArgumentException e) {
+            log.error("❌ Invalid Groq configuration: {}", e.getMessage());
+            throw new AIConfigurationException("groq", "api-key", "Invalid API key format", e);
+            
+        } catch (org.springframework.web.client.RestClientException e) {
+            log.error("❌ Groq API connection failed: {}", e.getMessage());
+            throw new AIConfigurationException("groq", "connection", "Failed to connect to Groq API", e);
+            
         } catch (Exception e) {
-            log.error("Failed to create Groq EmbeddingModel: {}", e.getMessage(), e);
-            throw new IllegalStateException("Unable to initialize Groq EmbeddingModel", e);
+            log.error("❌ Unexpected error creating Groq EmbeddingModel: {}", e.getMessage(), e);
+            throw new AIConfigurationException("groq", "creation", "Unexpected initialization error", e);
         }
     }
 }
