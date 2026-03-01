@@ -8,13 +8,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
+import static dev.prospectos.ai.config.AIConfigurationProperties.*;
+
 /**
  * Scoring service using AI with structured output.
  */
 @Slf4j
 @Service
 @ConditionalOnProperty(
-    name = "prospectos.ai.enabled",
+    name = AI_ENABLED,
     havingValue = "true",
     matchIfMissing = true
 )

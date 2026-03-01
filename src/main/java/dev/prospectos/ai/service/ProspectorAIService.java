@@ -8,6 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
+import static dev.prospectos.ai.config.AIConfigurationProperties.*;
+
 /**
  * Main AI service for prospecting decisions.
  * Uses interfaces to abstract LLM providers.
@@ -15,7 +17,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 @Slf4j
 @Service
 @ConditionalOnProperty(
-    name = "prospectos.ai.enabled",
+    name = AI_ENABLED,
     havingValue = "true",
     matchIfMissing = true
 )

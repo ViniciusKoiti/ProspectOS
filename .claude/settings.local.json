@@ -19,7 +19,8 @@
       "Bash(curl -s http://localhost:8080/api/icps)",
       "Bash(curl -s -X POST http://localhost:8080/api/leads/search )",
       "Bash(curl -s -X POST http://localhost:8080/api/leads/search )",
-      "Bash(curl -s -X POST http://localhost:8080/api/leads/search )"
+      "Bash(curl -s -X POST http://localhost:8080/api/leads/search )",
+      "Bash(git checkout -b refactor/ai-configuration-code-smells)"
     ],
     "deny": [],
     "ask": []
