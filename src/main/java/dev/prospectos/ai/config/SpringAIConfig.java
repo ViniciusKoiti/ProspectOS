@@ -11,13 +11,15 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.beans.factory.annotation.Qualifier;
 
+import static dev.prospectos.ai.config.AIConfigurationProperties.*;
+
 /**
  * Main configuration for the AI module.
  * Uses the Strategy pattern with factories.
  */
 @Configuration
 @ConditionalOnProperty(
-    name = "prospectos.ai.enabled",
+    name = AI_ENABLED,
     havingValue = "true",
     matchIfMissing = true
 )

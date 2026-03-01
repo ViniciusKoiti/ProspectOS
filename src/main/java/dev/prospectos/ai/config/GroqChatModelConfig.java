@@ -10,31 +10,34 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.web.client.RestClient;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.LinkedMultiValueMap;
 import java.util.Map;
 
+import static dev.prospectos.ai.config.AIConfigurationProperties.*;
+
 @Configuration
 @Slf4j
 public class GroqChatModelConfig {
 
-    @Value("${prospectos.ai.groq.api-key:}")
+    @Value("${" + GROQ_API_KEY + ":}")
     private String groqApiKey;
 
-    @Value("${prospectos.ai.groq.base-url:https://api.groq.com/openai}")
+    @Value("${" + GROQ_BASE_URL + ":" + DEFAULT_GROQ_BASE_URL + "}")
     private String groqBaseUrl;
 
-    @Value("${prospectos.ai.groq.model:llama3-70b-8192}")
+    @Value("${" + GROQ_MODEL + ":" + DEFAULT_GROQ_MODEL + "}")
     private String groqModel;
 
     @Bean("groqChatModel")
     @ConditionalOnProperty(
-        name = "prospectos.ai.groq.enabled",
+        name = GROQ_ENABLED,
         havingValue = "true",
         matchIfMissing = false
     )
-    @org.springframework.context.annotation.Profile("!test")
+    @Profile(EXCLUDE_TEST_PROFILE)
     public ChatModel groqChatModel() {
         // Validate API key first
         if (groqApiKey == null || groqApiKey.trim().isEmpty()) {
