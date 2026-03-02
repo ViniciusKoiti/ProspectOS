@@ -1,5 +1,8 @@
-package dev.prospectos.infrastructure.service.discovery;
+package dev.prospectos.infrastructure.service.inmemory;
 
+import dev.prospectos.infrastructure.service.discovery.DiscoveredLeadCandidate;
+import dev.prospectos.infrastructure.service.discovery.DiscoveryContext;
+import dev.prospectos.infrastructure.service.discovery.LeadDiscoverySource;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 

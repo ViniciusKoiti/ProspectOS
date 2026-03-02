@@ -16,7 +16,7 @@ import java.util.Optional;
  * Repository-backed ICP data service for non-test profiles.
  */
 @Service
-@Profile("!demo & !test & !mock")
+@Profile({"development", "production"})
 public class ICPDataServiceJpa implements ICPDataService {
 
     private final ICPDomainRepository icpRepository;

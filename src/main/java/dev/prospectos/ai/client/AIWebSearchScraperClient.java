@@ -20,7 +20,7 @@ import java.util.function.Supplier;
  */
 @Slf4j
 @Component
-@Profile("!mock & !test")
+@Profile("!test")
 @ConditionalOnProperty(value = "scraper.ai.enabled", havingValue = "true", matchIfMissing = true)
 public class AIWebSearchScraperClient implements ScraperClientInterface {
 

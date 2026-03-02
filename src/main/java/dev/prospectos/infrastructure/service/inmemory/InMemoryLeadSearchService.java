@@ -31,7 +31,7 @@ import java.util.UUID;
  * In-memory lead search for demo and test profiles.
  */
 @Service
-@Profile({"demo", "test", "mock"})
+@Profile({"test", "development"})
 public class InMemoryLeadSearchService implements LeadSearchService {
 
     private static final int DEFAULT_LIMIT = 10;
