@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <!-- Exclude auto-generated classes -->
+    <Match>
+        <Class name="~.*\.ProspectosApplication" />
+    </Match>
+    
+    <!-- Exclude configuration classes -->
+    <Match>
+        <Class name="~.*Configuration" />
+    </Match>
+    
+    <!-- Exclude DTOs and request/response classes -->
+    <Match>
+        <Class name="~.*DTO.*" />
+    </Match>
+    
+    <Match>
+        <Class name="~.*Request.*" />
+    </Match>
+    
+    <Match>
+        <Class name="~.*Response.*" />
+    </Match>
+    
+    <!-- Exclude test classes -->
+    <Match>
+        <Class name="~.*Test.*" />
+    </Match>
+    
+    <!-- Exclude specific patterns that are common in Spring Boot -->
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2" />
+        <Class name="~.*\.dto\..*" />
+    </Match>
+    
+    <!-- Exclude serialization warnings for DTOs -->
+    <Match>
+        <Bug pattern="SE_NO_SERIALVERSIONID" />
+        <Class name="~.*\.dto\..*" />
+    </Match>
+    
+    <!-- Exclude Spring dependency injection warnings -->
+    <Match>
+        <Bug pattern="URF_UNREAD_FIELD" />
+        <Field name="~.*Repository|.*Service|.*Client" />
+    </Match>
+</FindBugsFilter>
