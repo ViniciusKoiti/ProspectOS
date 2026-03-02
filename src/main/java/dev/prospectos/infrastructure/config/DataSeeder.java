@@ -20,7 +20,7 @@ import java.util.List;
  * Seeds the database with demonstration data for mock and development profiles.
  */
 @Component
-@Profile({"mock", "development"})
+@Profile({"mock", "development", "test"})
 public class DataSeeder {
 
     private static final Logger log = LoggerFactory.getLogger(DataSeeder.class);
