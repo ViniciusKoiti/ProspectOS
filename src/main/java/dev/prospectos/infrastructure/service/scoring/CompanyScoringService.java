@@ -2,7 +2,7 @@ package dev.prospectos.infrastructure.service.scoring;
 
 import dev.prospectos.ai.dto.PriorityLevel;
 import dev.prospectos.ai.dto.ScoringResult;
-import dev.prospectos.ai.service.ScoringAIService;
+import dev.prospectos.ai.service.ScoringService;
 import dev.prospectos.api.CompanyDataService;
 import dev.prospectos.api.ICPDataService;
 import dev.prospectos.api.dto.CompanyDTO;
@@ -11,10 +11,12 @@ import dev.prospectos.api.dto.ScoreDTO;
 import dev.prospectos.api.mapper.CompanyMapper;
 import dev.prospectos.core.domain.Company;
 import dev.prospectos.core.domain.ICP;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Slf4j
 @Service
 public class CompanyScoringService {
 
@@ -23,16 +25,16 @@ public class CompanyScoringService {
     private static final String DEFAULT_PRIORITY = "COLD";
     private static final String FALLBACK_PRIORITY = "IGNORE";
 
-    private final ScoringAIService scoringAIService;
+    private final ScoringService scoringService;
     private final CompanyDataService companyDataService;
     private final ICPDataService icpDataService;
 
     public CompanyScoringService(
-        ScoringAIService scoringAIService,
+        ScoringService scoringService,
         CompanyDataService companyDataService,
         ICPDataService icpDataService
     ) {
-        this.scoringAIService = scoringAIService;
+        this.scoringService = scoringService;
         this.companyDataService = companyDataService;
         this.icpDataService = icpDataService;
     }
@@ -93,9 +95,12 @@ public class CompanyScoringService {
 
     private ScoreDTO scoreCompanySafely(Company company, ICP icp) {
         try {
-            ScoringResult result = scoringAIService.scoreCompany(company, icp);
+            log.debug("Starting scoring for company: {} with ICP: {}", company.getName(), icp.getName());
+            ScoringResult result = scoringService.scoreCompany(company, icp);
+            log.debug("Scoring completed. Result: {}", result);
             return mapScore(result);
         } catch (Exception e) {
+            log.error("Scoring failed for company: {}", company.getName(), e);
             return fallbackScore("AI scoring failed: " + e.getMessage());
         }
     }
