@@ -7,14 +7,11 @@ import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.ai.model.SimpleApiKey;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.client.RestClient;
-import org.springframework.util.MultiValueMap;
 import org.springframework.util.LinkedMultiValueMap;
-import java.util.Map;
 
 import static dev.prospectos.ai.config.AIConfigurationProperties.*;
 import dev.prospectos.ai.exception.AIConfigurationException;
@@ -39,11 +36,7 @@ public class GroqChatModelConfig {
     }
 
     @Bean("groqChatModel")
-    @ConditionalOnProperty(
-        name = GROQ_ENABLED,
-        havingValue = "true",
-        matchIfMissing = false
-    )
+    @ConditionalOnActiveAIProvider(dev.prospectos.ai.client.LLMProvider.GROQ)
     @Profile(EXCLUDE_TEST_PROFILE)
     public ChatModel groqChatModel() {
         // Validate API key first
@@ -73,15 +66,15 @@ public class GroqChatModelConfig {
 
             log.info("✅ Groq ChatModel created successfully");
             return new OpenAiChatModel(openAiApi, options, null, null, null);
-            
+
         } catch (IllegalArgumentException e) {
             log.error("❌ Invalid Groq configuration: {}", e.getMessage());
             throw new AIConfigurationException("groq", "api-key", "Invalid API key format", e);
-            
+
         } catch (org.springframework.web.client.RestClientException e) {
             log.error("❌ Groq API connection failed: {}", e.getMessage());
             throw new AIConfigurationException("groq", "connection", "Failed to connect to Groq API", e);
-            
+
         } catch (Exception e) {
             log.error("❌ Unexpected error creating Groq ChatModel: {}", e.getMessage(), e);
             throw new AIConfigurationException("groq", "creation", "Unexpected initialization error", e);

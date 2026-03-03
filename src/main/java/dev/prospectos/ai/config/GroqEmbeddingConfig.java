@@ -5,7 +5,6 @@ import org.springframework.ai.openai.OpenAiEmbeddingModel;
 import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.ai.model.SimpleApiKey;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -35,11 +34,7 @@ public class GroqEmbeddingConfig {
     }
 
     @Bean("groqEmbeddingModel")
-    @ConditionalOnProperty(
-        name = GROQ_ENABLED,
-        havingValue = "true",
-        matchIfMissing = false
-    )
+    @ConditionalOnActiveAIProvider(dev.prospectos.ai.client.LLMProvider.GROQ)
     @Profile(EXCLUDE_TEST_PROFILE)
     public EmbeddingModel groqEmbeddingModel() {
         // Validate API key first
