@@ -17,9 +17,11 @@ import java.util.List;
 /**
  * Lead discovery source that integrates with CNPJ.ws API for Brazilian company validation.
  * Provides mock Brazilian companies for demonstration when the external API is not available.
+ * 
+ * This source is automatically enabled/disabled based on 'cnpj-ws' presence in 
+ * prospectos.leads.allowed-sources configuration.
  */
 @Component
-@ConditionalOnProperty(name = "prospectos.sources.cnpj.enabled", havingValue = "true", matchIfMissing = false)
 public class
 
 CNPJLeadDiscoverySource implements LeadDiscoverySource {

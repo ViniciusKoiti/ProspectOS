@@ -203,7 +203,6 @@ spotbugsTest {
 pmd {
     consoleOutput = true
     toolVersion = '6.55.0'
-    rulePriority = 1
     ruleSetFiles = files('config/pmd/pmd-rules.xml')
     ignoreFailures = true
 }
