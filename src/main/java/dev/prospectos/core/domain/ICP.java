@@ -1,6 +1,7 @@
 package dev.prospectos.core.domain;
 
 import jakarta.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -45,9 +46,9 @@ public class ICP {
         this.externalId = externalId != null ? validateExternalId(externalId) : toExternalId(this.id);
         this.name = validateName(name);
         this.description = description;
-        this.industries = industries;
-        this.regions = regions;
-        this.targetRoles = targetRoles;
+        this.industries = mutableCopy(industries);
+        this.regions = mutableCopy(regions);
+        this.targetRoles = mutableCopy(targetRoles);
         this.interestTheme = interestTheme;
     }
     
@@ -72,10 +73,14 @@ public class ICP {
                               List<String> regions, List<String> targetRoles, String interestTheme) {
         this.name = validateName(name);
         this.description = description;
-        this.industries = industries;
-        this.regions = regions;
-        this.targetRoles = targetRoles;
+        this.industries = mutableCopy(industries);
+        this.regions = mutableCopy(regions);
+        this.targetRoles = mutableCopy(targetRoles);
         this.interestTheme = interestTheme;
+    }
+
+    private List<String> mutableCopy(List<String> values) {
+        return values == null ? new ArrayList<>() : new ArrayList<>(values);
     }
 
     private String validateName(String name) {
