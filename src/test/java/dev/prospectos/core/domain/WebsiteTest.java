@@ -2,39 +2,32 @@ package dev.prospectos.core.domain;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class WebsiteTest {
 
     @Test
-    void ofRejectsNullOrBlank() {
-        assertThrows(IllegalArgumentException.class, () -> Website.of(null));
-        assertThrows(IllegalArgumentException.class, () -> Website.of(" "));
+    void ofNormalizesUrlExtractsDomainAndSupportsEquality() {
+        Website website = Website.of("www.Example.com");
+        Website same = Website.of("https://www.Example.com");
+
+        assertThat(website.getUrl()).isEqualTo("https://www.Example.com");
+        assertThat(website.getDomain()).isEqualTo("example.com");
+        assertThat(website.isSecure()).isTrue();
+        assertThat(website).isEqualTo(same);
+        assertThat(website.hashCode()).isEqualTo(same.hashCode());
+        assertThat(website.toString()).isEqualTo("https://www.Example.com");
     }
 
     @Test
-    void ofNormalizesMissingScheme() {
-        Website website = Website.of("example.com");
+    void ofRejectsInvalidValues() {
+        assertThatThrownBy(() -> Website.of(" "))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Website URL cannot be null or empty");
 
-        assertEquals("https://example.com", website.getUrl());
-        assertEquals("example.com", website.getDomain());
-        assertTrue(website.isSecure());
-    }
-
-    @Test
-    void ofKeepsHttpScheme() {
-        Website website = Website.of("http://example.com");
-
-        assertEquals("http://example.com", website.getUrl());
-        assertEquals("example.com", website.getDomain());
-        assertFalse(website.isSecure());
-    }
-
-    @Test
-    void ofRejectsInvalidUrl() {
-        assertThrows(IllegalArgumentException.class, () -> Website.of("http://exa mple.com"));
+        assertThatThrownBy(() -> Website.of("http://"))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Invalid website URL");
     }
 }
