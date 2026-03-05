@@ -47,7 +47,6 @@ out/
 ### AI API Keys ###
 *api-key*
 *secret*
-*token*
 
 ### Logs ###
 *.log
