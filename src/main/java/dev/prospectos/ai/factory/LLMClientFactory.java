@@ -4,6 +4,7 @@ import dev.prospectos.ai.client.LLMClient;
 import dev.prospectos.ai.client.LLMProvider;
 import dev.prospectos.ai.client.impl.MockLLMClient;
 import dev.prospectos.ai.client.impl.SpringAILLMClient;
+import dev.prospectos.ai.config.AIProviderActivationProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.ObjectProvider;
@@ -36,17 +37,20 @@ public class LLMClientFactory {
     private final ObjectProvider<ChatClient> groqChatClient;
     private final ObjectProvider<ChatClient> groqScoringChatClient;
     private final Environment environment;
+    private final AIProviderActivationProperties activationProperties;
     
     public LLMClientFactory(@Qualifier("chatClient") ObjectProvider<ChatClient> chatClient,
                            @Qualifier("scoringChatClient") ObjectProvider<ChatClient> scoringChatClient,
                            @Qualifier("groqChatClient") ObjectProvider<ChatClient> groqChatClient,
                            @Qualifier("groqScoringChatClient") ObjectProvider<ChatClient> groqScoringChatClient,
-                           Environment environment) {
+                           Environment environment,
+                           AIProviderActivationProperties activationProperties) {
         this.chatClient = chatClient;
         this.scoringChatClient = scoringChatClient;
         this.groqChatClient = groqChatClient;
         this.groqScoringChatClient = groqScoringChatClient;
         this.environment = environment;
+        this.activationProperties = activationProperties;
     }
     
     /**
@@ -56,7 +60,7 @@ public class LLMClientFactory {
         if (isTestEnvironment()) {
             return createMockClient();
         }
-        return createClient(LLMProvider.OPENAI, chatClient);
+        return createBestAvailableClient();
     }
     
     /**
@@ -66,7 +70,7 @@ public class LLMClientFactory {
         if (isTestEnvironment()) {
             return createMockClient();
         }
-        return createClient(LLMProvider.OPENAI, scoringChatClient);
+        return createBestAvailableScoringClient();
     }
     
     /**
@@ -93,18 +97,21 @@ public class LLMClientFactory {
             log.info("Test profile detected. Using Mock provider.");
             return createMockClient();
         }
-        if (isGroqAvailable()) {
-            log.info("Using Groq as primary provider");
-            return createClient(LLMProvider.GROQ, groqChatClient);
-        }
-        if (isOpenAIAvailable()) {
-            log.info("Using OpenAI as primary provider");
-            return createClient(LLMProvider.OPENAI, chatClient);
-        }
-        
-        if (isAnthropicAvailable()) {
-            log.info("Using Anthropic as primary provider");
-            return createClient(LLMProvider.ANTHROPIC, chatClient);
+
+        for (LLMProvider provider : activationProperties.activeProviders()) {
+            if (!isProviderAvailable(provider)) {
+                continue;
+            }
+
+            ObjectProvider<ChatClient> providerClient = switch (provider) {
+                case GROQ -> groqChatClient;
+                case OPENAI, ANTHROPIC, OLLAMA -> chatClient;
+                case MOCK -> null;
+            };
+            if (providerClient != null) {
+                log.info("Using {} as primary provider", provider.getDisplayName());
+                return createClient(provider, providerClient);
+            }
         }
         
         log.warn("No LLM provider configured. Using Mock for testing.");
@@ -116,19 +123,21 @@ public class LLMClientFactory {
             log.info("Test profile detected. Using Mock provider for scoring.");
             return createMockClient();
         }
-        if (isGroqAvailable()) {
-            log.info("Using Groq for scoring");
-            return createClient(LLMProvider.GROQ, groqScoringChatClient);
-        }
 
-        if (isOpenAIAvailable()) {
-            log.info("Using OpenAI for scoring");
-            return createClient(LLMProvider.OPENAI, scoringChatClient);
-        }
+        for (LLMProvider provider : activationProperties.activeProviders()) {
+            if (!isProviderAvailable(provider)) {
+                continue;
+            }
 
-        if (isAnthropicAvailable()) {
-            log.info("Using Anthropic for scoring");
-            return createClient(LLMProvider.ANTHROPIC, scoringChatClient);
+            ObjectProvider<ChatClient> providerClient = switch (provider) {
+                case GROQ -> groqScoringChatClient;
+                case OPENAI, ANTHROPIC, OLLAMA -> scoringChatClient;
+                case MOCK -> null;
+            };
+            if (providerClient != null) {
+                log.info("Using {} for scoring", provider.getDisplayName());
+                return createClient(provider, providerClient);
+            }
         }
 
         log.warn("No scoring LLM provider configured. Using Mock for testing.");

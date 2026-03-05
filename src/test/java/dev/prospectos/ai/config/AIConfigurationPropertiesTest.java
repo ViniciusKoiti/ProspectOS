@@ -16,8 +16,8 @@ class AIConfigurationPropertiesTest {
     }
 
     @Test
-    void shouldHaveCorrectGroqProperties() {
-        assertEquals("prospectos.ai.groq.enabled", AIConfigurationProperties.GROQ_ENABLED);
+    void shouldHaveCorrectProviderProperties() {
+        assertEquals("prospectos.ai.active-providers", AIConfigurationProperties.ACTIVE_PROVIDERS);
         assertEquals("prospectos.ai.groq.api-key", AIConfigurationProperties.GROQ_API_KEY);
         assertEquals("prospectos.ai.groq.base-url", AIConfigurationProperties.GROQ_BASE_URL);
         assertEquals("prospectos.ai.groq.model", AIConfigurationProperties.GROQ_MODEL);
@@ -25,6 +25,7 @@ class AIConfigurationPropertiesTest {
 
     @Test
     void shouldHaveCorrectDefaultValues() {
+        assertEquals("openai,anthropic", AIConfigurationProperties.DEFAULT_ACTIVE_PROVIDERS);
         assertEquals("https://api.groq.com/openai", AIConfigurationProperties.DEFAULT_GROQ_BASE_URL);
         assertEquals("llama3-8b-8192", AIConfigurationProperties.DEFAULT_GROQ_MODEL);
         assertEquals("gpt-4-turbo-preview", AIConfigurationProperties.DEFAULT_OPENAI_MODEL);

@@ -1,16 +1,19 @@
 package dev.prospectos.infrastructure.service.discovery;
 
 import dev.prospectos.ai.client.AIProvider;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 /**
  * LLM-first textual discovery strategy.
+ * 
+ * This source is automatically enabled/disabled based on 'llm-discovery' presence in 
+ * prospectos.leads.allowed-sources configuration.
  */
 @Component
-@ConditionalOnProperty(prefix = "prospectos.discovery.llm", name = "enabled", havingValue = "true")
+@ConditionalOnBean(AIProvider.class)
 public class LlmLeadDiscoverySource implements LeadDiscoverySource {
 
     private static final String SOURCE_NAME = "llm-discovery";

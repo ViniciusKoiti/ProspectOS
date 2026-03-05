@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset name="ProspectOS PMD Rules"
+    xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 
+                        https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+    
+    <description>
+        PMD rules for ProspectOS - Spring Boot application with AI integration
+    </description>
+
+    <!-- Best Practices -->
+    <rule ref="category/java/bestpractices.xml">
+        <!-- Exclude rules that don't work well with Spring Boot -->
+        <exclude name="JUnitAssertionsShouldIncludeMessage" />
+        <exclude name="JUnitTestContainsTooManyAsserts" />
+        <exclude name="GuardLogStatement" />
+    </rule>
+
+    <!-- Code Style -->
+    <rule ref="category/java/codestyle.xml">
+        <!-- Exclude overly restrictive naming rules -->
+        <exclude name="LongVariable" />
+        <exclude name="ShortVariable" />
+        <exclude name="ShortMethodName" />
+        <exclude name="ShortClassName" />
+        <!-- Allow builder patterns common in Spring Boot -->
+        <exclude name="MethodArgumentCouldBeFinal" />
+        <exclude name="LocalVariableCouldBeFinal" />
+        <!-- Allow typical Spring Boot patterns -->
+        <exclude name="OnlyOneReturn" />
+        <exclude name="AtLeastOneConstructor" />
+    </rule>
+
+    <!-- Design -->
+    <rule ref="category/java/design.xml">
+        <!-- Adjust complexity thresholds -->
+        <exclude name="TooManyMethods" />
+        <exclude name="ExcessiveImports" />
+        <exclude name="CouplingBetweenObjects" />
+    </rule>
+    
+    <!-- Custom complexity rule with higher threshold for Spring Boot -->
+    <rule ref="category/java/design.xml/CyclomaticComplexity">
+        <properties>
+            <property name="methodReportLevel" value="15" />
+            <property name="classReportLevel" value="80" />
+        </properties>
+    </rule>
+
+    <!-- Documentation -->
+    <rule ref="category/java/documentation.xml">
+        <!-- Exclude documentation requirements for DTOs and simple classes -->
+        <exclude name="CommentRequired" />
+        <exclude name="CommentSize" />
+    </rule>
+
+    <!-- Error Prone -->
+    <rule ref="category/java/errorprone.xml">
+        <!-- Allow null checks that are common in Spring Boot validation -->
+        <exclude name="DataflowAnomalyAnalysis" />
+        <exclude name="NullAssignment" />
+    </rule>
+
+    <!-- Multithreading -->
+    <rule ref="category/java/multithreading.xml" />
+
+    <!-- Performance -->
+    <rule ref="category/java/performance.xml">
+        <!-- Allow String concatenation in logging (handled by SLF4J) -->
+        <exclude name="AvoidInstantiatingObjectsInLoops" />
+    </rule>
+
+    <!-- Security -->
+    <rule ref="category/java/security.xml" />
+
+    <!-- Exclude patterns for specific file types -->
+    <exclude-pattern>.*/dto/.*</exclude-pattern>
+    <exclude-pattern>.*/config/.*Configuration.*</exclude-pattern>
+    <exclude-pattern>.*/ProspectosApplication.*</exclude-pattern>
+    <exclude-pattern>.*/test/.*</exclude-pattern>
+
+</ruleset>

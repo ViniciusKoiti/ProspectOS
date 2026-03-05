@@ -1,15 +1,16 @@
 package dev.prospectos.infrastructure.service.discovery;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 /**
  * Discovery source backed by in-memory semantic vector search over known companies.
+ * 
+ * This source is automatically enabled/disabled based on 'vector-company' presence in 
+ * prospectos.leads.allowed-sources configuration.
  */
 @Component
-@ConditionalOnProperty(prefix = "prospectos.discovery.vector", name = "enabled", havingValue = "true")
 public class VectorCompanyLeadDiscoverySource implements LeadDiscoverySource {
 
     static final String SOURCE_NAME = "vector-company";

@@ -43,7 +43,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @TestPropertySource(properties = {
     "spring.autoconfigure.exclude=",
     "prospectos.leads.allowed-sources=in-memory,vector-company",
-    "prospectos.discovery.vector.enabled=true",
     "prospectos.vectorization.backend=pgvector",
     "prospectos.vectorization.embedding-dimension=64",
     "spring.ai.vectorstore.pgvector.enabled=true",
