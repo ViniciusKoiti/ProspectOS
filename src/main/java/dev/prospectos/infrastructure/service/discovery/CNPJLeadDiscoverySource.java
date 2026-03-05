@@ -17,14 +17,12 @@ import java.util.List;
 /**
  * Lead discovery source that integrates with CNPJ.ws API for Brazilian company validation.
  * Provides mock Brazilian companies for demonstration when the external API is not available.
- * 
- * This source is automatically enabled/disabled based on 'cnpj-ws' presence in 
+ *
+ * This source is automatically enabled/disabled based on 'cnpj-ws' presence in
  * prospectos.leads.allowed-sources configuration.
  */
 @Component
-public class
-
-CNPJLeadDiscoverySource implements LeadDiscoverySource {
+public class CNPJLeadDiscoverySource implements LeadDiscoverySource {
 
     private static final Logger log = LoggerFactory.getLogger(CNPJLeadDiscoverySource.class);
     private static final String SOURCE_NAME = "cnpj-ws";
