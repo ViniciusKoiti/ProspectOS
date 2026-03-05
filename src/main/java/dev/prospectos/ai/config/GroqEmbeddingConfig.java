@@ -3,15 +3,10 @@ package dev.prospectos.ai.config;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.openai.OpenAiEmbeddingModel;
 import org.springframework.ai.openai.api.OpenAiApi;
-import org.springframework.ai.model.SimpleApiKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.web.client.RestClient;
-import org.springframework.util.MultiValueMap;
-import org.springframework.util.LinkedMultiValueMap;
-import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 
 import static dev.prospectos.ai.config.AIConfigurationProperties.*;
@@ -47,30 +42,26 @@ public class GroqEmbeddingConfig {
         log.info("Creating Groq EmbeddingModel with base URL: {}", normalizedBaseUrl);
 
         try {
-            OpenAiApi openAiApi = new OpenAiApi(
-                normalizedBaseUrl,
-                new SimpleApiKey(groqApiKey),
-                new LinkedMultiValueMap<>(), // headers
-                null,     // userAgent
-                null,     // threadExecutorServiceName
-                RestClient.builder(),
-                null,     // WebClient.Builder
-                null      // ResponseErrorHandler
-            );
+            OpenAiApi openAiApi = OpenAiApi.builder()
+                .baseUrl(normalizedBaseUrl)
+                .apiKey(groqApiKey)
+                .completionsPath("/chat/completions")
+                .embeddingsPath("/embeddings")
+                .build();
 
             log.info("✅ Groq EmbeddingModel created successfully");
-            return new OpenAiEmbeddingModel(openAiApi, null, null, null);
-            
+            return new OpenAiEmbeddingModel(openAiApi);
+
         } catch (IllegalArgumentException e) {
-            log.error("❌ Invalid Groq configuration: {}", e.getMessage());
+            log.error("Invalid Groq configuration: {}", e.getMessage());
             throw new AIConfigurationException("groq", "api-key", "Invalid API key format", e);
-            
+
         } catch (org.springframework.web.client.RestClientException e) {
-            log.error("❌ Groq API connection failed: {}", e.getMessage());
+            log.error("Groq API connection failed: {}", e.getMessage());
             throw new AIConfigurationException("groq", "connection", "Failed to connect to Groq API", e);
-            
+
         } catch (Exception e) {
-            log.error("❌ Unexpected error creating Groq EmbeddingModel: {}", e.getMessage(), e);
+            log.error("Unexpected error creating Groq EmbeddingModel: {}", e.getMessage(), e);
             throw new AIConfigurationException("groq", "creation", "Unexpected initialization error", e);
         }
     }

@@ -1,17 +1,17 @@
 package dev.prospectos.ai.config;
 
+import io.micrometer.observation.ObservationRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.model.tool.ToolCallingManager;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.openai.api.OpenAiApi;
-import org.springframework.ai.model.SimpleApiKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.web.client.RestClient;
-import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.retry.support.RetryTemplate;
 
 import static dev.prospectos.ai.config.AIConfigurationProperties.*;
 import dev.prospectos.ai.exception.AIConfigurationException;
@@ -49,23 +49,25 @@ public class GroqChatModelConfig {
         log.info("Groq base URL: {}", normalizedBaseUrl);
 
         try {
-            OpenAiApi openAiApi = new OpenAiApi(
-                normalizedBaseUrl,
-                new SimpleApiKey(groqApiKey),
-                new LinkedMultiValueMap<>(), // headers
-                null,     // userAgent
-                null,     // threadExecutorServiceName
-                RestClient.builder(),
-                null,     // WebClient.Builder
-                null      // ResponseErrorHandler
-            );
+            OpenAiApi openAiApi = OpenAiApi.builder()
+                .baseUrl(normalizedBaseUrl)
+                .apiKey(groqApiKey)
+                .completionsPath("/chat/completions")
+                .embeddingsPath("/embeddings")
+                .build();
 
             OpenAiChatOptions options = OpenAiChatOptions.builder()
                 .model(groqModel)
                 .build();
 
             log.info("✅ Groq ChatModel created successfully");
-            return new OpenAiChatModel(openAiApi, options, null, null, null);
+            return new OpenAiChatModel(
+                openAiApi,
+                options,
+                ToolCallingManager.builder().build(),
+                RetryTemplate.defaultInstance(),
+                ObservationRegistry.NOOP
+            );
 
         } catch (IllegalArgumentException e) {
             log.error("❌ Invalid Groq configuration: {}", e.getMessage());

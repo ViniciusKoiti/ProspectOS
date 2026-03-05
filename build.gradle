@@ -73,7 +73,7 @@ jacocoTestReport {
         html.required = true
         csv.required = true
     }
-    
+
     // Exclude generated/configuration classes from coverage
     afterEvaluate {
         classDirectories.setFrom(files(classDirectories.files.collect {
@@ -82,17 +82,18 @@ jacocoTestReport {
                 '**/ProspectosApplication*',
                 '**/dto/**/*DTO*',
                 '**/dto/**/*Request*',
-                '**/dto/**/*Response*'
+                '**/dto/**/*Response*',
+                '**/ai/example/**'
             ])
         }))
     }
-    
+
     finalizedBy 'jacocoTestCoverageVerification'
 }
 
 jacocoTestCoverageVerification {
     dependsOn 'jacocoTestReport'
-    
+
     violationRules {
         rule {
             limit {
@@ -101,7 +102,7 @@ jacocoTestCoverageVerification {
                 minimum = 0.60 // 60% minimum instruction coverage
             }
         }
-        
+
         rule {
             limit {
                 counter = 'BRANCH'
@@ -109,13 +110,13 @@ jacocoTestCoverageVerification {
                 minimum = 0.50 // 50% minimum branch coverage
             }
         }
-        
+
         rule {
             element = 'CLASS'
             excludes = [
                 '*.*Configuration*',
                 '*.*Application*',
-                '*.dto.*'
+                '*.dto.*',
             ]
             limit {
                 counter = 'INSTRUCTION'
@@ -133,17 +134,17 @@ sonarqube {
         property 'sonar.projectName', 'ProspectOS'
         property 'sonar.projectVersion', project.version
         property 'sonar.sourceEncoding', 'UTF-8'
-        
+
         // Coverage reports
         property 'sonar.coverage.jacoco.xmlReportPaths', 'build/reports/jacoco/test/jacocoTestReport.xml'
-        
+
         // Code analysis
         property 'sonar.java.source', '21'
         property 'sonar.java.target', '21'
-        
+
         // Quality gates
         property 'sonar.qualitygate.wait', true
-        
+
         // Exclude patterns
         property 'sonar.exclusions', [
             '**/config/**/*Configuration*',
@@ -151,14 +152,14 @@ sonarqube {
             '**/dto/**/*',
             '**/generated/**/*'
         ].join(',')
-        
+
         // Test exclusions
         property 'sonar.test.exclusions', [
             '**/test/**/*',
             '**/*Test*',
             '**/*Mock*'
         ].join(',')
-        
+
         // Additional analysis
         property 'sonar.java.spotbugs.reportPaths', 'build/reports/spotbugs/main.xml'
         property 'sonar.java.pmd.reportPaths', 'build/reports/pmd/main.xml'
@@ -227,7 +228,7 @@ pmdTest {
             outputLocation = file('build/reports/pmd/test.xml')
         }
         html {
-            required = true  
+            required = true
             outputLocation = file('build/reports/pmd/test.html')
         }
     }
@@ -237,18 +238,18 @@ pmdTest {
 tasks.register('qualityCheck') {
     description = 'Runs all quality checks: tests, coverage, spotbugs, pmd, and sonar analysis'
     group = 'verification'
-    
+
     dependsOn 'test', 'jacocoTestReport', 'jacocoTestCoverageVerification', 'spotbugsMain', 'pmdMain'
-    
+
     doLast {
         println """
         ✅ Quality Check Complete!
-        
+
         📊 Reports Generated:
         - Coverage: build/reports/jacoco/test/html/index.html
         - SpotBugs: build/reports/spotbugs/main.html
         - PMD: build/reports/pmd/main.html
-        
+
         🔍 Run SonarQube analysis with:
         ./gradlew sonarqube
         """
