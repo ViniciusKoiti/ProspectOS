@@ -1,6 +1,12 @@
 # AGENTS.md (Instructions For Coding Agents)
 
-This repository is a Java 21 / Spring Boot app built with Gradle. Architecture is a Spring Modulith modular monolith.
+This repository is evolving into a monorepo.
+
+Current state:
+- Backend: Java 21 / Spring Boot app built with Gradle
+- Planned frontend: Flutter application in the same repository
+
+Backend architecture remains a Spring Modulith modular monolith.
 
 ## Quick Facts
 - Build tool: Gradle wrapper (`./gradlew`) using Gradle 8.x (`gradle/wrapper/gradle-wrapper.properties`).
@@ -8,6 +14,7 @@ This repository is a Java 21 / Spring Boot app built with Gradle. Architecture i
 - Modules (by package): `dev.prospectos.core`, `dev.prospectos.api`, `dev.prospectos.ai`, `dev.prospectos.infrastructure`.
 - Tests: JUnit 5 + Spring Boot Test + Spring Modulith Test + AssertJ + Mockito.
 - Default profile: `mock` (`src/main/resources/application.properties`).
+- Monorepo direction: backend + Flutter app with clear workspace boundaries.
 
 ## Build / Test / Run
 ### Common commands
@@ -47,12 +54,23 @@ Diagnostics:
 - Follow `.editorconfig` (Java/Gradle/properties: 4 spaces; YAML/XML: 2 spaces; Java max line length: 120).
 
 ## Project Layout (Where Code Goes)
-- Source: `src/main/java/dev/prospectos/**`
-- Resources: `src/main/resources/**`
-- Tests: `src/test/java/dev/prospectos/**` (integration tests in `src/test/java/dev/prospectos/integration`).
-- Test config: `src/test/resources/application-test.properties`.
-- Docs: `docs/` (update if behavior/module boundaries change).
+- Backend source: `src/main/java/dev/prospectos/**`
+- Backend resources: `src/main/resources/**`
+- Backend tests: `src/test/java/dev/prospectos/**` (integration tests in `src/test/java/dev/prospectos/integration`).
+- Backend test config: `src/test/resources/application-test.properties`.
+- Flutter app target location: `apps/flutter_app/`
+- Shared docs: `docs/` (update if behavior/module boundaries change).
 - Generated output: `build/` (do not edit).
+
+## Monorepo Direction
+- Treat this repository as a monorepo from now on.
+- Backend and Flutter code must stay in separate top-level work areas.
+- Prefer this structure for new work:
+  - `src/**` for the current Spring Boot backend
+  - `apps/flutter_app/**` for the Flutter application
+  - `docs/**` for cross-cutting documentation
+- Do not mix Flutter source into backend directories.
+- If shared contracts are added later, document them explicitly before creating a shared package/module.
 
 ## Architecture & Modulith Boundaries (Critical)
 - `core` = domain model + business rules. Must not depend on `ai` or `infrastructure`.
@@ -60,6 +78,23 @@ Diagnostics:
 - `ai` = Spring AI client plumbing, provider selection, prompts/functions.
 - `infrastructure` = web controllers, JPA adapters/repositories, scheduled jobs, integrations.
 - Boundary assertions live in `src/test/java/dev/prospectos/modules/ModulithTest.java`.
+
+## Flutter Architecture Direction
+- The Flutter application must follow a component-oriented architecture.
+- Prefer composition over large screens with embedded business logic.
+- Organize Flutter code by feature first, then by component layers inside each feature.
+- Recommended structure:
+  - `apps/flutter_app/lib/app/` for app bootstrap, routing, theme, dependency setup
+  - `apps/flutter_app/lib/features/<feature>/presentation/` for screens and UI flows
+  - `apps/flutter_app/lib/features/<feature>/components/` for reusable feature components
+  - `apps/flutter_app/lib/features/<feature>/domain/` for entities, use cases, contracts
+  - `apps/flutter_app/lib/features/<feature>/data/` for DTOs, repositories, remote/local sources
+  - `apps/flutter_app/lib/shared/components/` for design-system level reusable widgets
+  - `apps/flutter_app/lib/shared/theme/` for tokens, typography, spacing, color system
+- Keep widgets small and testable.
+- Separate visual components from orchestration/state logic.
+- Avoid dumping all reusable UI into one generic `widgets/` folder without feature boundaries.
+- Prefer explicit design tokens and shared components over one-off styling.
 
 ## Configuration & Profiles
 ### Profiles
@@ -126,6 +161,43 @@ Diagnostics:
 - Use Mockito with `@ExtendWith(MockitoExtension.class)` for isolated services.
 - Integration tests use `@SpringBootTest` and typically `@ActiveProfiles("test")`.
 - Do not add network-dependent tests; keep AI paths mocked/disabled under the `test` profile.
+- Increasing test coverage is an active priority.
+- When touching backend production code, prefer adding or updating tests in the same change when practical.
+- Prefer targeted unit/integration tests that improve behavior confidence and JaCoCo coverage on changed code.
+- When Flutter is added, require widget tests for reusable components and unit tests for presentation/domain logic where applicable.
+
+## TDD Expectations
+- Prefer TDD as the default development approach for new behavior and bug fixes.
+- Follow the Red -> Green -> Refactor cycle whenever practical.
+- Start by writing a failing test that describes the expected behavior or reproduces the bug.
+- Implement the smallest production change needed to make the test pass.
+- Refactor only after the behavior is protected by tests.
+- Keep each TDD cycle small; avoid bundling many new behaviors into one test step.
+- When a task is too broad for strict TDD, break it into smaller increments and apply TDD to each increment.
+- For backend work, prefer unit tests first, then add integration tests only where wiring, persistence, configuration, or HTTP behavior matters.
+- For Flutter work, prefer unit tests for logic, widget tests for components, and integration tests only for critical end-to-end flows.
+- Before changing existing behavior, look for the closest existing test and extend it or add a neighboring test instead of creating scattered coverage.
+- If a production change is made without a preceding failing test, document the reason in the final update.
+- Bug fixes should usually begin with a regression test.
+- Avoid deleting tests just to make the build pass unless the test is invalid and the reason is explicit.
+- Treat tests as executable specification: names should describe behavior, not implementation details.
+- Prefer deterministic tests over timing-sensitive or network-dependent tests.
+- Keep mocks focused on boundaries; do not over-mock core domain behavior.
+
+## Extreme Programming Expectations
+- Use Extreme Programming practices pragmatically as the default engineering posture for this repository.
+- Prefer small, frequent, low-risk changes over large rewrites.
+- Keep commits focused, reviewable, and behaviorally coherent.
+- Integrate continuously: avoid letting changes drift too far before validating them with tests.
+- Refactor continuously, but only with tests protecting the behavior being changed.
+- Prefer the simplest design that satisfies the current use case.
+- Do not introduce speculative abstractions for requirements that do not yet exist.
+- Treat code review, test feedback, and architecture constraints as continuous feedback loops.
+- Bug fixes should aim to add a regression test first, then fix the code, then simplify if needed.
+- When implementing new features, prefer thin vertical slices that deliver working behavior end to end.
+- Preserve sustainable pace: avoid batching too many unrelated concerns into one change.
+- Shared code ownership is expected; keep code understandable so another engineer can continue the work quickly.
+- Respect existing module boundaries in the backend and the component architecture direction for the future Flutter app.
 
 ## Other Agent/Tooling Rules
 - Cursor rules: none found (`.cursor/rules/` and `.cursorrules` are absent).

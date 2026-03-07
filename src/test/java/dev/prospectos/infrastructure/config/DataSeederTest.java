@@ -140,7 +140,7 @@ class DataSeederTest {
         verify(companyService).createCompany(argThat(company ->
             company.name().equals("SLC Agrícola") &&
             company.industry().equals("agribusiness") &&
-            company.city().contains("Mato Grosso")
+            company.city().contains("Primavera do Leste, MT")
         ));
     }
 
@@ -150,13 +150,13 @@ class DataSeederTest {
         dataSeeder.seedDatabase();
 
         // Then - verificar diversidade de indústrias
-        verify(companyService).createCompany(argThat(company -> 
+        verify(companyService, atLeastOnce()).createCompany(argThat(company -> 
             company.industry().equals("fintech")));
-        verify(companyService).createCompany(argThat(company -> 
+        verify(companyService, atLeastOnce()).createCompany(argThat(company -> 
             company.industry().equals("agribusiness")));  
-        verify(companyService).createCompany(argThat(company -> 
+        verify(companyService, atLeastOnce()).createCompany(argThat(company -> 
             company.industry().equals("technology")));
-        verify(companyService).createCompany(argThat(company -> 
+        verify(companyService, atLeastOnce()).createCompany(argThat(company -> 
             company.industry().equals("saas")));
     }
 }

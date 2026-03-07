@@ -3,6 +3,9 @@ plugins {
     id 'org.springframework.boot' version '3.5.9'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'jacoco'
+    id 'org.sonarqube' version '4.4.1.3373'
+    id 'com.github.spotbugs' version '5.0.14'
+    id 'pmd'
 }
 
 group = 'dev.prospectos'
@@ -68,5 +71,187 @@ jacocoTestReport {
     reports {
         xml.required = true
         html.required = true
+        csv.required = true
+    }
+
+    // Exclude generated/configuration classes from coverage
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                '**/config/**/*Configuration*',
+                '**/ProspectosApplication*',
+                '**/dto/**/*DTO*',
+                '**/dto/**/*Request*',
+                '**/dto/**/*Response*',
+                '**/ai/example/**'
+            ])
+        }))
+    }
+
+    finalizedBy 'jacocoTestCoverageVerification'
+}
+
+jacocoTestCoverageVerification {
+    dependsOn 'jacocoTestReport'
+
+    violationRules {
+        rule {
+            limit {
+                counter = 'INSTRUCTION'
+                value = 'COVEREDRATIO'
+                minimum = 0.60 // 60% minimum instruction coverage
+            }
+        }
+
+        rule {
+            limit {
+                counter = 'BRANCH'
+                value = 'COVEREDRATIO'
+                minimum = 0.50 // 50% minimum branch coverage
+            }
+        }
+
+        rule {
+            element = 'CLASS'
+            excludes = [
+                '*.*Configuration*',
+                '*.*Application*',
+                '*.dto.*',
+            ]
+            limit {
+                counter = 'INSTRUCTION'
+                value = 'COVEREDRATIO'
+                minimum = 0.70 // 70% for business logic classes
+            }
+        }
+    }
+}
+
+// ===== SONARQUBE CONFIGURATION =====
+sonarqube {
+    properties {
+        property 'sonar.projectKey', 'prospectos'
+        property 'sonar.projectName', 'ProspectOS'
+        property 'sonar.projectVersion', project.version
+        property 'sonar.sourceEncoding', 'UTF-8'
+
+        // Coverage reports
+        property 'sonar.coverage.jacoco.xmlReportPaths', 'build/reports/jacoco/test/jacocoTestReport.xml'
+
+        // Code analysis
+        property 'sonar.java.source', '21'
+        property 'sonar.java.target', '21'
+
+        // Quality gates
+        property 'sonar.qualitygate.wait', true
+
+        // Exclude patterns
+        property 'sonar.exclusions', [
+            '**/config/**/*Configuration*',
+            '**/ProspectosApplication.java',
+            '**/dto/**/*',
+            '**/generated/**/*'
+        ].join(',')
+
+        // Test exclusions
+        property 'sonar.test.exclusions', [
+            '**/test/**/*',
+            '**/*Test*',
+            '**/*Mock*'
+        ].join(',')
+
+        // Additional analysis
+        property 'sonar.java.spotbugs.reportPaths', 'build/reports/spotbugs/main.xml'
+        property 'sonar.java.pmd.reportPaths', 'build/reports/pmd/main.xml'
+    }
+}
+
+// ===== SPOTBUGS CONFIGURATION =====
+spotbugs {
+    ignoreFailures = true
+    effort = 'default'
+    reportLevel = 'medium'
+    excludeFilter = file('config/spotbugs/spotbugs-exclude.xml')
+}
+
+spotbugsMain {
+    reports {
+        xml {
+            required = true
+            outputLocation = file('build/reports/spotbugs/main.xml')
+        }
+        html {
+            required = true
+            outputLocation = file('build/reports/spotbugs/main.html')
+        }
+    }
+}
+
+spotbugsTest {
+    reports {
+        xml {
+            required = true
+            outputLocation = file('build/reports/spotbugs/test.xml')
+        }
+        html {
+            required = true
+            outputLocation = file('build/reports/spotbugs/test.html')
+        }
+    }
+}
+
+// ===== PMD CONFIGURATION =====
+pmd {
+    consoleOutput = true
+    toolVersion = '6.55.0'
+    ruleSetFiles = files('config/pmd/pmd-rules.xml')
+    ignoreFailures = true
+}
+
+pmdMain {
+    reports {
+        xml {
+            required = true
+            outputLocation = file('build/reports/pmd/main.xml')
+        }
+        html {
+            required = true
+            outputLocation = file('build/reports/pmd/main.html')
+        }
+    }
+}
+
+pmdTest {
+    reports {
+        xml {
+            required = true
+            outputLocation = file('build/reports/pmd/test.xml')
+        }
+        html {
+            required = true
+            outputLocation = file('build/reports/pmd/test.html')
+        }
+    }
+}
+
+// ===== INTEGRATED QUALITY CHECK TASK =====
+tasks.register('qualityCheck') {
+    description = 'Runs all quality checks: tests, coverage, spotbugs, pmd, and sonar analysis'
+    group = 'verification'
+
+    dependsOn 'test', 'jacocoTestReport', 'jacocoTestCoverageVerification', 'spotbugsMain', 'pmdMain'
+
+    doLast {
+        println """
+        ✅ Quality Check Complete!
+
+        📊 Reports Generated:
+        - Coverage: build/reports/jacoco/test/html/index.html
+        - SpotBugs: build/reports/spotbugs/main.html
+        - PMD: build/reports/pmd/main.html
+
+        🔍 Run SonarQube analysis with:
+        ./gradlew sonarqube
+        """
     }
 }

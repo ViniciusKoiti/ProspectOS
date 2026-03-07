@@ -1,5 +1,6 @@
 HELP.md
 .gradle
+.gradle-user-home/
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
@@ -46,8 +47,8 @@ out/
 ### AI API Keys ###
 *api-key*
 *secret*
-*token*
 
 ### Logs ###
 *.log
+hs_err_pid*.log
 logs/

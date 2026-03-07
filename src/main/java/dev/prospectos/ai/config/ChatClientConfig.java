@@ -1,5 +1,6 @@
 package dev.prospectos.ai.config;
 
+import dev.prospectos.ai.client.LLMProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,12 +11,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 
-import java.util.Optional;
-
 @Configuration
-@Profile("!mock & !test")
+@Profile("!test")
 @Slf4j
 public class ChatClientConfig {
+
+    private final AIProviderActivationProperties activationProperties;
     
     @Value("${spring.ai.openai.api-key:}")
     private String openaiKey;
@@ -25,6 +26,10 @@ public class ChatClientConfig {
 
     @Value("${prospectos.ai.groq.api-key:}")
     private String groqKey;
+
+    public ChatClientConfig(AIProviderActivationProperties activationProperties) {
+        this.activationProperties = activationProperties;
+    }
     
     /**
      * Automatically selects the best available ChatModel.
@@ -44,23 +49,25 @@ public class ChatClientConfig {
             openAiChatModel != null,
             groqChatModel != null,
             anthropicChatModel != null);
-        if (isValidApiKey(openaiKey) && openAiChatModel != null) {
-            log.info("Using OpenAI ChatModel as primary.");
-            return openAiChatModel;
-        }
 
-        if (isValidApiKey(groqKey) && groqChatModel != null) {
-            log.info("Using Groq ChatModel as primary.");
-            return groqChatModel;
-        }
+        for (LLMProvider provider : activationProperties.activeProviders()) {
+            ChatModel candidate = switch (provider) {
+                case OPENAI -> isValidApiKey(openaiKey) ? openAiChatModel : null;
+                case GROQ -> isValidApiKey(groqKey) ? groqChatModel : null;
+                case ANTHROPIC -> isValidApiKey(anthropicKey) ? anthropicChatModel : null;
+                default -> null;
+            };
 
-        if (isValidApiKey(anthropicKey) && anthropicChatModel != null) {
-            log.info("Using Anthropic ChatModel as primary.");
-            return anthropicChatModel;
+            if (candidate != null) {
+                log.info("Using {} ChatModel as primary.", provider.getDisplayName());
+                return candidate;
+            }
         }
         
         throw new IllegalStateException(
-            "No LLM API key configured. Set OPENAI_API_KEY, ANTHROPIC_API_KEY, or PROSPECTOS_AI_GROQ_API_KEY"
+            "No active LLM provider is available. Check "
+                + AIConfigurationProperties.ACTIVE_PROVIDERS
+                + ", provider API keys, and Spring AI provider bootstrap flags."
         );
     }
 

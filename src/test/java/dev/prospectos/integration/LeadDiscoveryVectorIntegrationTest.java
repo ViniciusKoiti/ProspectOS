@@ -24,7 +24,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @TestPropertySource(properties = {
     "prospectos.leads.allowed-sources=in-memory,vector-company",
-    "prospectos.discovery.vector.enabled=true",
     "prospectos.vectorization.min-similarity=0.05"
 })
 class LeadDiscoveryVectorIntegrationTest {

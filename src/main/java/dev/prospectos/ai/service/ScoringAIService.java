@@ -20,7 +20,12 @@ import static dev.prospectos.ai.config.AIConfigurationProperties.*;
     havingValue = "true",
     matchIfMissing = true
 )
-public class ScoringAIService {
+@ConditionalOnProperty(
+    name = "prospectos.scoring.mock.enabled",
+    havingValue = "false",
+    matchIfMissing = true
+)
+public class ScoringAIService implements ScoringService {
 
     private final AIProvider aiProvider;
 

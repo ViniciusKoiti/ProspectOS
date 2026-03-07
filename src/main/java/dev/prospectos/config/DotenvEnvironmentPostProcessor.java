@@ -68,6 +68,7 @@ public class DotenvEnvironmentPostProcessor implements EnvironmentPostProcessor,
         mappings.put("SPRING_AI_ANTHROPIC_API_KEY", "spring.ai.anthropic.api-key");
         mappings.put("SPRING_AI_ANTHROPIC_CLAUDE_MODEL", "spring.ai.anthropic.claude.model");
         mappings.put("SPRING_AI_ANTHROPIC_ENABLED", "spring.ai.anthropic.enabled");
+        mappings.put("PROSPECTOS_AI_ACTIVE_PROVIDERS", "prospectos.ai.active-providers");
         mappings.put("PROSPECTOS_AI_GROQ_API_KEY", "prospectos.ai.groq.api-key");
         mappings.put("PROSPECTOS_AI_GROQ_BASE_URL", "prospectos.ai.groq.base-url");
         mappings.put("PROSPECTOS_AI_GROQ_MODEL", "prospectos.ai.groq.model");
@@ -117,7 +118,7 @@ public class DotenvEnvironmentPostProcessor implements EnvironmentPostProcessor,
         mappings.put("MOCK_AI_RESPONSE_DELAY", "mock.ai.response.delay");
         mappings.put("AI_REQUEST_TIMEOUT", "ai.request.timeout");
         mappings.put("AI_MAX_RETRIES", "ai.max.retries");
-        mappings.put("AI_PROVIDER_PRIORITY", "ai.provider.priority");
+        mappings.put("AI_PROVIDER_PRIORITY", "prospectos.ai.active-providers");
 
         // Feature flags
         mappings.put("FEATURE_AI_ENRICHMENT_ENABLED", "feature.ai.enrichment.enabled");

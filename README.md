@@ -120,6 +120,8 @@ Environment variables for AI providers (copy from `.env.example` and set your ke
 - `GROQ_API_KEY` → maps to `prospectos.ai.groq.api-key`
 
 The application will automatically select the best available AI provider based on configured API keys.
+Application-level provider eligibility is controlled by `prospectos.ai.active-providers`
+or the env var `PROSPECTOS_AI_ACTIVE_PROVIDERS`.
 
 ## API Surface (MVP)
 
@@ -172,7 +174,6 @@ Because both embedding service and vector index validate dimensions, changing mo
 ### Key properties
 
 ```properties
-prospectos.discovery.vector.enabled=true
 prospectos.vectorization.backend=in-memory
 prospectos.vectorization.model-id=hashing-v1
 prospectos.vectorization.embedding-dimension=256

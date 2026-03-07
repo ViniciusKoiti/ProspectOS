@@ -17,14 +17,16 @@ import java.util.List;
 /**
  * Lead discovery source that integrates with CNPJ.ws API for Brazilian company validation.
  * Provides mock Brazilian companies for demonstration when the external API is not available.
+ *
+ * This source is automatically enabled/disabled based on 'cnpj-ws' presence in
+ * prospectos.leads.allowed-sources configuration.
  */
 @Component
-@ConditionalOnProperty(name = "prospectos.sources.cnpj.enabled", havingValue = "true", matchIfMissing = false)
 public class CNPJLeadDiscoverySource implements LeadDiscoverySource {
 
     private static final Logger log = LoggerFactory.getLogger(CNPJLeadDiscoverySource.class);
     private static final String SOURCE_NAME = "cnpj-ws";
-    
+
     private final RestTemplate restTemplate;
 
     public CNPJLeadDiscoverySource(RestTemplateBuilder restTemplateBuilder) {
@@ -59,13 +61,13 @@ public class CNPJLeadDiscoverySource implements LeadDiscoverySource {
      */
     private List<DiscoveredLeadCandidate> getMockBrazilianCompanies(String query, int limit) {
         List<DiscoveredLeadCandidate> mockCompanies = new ArrayList<>();
-        
+
         String lowerQuery = query.toLowerCase();
-        
+
         // Technology/Fintech companies
-        if (lowerQuery.contains("tech") || lowerQuery.contains("tecnologia") || 
+        if (lowerQuery.contains("tech") || lowerQuery.contains("tecnologia") ||
             lowerQuery.contains("fintech") || lowerQuery.contains("startup")) {
-            
+
             mockCompanies.add(new DiscoveredLeadCandidate(
                 "TechSolutions Brasil Ltda",
                 "https://techsolutions.com.br",
@@ -75,57 +77,57 @@ public class CNPJLeadDiscoverySource implements LeadDiscoverySource {
                 List.of("contato@techsolutions.com.br", "cto@techsolutions.com.br"),
                 SOURCE_NAME
             ));
-            
+
             mockCompanies.add(new DiscoveredLeadCandidate(
                 "InovaPay Fintech SA",
-                "https://inovapay.com.br", 
+                "https://inovapay.com.br",
                 "fintech",
                 "Digital payment solutions for small businesses - CNPJ 12.345.678/0001-90",
                 "Rio de Janeiro, RJ - Brazil",
                 List.of("info@inovapay.com.br", "founder@inovapay.com.br"),
                 SOURCE_NAME
             ));
-            
+
             mockCompanies.add(new DiscoveredLeadCandidate(
                 "CloudBrasil Sistemas",
                 "https://cloudbrasil.tech",
                 "saas",
                 "Cloud infrastructure and DevOps solutions - CNPJ 98.765.432/0001-10",
-                "Florianópolis, SC - Brazil", 
+                "Florianópolis, SC - Brazil",
                 List.of("vendas@cloudbrasil.tech", "ceo@cloudbrasil.tech"),
                 SOURCE_NAME
             ));
         }
-        
+
         // Agribusiness companies
-        if (lowerQuery.contains("agro") || lowerQuery.contains("agricultura") || 
+        if (lowerQuery.contains("agro") || lowerQuery.contains("agricultura") ||
             lowerQuery.contains("fazenda") || lowerQuery.contains("rural")) {
-            
+
             mockCompanies.add(new DiscoveredLeadCandidate(
                 "AgroTech Mato Grosso Ltda",
                 "https://agrotech-mt.com.br",
-                "agtech", 
+                "agtech",
                 "Precision agriculture and IoT solutions for farms - CNPJ validated",
                 "Cuiabá, MT - Brazil",
                 List.of("comercial@agrotech-mt.com.br", "diretor@agrotech-mt.com.br"),
                 SOURCE_NAME
             ));
-            
+
             mockCompanies.add(new DiscoveredLeadCandidate(
                 "FarmData Analytics",
                 "https://farmdata.agr.br",
                 "agtech",
                 "Data analytics and satellite monitoring for agriculture - CNPJ 11.222.333/0001-44",
                 "Ribeirão Preto, SP - Brazil",
-                List.of("contato@farmdata.agr.br", "cto@farmdata.agr.br"), 
+                List.of("contato@farmdata.agr.br", "cto@farmdata.agr.br"),
                 SOURCE_NAME
             ));
         }
-        
+
         // General business/consulting
-        if (lowerQuery.contains("consultor") || lowerQuery.contains("empresa") || 
+        if (lowerQuery.contains("consultor") || lowerQuery.contains("empresa") ||
             lowerQuery.contains("negócio") || lowerQuery.contains("serviços")) {
-            
+
             mockCompanies.add(new DiscoveredLeadCandidate(
                 "Consultoria Estratégica Brasil",
                 "https://cestrategica.com.br",
@@ -135,24 +137,24 @@ public class CNPJLeadDiscoverySource implements LeadDiscoverySource {
                 List.of("contato@cestrategica.com.br", "diretor@cestrategica.com.br"),
                 SOURCE_NAME
             ));
-            
+
             mockCompanies.add(new DiscoveredLeadCandidate(
                 "ServicosPro Ltda",
                 "https://servicospro.net.br",
                 "services",
-                "Professional services and business automation - CNPJ 55.666.777/0001-88", 
+                "Professional services and business automation - CNPJ 55.666.777/0001-88",
                 "Porto Alegre, RS - Brazil",
                 List.of("info@servicospro.net.br", "gerente@servicospro.net.br"),
                 SOURCE_NAME
             ));
         }
-        
+
         // Healthcare/Education
-        if (lowerQuery.contains("saúde") || lowerQuery.contains("health") || 
+        if (lowerQuery.contains("saúde") || lowerQuery.contains("health") ||
             lowerQuery.contains("educação") || lowerQuery.contains("ensino")) {
-            
+
             mockCompanies.add(new DiscoveredLeadCandidate(
-                "HealthTech Digital Ltda", 
+                "HealthTech Digital Ltda",
                 "https://healthtech.med.br",
                 "healthtech",
                 "Telemedicine and digital health solutions - CNPJ verified",
@@ -161,20 +163,20 @@ public class CNPJLeadDiscoverySource implements LeadDiscoverySource {
                 SOURCE_NAME
             ));
         }
-        
+
         // If no specific matches, provide general Brazilian companies
         if (mockCompanies.isEmpty()) {
             mockCompanies.add(new DiscoveredLeadCandidate(
                 "Empresa Brasil Inovação",
                 "https://brasilempresas.com.br",
-                "technology", 
+                "technology",
                 "General technology solutions provider - CNPJ validated via CNPJ.ws",
                 "São Paulo, SP - Brazil",
                 List.of("contato@brasilempresas.com.br"),
                 SOURCE_NAME
             ));
         }
-        
+
         return mockCompanies.stream().limit(limit).toList();
     }
 
@@ -186,18 +188,18 @@ public class CNPJLeadDiscoverySource implements LeadDiscoverySource {
         try {
             String cleanCnpj = cnpj.replaceAll("[^0-9]", "");
             String url = "https://cnpj.ws/v1/" + cleanCnpj;
-            
+
             log.info("Validating CNPJ {} via CNPJ.ws API", cleanCnpj);
-            
+
             ResponseEntity<CNPJResponse> response = restTemplate.getForEntity(url, CNPJResponse.class);
-            
+
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 return mapToCNPJValidation(response.getBody());
             }
         } catch (Exception e) {
             log.warn("CNPJ validation failed for {}: {}", cnpj, e.getMessage());
         }
-        
+
         return CNPJValidationResult.invalid("CNPJ validation service unavailable");
     }
 
@@ -226,10 +228,10 @@ public class CNPJLeadDiscoverySource implements LeadDiscoverySource {
         public String logradouro;
         public String municipio;
         public String uf;
-        
+
         @JsonProperty("atividade_principal")
         public List<AtividadeResponse> atividadePrincipal;
-        
+
         public static class AtividadeResponse {
             public String code;
             public String text;
@@ -247,7 +249,7 @@ public class CNPJLeadDiscoverySource implements LeadDiscoverySource {
         private final String address;
         private final String errorMessage;
 
-        private CNPJValidationResult(boolean valid, String companyName, String fantasyName, 
+        private CNPJValidationResult(boolean valid, String companyName, String fantasyName,
                                     String email, String address, String errorMessage) {
             this.valid = valid;
             this.companyName = companyName;
@@ -257,7 +259,7 @@ public class CNPJLeadDiscoverySource implements LeadDiscoverySource {
             this.errorMessage = errorMessage;
         }
 
-        public static CNPJValidationResult valid(String companyName, String fantasyName, 
+        public static CNPJValidationResult valid(String companyName, String fantasyName,
                                                String email, String address) {
             return new CNPJValidationResult(true, companyName, fantasyName, email, address, null);
         }
