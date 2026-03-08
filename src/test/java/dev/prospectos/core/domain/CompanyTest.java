@@ -16,7 +16,7 @@ class CompanyTest {
     void createSetsDefaults() {
         Company company = Company.create("ProspectOS", Website.of("prospectos.dev"), "Software");
 
-        assertEquals(Company.ProspectingStatus.NEW, company.getStatus());
+        assertEquals(ProspectingStatus.NEW, company.getStatus());
         assertEquals(0.0, company.getProspectingScore().getDoubleValue());
         assertFalse(company.hasActiveSignals());
     }
@@ -27,7 +27,7 @@ class CompanyTest {
 
         company.updateScore(Score.of(80), "test");
 
-        assertEquals(Company.ProspectingStatus.REVIEWING, company.getStatus());
+        assertEquals(ProspectingStatus.REVIEWING, company.getStatus());
     }
 
     @Test
@@ -35,7 +35,7 @@ class CompanyTest {
         Company company = Company.create("ProspectOS", Website.of("prospectos.dev"), "Software");
 
         company.qualify();
-        assertEquals(Company.ProspectingStatus.QUALIFIED, company.getStatus());
+        assertEquals(ProspectingStatus.QUALIFIED, company.getStatus());
 
         company.disqualify("no fit");
         assertThrows(IllegalStateException.class, company::qualify);
@@ -44,7 +44,7 @@ class CompanyTest {
     @Test
     void addContactRejectsDuplicateEmails() {
         Company company = Company.create("ProspectOS", Website.of("prospectos.dev"), "Software");
-        Company.Contact contact = new Company.Contact(
+        Contact contact = new Contact(
             "Alex",
             Email.of("alex@prospectos.dev"),
             "CTO",
@@ -53,7 +53,7 @@ class CompanyTest {
 
         company.addContact(contact);
 
-        Company.Contact duplicate = new Company.Contact(
+        Contact duplicate = new Contact(
             "Alex 2",
             Email.of("alex@prospectos.dev"),
             "CTO",
@@ -79,3 +79,4 @@ class CompanyTest {
         assertEquals("Kubernetes", company.getTechnologySignals().getFirst().getTechnology());
     }
 }
+

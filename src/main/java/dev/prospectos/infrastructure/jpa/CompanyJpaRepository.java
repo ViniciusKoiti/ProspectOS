@@ -1,6 +1,8 @@
 package dev.prospectos.infrastructure.jpa;
 
 import dev.prospectos.core.domain.Company;
+import dev.prospectos.core.domain.CompanySize;
+import dev.prospectos.core.domain.ProspectingStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -22,19 +24,19 @@ public interface CompanyJpaRepository extends JpaRepository<Company, UUID> {
     
     List<Company> findByIndustry(String industry);
     
-    List<Company> findByStatus(Company.ProspectingStatus status);
+    List<Company> findByStatus(ProspectingStatus status);
     
     @Query("SELECT c FROM Company c WHERE c.prospectingScore.value >= :minScore ORDER BY c.prospectingScore.value DESC")
     List<Company> findByMinScore(@Param("minScore") double minScore);
     
     @Query("SELECT c FROM Company c WHERE c.prospectingScore.value >= :minScore AND c.status = :status")
-    List<Company> findByScoreAndStatus(@Param("minScore") double minScore, @Param("status") Company.ProspectingStatus status);
+    List<Company> findByScoreAndStatus(@Param("minScore") double minScore, @Param("status") ProspectingStatus status);
     
     @Query("SELECT c FROM Company c WHERE c.status = 'QUALIFIED' AND c.prospectingScore.value >= 80.0 ORDER BY c.prospectingScore.value DESC")
     List<Company> findTopQualifiedProspects();
     
     @Query("SELECT c FROM Company c WHERE c.industry = :industry AND c.size = :size")
-    List<Company> findByIndustryAndSize(@Param("industry") String industry, @Param("size") Company.CompanySize size);
+    List<Company> findByIndustryAndSize(@Param("industry") String industry, @Param("size") CompanySize size);
     
     @Query("SELECT c FROM Company c WHERE c.country = :country AND c.prospectingScore.value >= :minScore")
     List<Company> findByCountryAndMinScore(@Param("country") String country, @Param("minScore") double minScore);
@@ -46,7 +48,7 @@ public interface CompanyJpaRepository extends JpaRepository<Company, UUID> {
     List<Company> findRecentlyAdded(@Param("since") Instant since);
 
     @Query("SELECT COUNT(c) FROM Company c WHERE c.status = :status")
-    long countByStatus(@Param("status") Company.ProspectingStatus status);
+    long countByStatus(@Param("status") ProspectingStatus status);
     
     @Query("SELECT AVG(c.prospectingScore.value) FROM Company c WHERE c.industry = :industry")
     Double getAverageScoreByIndustry(@Param("industry") String industry);
@@ -69,3 +71,4 @@ public interface CompanyJpaRepository extends JpaRepository<Company, UUID> {
         """)
     List<Company> findStaleProspects(@Param("maxScore") double maxScore, @Param("olderThan") Instant olderThan);
 }
+

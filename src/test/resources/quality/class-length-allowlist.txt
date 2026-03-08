@@ -2,13 +2,3 @@
 # Goal: classes should preferably stay up to 50 lines.
 # Acceptable hard limit: 100 lines.
 # Keep this list shrinking over time.
-
-src/main/java/dev/prospectos/ai/client/AIWebSearchScraperClient.java
-src/main/java/dev/prospectos/ai/client/LlmScrapingResponseConverter.java
-src/main/java/dev/prospectos/core/domain/Company.java
-src/main/java/dev/prospectos/core/enrichment/CompanyEnrichmentService.java
-src/main/java/dev/prospectos/core/enrichment/DataNormalizer.java
-src/main/java/dev/prospectos/infrastructure/config/DataSeeder.java
-src/main/java/dev/prospectos/infrastructure/service/discovery/CNPJLeadDiscoverySource.java
-src/main/java/dev/prospectos/infrastructure/service/jpa/CompanyDataServiceJpa.java
-src/main/java/dev/prospectos/infrastructure/service/leads/ScraperLeadSearchService.java

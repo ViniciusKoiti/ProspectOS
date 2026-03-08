@@ -53,7 +53,7 @@ class EnrichmentPipelineIntegrationTest {
         assertThat(result.normalizedCompanyName()).isEqualTo("Acme Corporation Inc.");
         assertThat(result.cleanDescription()).isEqualTo("This is a great company with extra spaces.");
         assertThat(result.standardizedIndustry()).isEqualTo("Technology");
-        assertThat(result.size()).isEqualTo(dev.prospectos.core.domain.Company.CompanySize.SMALL);
+        assertThat(result.size()).isEqualTo(dev.prospectos.core.domain.CompanySize.SMALL);
 
         // Then: Verify website processing
         assertThat(result.website()).isNotNull();
@@ -203,3 +203,4 @@ class EnrichmentPipelineIntegrationTest {
         assertThat(priorityContacts.get(0).type()).isEqualTo(ValidatedContact.ContactType.CORPORATE);
     }
 }
+
