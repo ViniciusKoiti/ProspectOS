@@ -40,7 +40,7 @@ public class DataSeeder {
         seedICPs();
         seedCompanies();
         assignRealisticScores();
-        log.info("Database seeded successfully with {} companies and {} ICPs", 
+        log.info("Database seeded successfully with {} companies and {} ICPs",
                  companyService.findAllCompanies().size(),
                  icpService.findAllICPs().size());
     }
@@ -60,7 +60,7 @@ public class DataSeeder {
         );
         icpService.createICP(techICP);
 
-        // ICP 2: Agro Directors  
+        // ICP 2: Agro Directors
         ICPCreateRequest agroICP = new ICPCreateRequest(
             "Diretores do Agronegócio",
             "Lideranças de fazendas e cooperativas agrícolas",
@@ -92,17 +92,17 @@ public class DataSeeder {
     private void seedCompanies() {
         // Tech Companies (30 empresas)
         seedTechCompanies();
-        
+
         // Agronegócio (25 empresas)
         seedAgroCompanies();
-        
+
         // Outros Setores (45 empresas)
         seedOtherSectorCompanies();
     }
 
     private void seedTechCompanies() {
         // Fintechs
-        createCompany("Nubank", "fintech", "https://nubank.com.br", 
+        createCompany("Nubank", "fintech", "https://nubank.com.br",
                      "Digital banking platform revolutionizing financial services", "Brazil", "São Paulo", "LARGE");
         createCompany("Stone Pagamentos", "fintech", "https://stone.com.br",
                      "Payment solutions for businesses", "Brazil", "São Paulo", "MEDIUM");
@@ -238,7 +238,7 @@ public class DataSeeder {
                      "AI-powered personalized learning platform", "Brazil", "Florianópolis", "STARTUP");
     }
 
-    private void createCompany(String name, String industry, String website, 
+    private void createCompany(String name, String industry, String website,
                               String description, String country, String city, String size) {
         try {
             CompanyCreateRequest request = new CompanyCreateRequest(
@@ -252,7 +252,7 @@ public class DataSeeder {
 
     private void assignRealisticScores() {
         List<CompanyDTO> companies = companyService.findAllCompanies();
-        
+
         for (CompanyDTO company : companies) {
             int score = calculateRealisticScore(company);
             String reasoning = generateScoreReasoning(company, score);
@@ -264,7 +264,7 @@ public class DataSeeder {
 
     private int calculateRealisticScore(CompanyDTO company) {
         int baseScore = 60; // Base score
-        
+
         // Industry bonus
         if (company.industry().equals("fintech")) baseScore += 15;
         if (company.industry().equals("technology")) baseScore += 12;
@@ -272,11 +272,11 @@ public class DataSeeder {
         if (company.industry().equals("saas")) baseScore += 10;
         if (company.industry().equals("agribusiness")) baseScore += 5;
         if (company.industry().equals("consulting")) baseScore += 7;
-        
+
         // Size bonus - Startups have higher potential
         // Size information is not directly available in CompanyDTO
         // We'll infer from employee count or company name
-        if (company.name().toLowerCase().contains("startup") || 
+        if (company.name().toLowerCase().contains("startup") ||
             (company.employeeCount() != null && company.employeeCount() < 50)) {
             baseScore += 20;
         } else if (company.employeeCount() != null && company.employeeCount() < 200) {
@@ -286,7 +286,7 @@ public class DataSeeder {
         } else {
             baseScore += 5;
         }
-        
+
         // Location bonus
         if (company.location() != null) {
             if (company.location().contains("São Paulo")) baseScore += 10;
@@ -294,23 +294,23 @@ public class DataSeeder {
             if (company.location().contains("Florianópolis")) baseScore += 6;
             if (company.location().contains("Belo Horizonte")) baseScore += 6;
         }
-        
+
         // Technology company bonus
         if (company.name().toLowerCase().contains("tech") ||
             company.description().toLowerCase().contains("digital") ||
             company.description().toLowerCase().contains("platform")) {
             baseScore += 8;
         }
-        
+
         // Add some randomness for realistic variation
         baseScore += (int)(Math.random() * 10 - 5);
-        
+
         return Math.min(Math.max(baseScore, 45), 95); // Clamp between 45-95
     }
 
     private String generateScoreReasoning(CompanyDTO company, int score) {
         StringBuilder reasoning = new StringBuilder();
-        
+
         if (score >= 80) {
             reasoning.append("HIGH PRIORITY: ");
         } else if (score >= 65) {
@@ -318,24 +318,24 @@ public class DataSeeder {
         } else {
             reasoning.append("LOW PRIORITY: ");
         }
-        
+
         // Industry reasoning
         switch (company.industry()) {
-            case "fintech", "technology", "saas" -> 
+            case "fintech", "technology", "saas" ->
                 reasoning.append("Strong tech industry fit. ");
-            case "agtech" -> 
+            case "agtech" ->
                 reasoning.append("Growing AgTech sector with digital adoption. ");
-            case "agribusiness" -> 
+            case "agribusiness" ->
                 reasoning.append("Traditional agro with modernization potential. ");
-            case "consulting" -> 
+            case "consulting" ->
                 reasoning.append("Service industry with technology needs. ");
-            default -> 
+            default ->
                 reasoning.append("Industry analysis complete. ");
         }
-        
+
         // Size reasoning
         // Size reasoning based on employee count or company name
-        if (company.name().toLowerCase().contains("startup") || 
+        if (company.name().toLowerCase().contains("startup") ||
             (company.employeeCount() != null && company.employeeCount() < 50)) {
             reasoning.append("High growth potential, early-stage innovation.");
         } else if (company.employeeCount() != null && company.employeeCount() < 200) {
@@ -345,12 +345,12 @@ public class DataSeeder {
         } else {
             reasoning.append("Stable enterprise, complex decision process.");
         }
-        
+
         // Location context
         if (company.location() != null && company.location().contains("São Paulo")) {
             reasoning.append(" Located in Brazil's tech hub.");
         }
-        
+
         return reasoning.toString();
     }
 
