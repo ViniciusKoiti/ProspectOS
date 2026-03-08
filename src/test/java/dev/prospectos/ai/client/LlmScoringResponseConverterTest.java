@@ -54,4 +54,37 @@ class LlmScoringResponseConverterTest {
         assertThat(result.breakdown().get("icpFit")).isEqualTo(0);
         assertThat(result.reasoning()).isNotBlank();
     }
+
+    @Test
+    void fallsBackToRegexExtractionWhenPayloadIsNotJson() {
+        String response = """
+            scoring output: "score": 73, "priority": "hot",
+            "reasoning": "Strong ICP fit and recent buying signal.",
+            "recommendation": "Start outbound immediately."
+            """;
+
+        ScoringResult result = converter.convert(response);
+
+        assertThat(result.score()).isEqualTo(73);
+        assertThat(result.priority()).isEqualTo(PriorityLevel.HOT);
+        assertThat(result.reasoning()).isEqualTo("Strong ICP fit and recent buying signal.");
+        assertThat(result.recommendation()).isEqualTo("Start outbound immediately.");
+    }
+
+    @Test
+    void defaultsPriorityWhenJsonContainsUnknownPriority() {
+        String response = """
+            {
+              "score": 42,
+              "priority": "urgent",
+              "reasoning": "Test reasoning",
+              "recommendation": "Test recommendation"
+            }
+            """;
+
+        ScoringResult result = converter.convert(response);
+
+        assertThat(result.score()).isEqualTo(42);
+        assertThat(result.priority()).isEqualTo(PriorityLevel.COLD);
+    }
 }

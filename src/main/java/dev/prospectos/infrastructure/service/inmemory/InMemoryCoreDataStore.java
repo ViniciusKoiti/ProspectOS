@@ -1,16 +1,17 @@
 package dev.prospectos.infrastructure.service.inmemory;
 
-import dev.prospectos.api.dto.CompanyDTO;
-import dev.prospectos.api.dto.ICPDto;
-import dev.prospectos.api.dto.ScoreDTO;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
+
+import dev.prospectos.api.dto.CompanyDTO;
+import dev.prospectos.api.dto.ICPDto;
+import dev.prospectos.api.dto.ScoreDTO;
 
 @Component
 @Profile({"test", "development"})
@@ -53,106 +54,10 @@ public class InMemoryCoreDataStore {
     }
 
     private void seedData() {
-        CompanyDTO techCorp = new CompanyDTO(
-            1L,
-            "TechCorp",
-            "Software",
-            "https://techcorp.com",
-            "Leading software company",
-            150,
-            "San Francisco, CA",
-            null
-        );
-        CompanyDTO cloudTech = new CompanyDTO(
-            2L,
-            "CloudTech Solutions",
-            "Software",
-            "https://cloudtech.com",
-            "Cloud infrastructure specialists",
-            220,
-            "Austin, TX",
-            null
-        );
-        CompanyDTO localRestaurant = new CompanyDTO(
-            3L,
-            "Local Restaurant",
-            "Food & Beverage",
-            "https://localrestaurant.com",
-            "Neighborhood dining spot",
-            25,
-            "Curitiba, BR",
-            null
-        );
-        CompanyDTO techStart1 = new CompanyDTO(
-            4L,
-            "TechStart1",
-            "Software",
-            "https://techstart1.com",
-            "Early-stage software startup",
-            40,
-            "Sao Paulo, BR",
-            null
-        );
-        CompanyDTO techStart2 = new CompanyDTO(
-            5L,
-            "TechStart2",
-            "Software",
-            "https://techstart2.com",
-            "Growing SaaS platform",
-            55,
-            "Toronto, CA",
-            null
-        );
-        CompanyDTO techStart3 = new CompanyDTO(
-            6L,
-            "TechStart3",
-            "Software",
-            "https://techstart3.com",
-            "Product-led startup",
-            65,
-            "Miami, FL",
-            null
-        );
-        CompanyDTO minimalCorp = new CompanyDTO(
-            7L,
-            "MinimalCorp",
-            "Unknown",
-            "https://minimal.com",
-            "Minimal company profile",
-            10,
-            "Remote",
-            null
-        );
-        ICPDto icp = new ICPDto(
-            1L,
-            "DevOps Teams",
-            "Target companies with active DevOps practices",
-            List.of("Software", "Technology", "SaaS"),
-            List.of("North America", "Europe", "Brazil"),
-            List.of("Docker", "Kubernetes", "AWS", "Jenkins"),
-            50,
-            500,
-            List.of("CTO", "DevOps Engineer", "Platform Engineer"),
-            "DevOps transformation and cloud migration"
-        );
-
-        companies.put(techCorp.id(), techCorp);
-        companies.put(cloudTech.id(), cloudTech);
-        companies.put(localRestaurant.id(), localRestaurant);
-        companies.put(techStart1.id(), techStart1);
-        companies.put(techStart2.id(), techStart2);
-        companies.put(techStart3.id(), techStart3);
-        companies.put(minimalCorp.id(), minimalCorp);
+        companies.putAll(InMemorySeedData.companies());
+        ICPDto icp = InMemorySeedData.icp();
         icps.put(icp.id(), icp);
-        icpCompanies.put(icp.id(), new ArrayList<>(List.of(
-            techCorp.id(),
-            cloudTech.id(),
-            localRestaurant.id(),
-            techStart1.id(),
-            techStart2.id(),
-            techStart3.id(),
-            minimalCorp.id()
-        )));
+        icpCompanies.put(icp.id(), new ArrayList<>(InMemorySeedData.icpCompanyIds()));
     }
 
     private void initializeSequences() {

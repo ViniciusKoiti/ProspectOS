@@ -153,6 +153,26 @@ class EmailFilterTest {
         assertEquals(2, usable.size());
     }
 
+    @Test
+    void calculateEmailQuality_ComputesBreakdownAndCompleteness() {
+        List<String> rawEmails = Arrays.asList("john@company.com", "info@company.com", "user@gmail.com");
+        List<ValidatedContact> validated = Arrays.asList(
+            ValidatedContact.valid(createEmail("john@company.com"), ContactType.CORPORATE),
+            ValidatedContact.flagged(createEmail("info@company.com"), ContactType.ROLE_BASED),
+            ValidatedContact.flagged(createEmail("user@gmail.com"), ContactType.PERSONAL)
+        );
+
+        EnrichmentQuality quality = emailFilter.calculateEmailQuality(rawEmails, validated);
+
+        assertEquals(3, quality.totalEmailsProcessed());
+        assertEquals(3, quality.validEmailsFound());
+        assertEquals(1, quality.corporateEmailsFound());
+        assertEquals(1, quality.roleBasedEmailsFound());
+        assertEquals(1, quality.personalEmailsFound());
+        assertEquals(0, quality.invalidEmailsFiltered());
+        assertEquals(1.0, quality.completenessScore());
+    }
+
     private dev.prospectos.core.domain.Email createEmail(String address) {
         return dev.prospectos.core.domain.Email.of(address);
     }
