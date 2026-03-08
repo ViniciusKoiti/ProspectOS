@@ -1,6 +1,6 @@
 package dev.prospectos.core.enrichment;
 
-import dev.prospectos.core.domain.Company.CompanySize;
+import dev.prospectos.core.domain.CompanySize;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -223,6 +223,36 @@ class CompanyEnrichmentServiceTest {
         assertEquals(ValidatedContact.ContactType.CORPORATE, priority.get(0).type());
     }
 
+    @Test
+    void enrichCompanyData_WhenNormalizerFails_ReturnsDegradedResult() {
+        EnrichmentRequest request = new EnrichmentRequest(
+            "  Acme Corp  ",
+            "Fallback description",
+            List.of("sales@acme.com", "hello@acme.com"),
+            "11 99999-9999",
+            List.of("Java"),
+            null,
+            "small",
+            List.of("News"),
+            "https://acme.com"
+        );
+
+        when(dataNormalizer.normalizeCompanyName(any())).thenThrow(new RuntimeException("boom"));
+
+        EnrichmentResult result = enrichmentService.enrichCompanyData(request);
+
+        assertEquals("Acme Corp", result.normalizedCompanyName());
+        assertEquals("Fallback description", result.cleanDescription());
+        assertEquals("11 99999-9999", result.normalizedPhone());
+        assertEquals("Other", result.standardizedIndustry());
+        assertNull(result.size());
+        assertTrue(result.validatedContacts().isEmpty());
+        assertNotNull(result.website());
+        assertEquals(2, result.quality().totalEmailsProcessed());
+        assertEquals(0, result.quality().validEmailsFound());
+        assertEquals(2, result.quality().invalidEmailsFiltered());
+    }
+
     private dev.prospectos.core.domain.Email createEmail(String address) {
         return dev.prospectos.core.domain.Email.of(address);
     }
@@ -231,3 +261,4 @@ class CompanyEnrichmentServiceTest {
         return dev.prospectos.core.domain.Website.of(url);
     }
 }
+

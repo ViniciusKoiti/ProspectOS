@@ -1,6 +1,6 @@
 package dev.prospectos.core.enrichment;
 
-import dev.prospectos.core.domain.Company.CompanySize;
+import dev.prospectos.core.domain.CompanySize;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -158,3 +158,4 @@ class DataNormalizerTest {
         assertNull(dataNormalizer.mapCompanySize("varies"));
     }
 }
+

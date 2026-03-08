@@ -1,6 +1,6 @@
 package dev.prospectos.core.enrichment;
 
-import dev.prospectos.core.domain.Company.CompanySize;
+import dev.prospectos.core.domain.CompanySize;
 import dev.prospectos.core.domain.Website;
 
 import java.util.List;

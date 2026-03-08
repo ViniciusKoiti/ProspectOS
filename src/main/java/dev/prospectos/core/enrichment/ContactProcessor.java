@@ -1,6 +1,6 @@
 package dev.prospectos.core.enrichment;
 
-import dev.prospectos.core.domain.Company.Contact;
+import dev.prospectos.core.domain.Contact;
 import dev.prospectos.core.enrichment.ValidatedContact.ContactType;
 import org.springframework.stereotype.Component;
 
@@ -54,3 +54,4 @@ public class ContactProcessor {
         }
     }
 }
+
