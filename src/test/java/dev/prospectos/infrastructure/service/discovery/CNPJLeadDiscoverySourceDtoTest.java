@@ -8,7 +8,7 @@ class CNPJLeadDiscoverySourceDtoTest {
 
     @Test
     void atividadeResponseExposesPublicFields() {
-        CNPJLeadDiscoverySource.CNPJResponse.AtividadeResponse atividade = new CNPJLeadDiscoverySource.CNPJResponse.AtividadeResponse();
+        CnpjWsResponse.AtividadeResponse atividade = new CnpjWsResponse.AtividadeResponse();
         atividade.code = "6201";
         atividade.text = "Desenvolvimento de software";
 
