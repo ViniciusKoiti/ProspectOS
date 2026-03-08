@@ -1,35 +1,31 @@
 package dev.prospectos.infrastructure.service.jpa;
 
+import java.util.List;
+
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
+
 import dev.prospectos.api.CompanyDataService;
 import dev.prospectos.api.dto.CompanyDTO;
 import dev.prospectos.api.dto.ScoreDTO;
 import dev.prospectos.api.dto.request.CompanyCreateRequest;
 import dev.prospectos.api.dto.request.CompanyUpdateRequest;
 import dev.prospectos.core.domain.Company;
-import dev.prospectos.core.domain.ICP;
 import dev.prospectos.core.domain.Score;
-import dev.prospectos.core.domain.Website;
 import dev.prospectos.core.repository.CompanyDomainRepository;
 import dev.prospectos.core.repository.ICPDomainRepository;
 import dev.prospectos.infrastructure.service.discovery.CompanyVectorReindexRequested;
-import org.springframework.context.annotation.Profile;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-/**
- * Repository-backed Company data service for non-test profiles.
- */
 @Service
 @Profile({"development", "production"})
 public class CompanyDataServiceJpa implements CompanyDataService {
-
     private final CompanyDomainRepository companyRepository;
     private final ICPDomainRepository icpRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final CompanyJpaDtoMapper dtoMapper;
+    private final CompanyJpaProfileUpdater profileUpdater;
+    private final CompanyJpaQuerySupport querySupport;
 
     public CompanyDataServiceJpa(
         CompanyDomainRepository companyRepository,
@@ -39,94 +35,44 @@ public class CompanyDataServiceJpa implements CompanyDataService {
         this.companyRepository = companyRepository;
         this.icpRepository = icpRepository;
         this.eventPublisher = eventPublisher;
+        this.dtoMapper = new CompanyJpaDtoMapper();
+        this.profileUpdater = new CompanyJpaProfileUpdater();
+        this.querySupport = new CompanyJpaQuerySupport(companyRepository, icpRepository, dtoMapper);
     }
-
     @Override
     public CompanyDTO findCompany(Long companyId) {
-        Optional<Company> company = findCompanyByExternalId(companyId);
-        if (company.isEmpty()) {
-            return null;
-        }
-        return toDTO(company.get());
+        return querySupport.findCompany(companyId);
     }
-
     @Override
     public CompanyDTO findByWebsite(String website) {
-        if (website == null || website.isBlank()) {
-            return null;
-        }
-
-        String domain;
-        try {
-            domain = Website.of(website).getDomain();
-        } catch (IllegalArgumentException ex) {
-            return null;
-        }
-
-        return companyRepository.findByWebsiteDomain(domain).stream()
-            .findFirst()
-            .map(this::toDTO)
-            .orElse(null);
+        return querySupport.findByWebsite(website);
     }
-
     @Override
     public List<CompanyDTO> findAllCompanies() {
-        return companyRepository.findAll()
-            .stream()
-            .map(this::toDTO)
-            .toList();
+        return querySupport.findAllCompanies();
     }
-
     @Override
     public CompanyDTO createCompany(CompanyCreateRequest request) {
-        Company company = Company.create(
-            request.name(),
-            Website.of(request.website()),
-            request.industry()
-        );
-        if (request.description() != null) {
-            company.setDescription(request.description());
-        }
-        if (request.size() != null) {
-            company.setSize(parseCompanySize(request.size()));
-        }
-        if (request.country() != null || request.city() != null) {
-            company.setLocation(request.country(), request.city());
-        }
-        CompanyDTO created = toDTO(companyRepository.save(company));
+        Company company = profileUpdater.create(request);
+        CompanyDTO created = dtoMapper.toDTO(companyRepository.save(company));
         publishReindex(created.id());
         return created;
     }
-
     @Override
     public CompanyDTO updateCompany(Long companyId, CompanyUpdateRequest request) {
-        Optional<Company> existing = findCompanyByExternalId(companyId);
+        var existing = querySupport.findCompanyEntity(companyId);
         if (existing.isEmpty()) {
             return null;
         }
         Company company = existing.get();
-        company.updateProfile(
-            request.name(),
-            Website.of(request.website()),
-            request.industry()
-        );
-        if (request.description() != null) {
-            company.setDescription(request.description());
-        }
-        if (request.size() != null) {
-            company.setSize(parseCompanySize(request.size()));
-        }
-        if (request.country() != null || request.city() != null) {
-            company.setLocation(request.country(), request.city());
-        }
-        CompanyDTO updated = toDTO(companyRepository.save(company));
+        profileUpdater.update(company, request);
+        CompanyDTO updated = dtoMapper.toDTO(companyRepository.save(company));
         publishReindex(updated.id());
         return updated;
     }
-
     @Override
     public boolean deleteCompany(Long companyId) {
-        Optional<Company> existing = findCompanyByExternalId(companyId);
+        var existing = querySupport.findCompanyEntity(companyId);
         if (existing.isEmpty()) {
             return false;
         }
@@ -134,99 +80,18 @@ public class CompanyDataServiceJpa implements CompanyDataService {
         publishReindex(companyId);
         return true;
     }
-
     @Override
     public void updateCompanyScore(Long companyId, ScoreDTO score) {
-        Company company = findCompanyByExternalId(companyId)
+        Company company = querySupport.findCompanyEntity(companyId)
             .orElseThrow(() -> new IllegalArgumentException("Company not found: " + companyId));
         company.updateScore(Score.of(score.value()), score.reasoning());
         companyRepository.save(company);
         publishReindex(companyId);
     }
-
     @Override
     public List<CompanyDTO> findCompaniesByICP(Long icpId) {
-        Optional<ICP> icp = findICPByExternalId(icpId);
-        if (icp.isEmpty()) {
-            return List.of();
-        }
-
-        List<String> industries = icp.get().getIndustries();
-        if (industries == null || industries.isEmpty()) {
-            return List.of();
-        }
-
-        return industries.stream()
-            .flatMap(industry -> companyRepository.findByIndustry(industry).stream())
-            .collect(Collectors.toMap(
-                company -> company.getId().getMostSignificantBits(),
-                this::toDTO,
-                (existing, replacement) -> existing
-            ))
-            .values()
-            .stream()
-            .toList();
+        return querySupport.findCompaniesByIcp(icpId);
     }
-
-    private Optional<Company> findCompanyByExternalId(Long externalId) {
-        if (externalId == null) {
-            return Optional.empty();
-        }
-        return companyRepository.findByExternalId(externalId);
-    }
-
-    private Optional<ICP> findICPByExternalId(Long externalId) {
-        if (externalId == null) {
-            return Optional.empty();
-        }
-        return icpRepository.findByExternalId(externalId);
-    }
-
-    private CompanyDTO toDTO(Company company) {
-        ScoreDTO scoreDTO = null;
-        if (company.getProspectingScore() != null) {
-            Score score = company.getProspectingScore();
-            scoreDTO = new ScoreDTO(
-                score.getValue().intValue(),
-                toPriority(score),
-                "Score from database"
-            );
-        }
-        
-        return new CompanyDTO(
-            company.getId().getMostSignificantBits(),
-            company.getName(),
-            company.getIndustry(),
-            company.getWebsite() != null ? company.getWebsite().getUrl() : null,
-            company.getDescription(),
-            null,
-            company.getLocation(),
-            scoreDTO
-        );
-    }
-
-    private String toPriority(Score score) {
-        if (score == null) {
-            return "COLD";
-        }
-        return switch (score.getCategory()) {
-            case HIGH -> "HOT";
-            case MEDIUM -> "WARM";
-            case LOW, VERY_LOW -> "COLD";
-        };
-    }
-
-    private Company.CompanySize parseCompanySize(String size) {
-        if (size == null || size.trim().isEmpty()) {
-            return null;
-        }
-        try {
-            return Company.CompanySize.valueOf(size.trim().toUpperCase());
-        } catch (IllegalArgumentException ex) {
-            throw new IllegalArgumentException("Invalid company size: " + size);
-        }
-    }
-
     private void publishReindex(Long companyId) {
         eventPublisher.publishEvent(new CompanyVectorReindexRequested(companyId));
     }
