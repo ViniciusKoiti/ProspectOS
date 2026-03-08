@@ -52,4 +52,27 @@ class LlmScrapingResponseConverterTest {
         assertThat(converted.get("source")).isEqualTo("ai_web_search");
         assertThat(converted.get("ai_processed")).isEqualTo(true);
     }
+
+    @Test
+    void parsesLooseFieldsWhenJsonIsNotBalanced() {
+        String response = """
+            "company_name": "Acme",
+            "description": "B2B SaaS company",
+            "emails": ["sales@acme.com", "info@acme.com"],
+            "phone": "N/A",
+            "technologies": ["Java", "Spring"],
+            "industry": "Software",
+            "size": "small",
+            "recent_news": ["Launched new product"]
+            """;
+
+        Map<String, Object> converted = converter.convert(response);
+
+        assertThat(converted.get("company_name")).isEqualTo("Acme");
+        assertThat(converted.get("description")).isEqualTo("B2B SaaS company");
+        assertThat(converted.get("phone")).isNull();
+        assertThat(converted.get("emails")).isEqualTo(List.of("sales@acme.com", "info@acme.com"));
+        assertThat(converted.get("technologies")).isEqualTo(List.of("Java", "Spring"));
+        assertThat(converted.get("source")).isEqualTo("ai_web_search");
+    }
 }
