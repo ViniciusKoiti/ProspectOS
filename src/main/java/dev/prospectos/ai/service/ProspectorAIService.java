@@ -5,15 +5,10 @@ import dev.prospectos.ai.client.AIProvider;
 import dev.prospectos.core.domain.Company;
 import dev.prospectos.core.domain.ICP;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Service;
 
-import static dev.prospectos.ai.config.AIConfigurationProperties.*;
-
-/**
- * Main AI service for prospecting decisions.
- * Uses interfaces to abstract LLM providers.
- */
+import static dev.prospectos.ai.config.AIConfigurationProperties.AI_ENABLED;
 @Slf4j
 @Service
 @ConditionalOnProperty(
@@ -22,19 +17,12 @@ import static dev.prospectos.ai.config.AIConfigurationProperties.*;
     matchIfMissing = true
 )
 public class ProspectorAIService implements ProspectEnrichService {
-
     private final AIProvider aiProvider;
-
     public ProspectorAIService(AIProvider aiProvider) {
         this.aiProvider = aiProvider;
     }
-
-    /**
-     * AI decides whether a company is worth investigating.
-     */
     public boolean shouldInvestigateCompany(Company company, ICP icp) {
         log.info("AI analyzing whether to investigate: {}", company.getName());
-
         String prompt = String.format("""
                 Company: %s
                 Website: %s
@@ -56,24 +44,13 @@ public class ProspectorAIService implements ProspectEnrichService {
                 String.join(", ", icp.getIndustries()),
                 String.join(", ", icp.getRegions()),
                 icp.getInterestTheme());
-
         boolean should = aiProvider.analyzeICPFit(prompt);
-
-        log.info("   Decision: {} - {}",
-            should ? "INVESTIGATE" : "SKIP",
-            company.getName()
-        );
-
+        log.info("   Decision: {} - {}", should ? "INVESTIGATE" : "SKIP", company.getName());
         return should;
     }
-
-    /**
-     * AI analyzes and enriches company data using function calling.
-     */
     @Override
     public String enrichCompany(Company company) {
         log.info("AI enriching company: {}", company.getName());
-
         String prompt = String.format("""
                 Analyze this company and enrich with relevant information for B2B prospecting.
 
@@ -90,16 +67,10 @@ public class ProspectorAIService implements ProspectEnrichService {
                 """,
                 company.getName(),
                 company.getWebsite().getUrl());
-
         return aiProvider.enrichCompanyData(prompt);
     }
-
-    /**
-     * AI recommends an outreach strategy.
-     */
     public String recommendApproachStrategy(Company company, ICP icp) {
         log.info("AI recommending strategy: {}", company.getName());
-
         String prompt = String.format("""
                 Company: %s
                 AI analysis: %s
@@ -123,7 +94,6 @@ public class ProspectorAIService implements ProspectEnrichService {
                 company.getProspectingScore().getValue(),
                 icp.getInterestTheme(),
                 String.join(", ", icp.getTargetRoles()));
-
         return aiProvider.getClient().queryWithFunctions(prompt, "analyzeCompanySignals");
     }
 }

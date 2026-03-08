@@ -24,6 +24,13 @@ class SpringAILLMClientTest {
     }
 
     @Test
+    void queryReturnsMockContentForEmptyPromptWhenUnavailable() {
+        SpringAILLMClient client = new SpringAILLMClient(null, LLMProvider.GROQ, false);
+
+        assertThat(client.query("")).isEqualTo("Mock response: ");
+    }
+
+    @Test
     void queryStructuredReturnsMockObjectsWhenUnavailable() {
         SpringAILLMClient client = new SpringAILLMClient(null, LLMProvider.OPENAI, false);
 

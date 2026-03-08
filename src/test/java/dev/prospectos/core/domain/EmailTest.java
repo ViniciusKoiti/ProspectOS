@@ -40,4 +40,13 @@ class EmailTest {
         assertFalse(corporate.isPersonalEmail());
         assertTrue(corporate.isCorporateEmail());
     }
+
+    @Test
+    void normalizesTrimmedEmailAndRecognizesPersonalDomainCaseInsensitively() {
+        Email personal = Email.of("  Someone@GMAIL.COM  ");
+
+        assertEquals("someone@gmail.com", personal.getAddress());
+        assertTrue(personal.isPersonalEmail());
+        assertFalse(personal.isCorporateEmail());
+    }
 }

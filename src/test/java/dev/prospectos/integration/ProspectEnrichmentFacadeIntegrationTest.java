@@ -148,4 +148,23 @@ class ProspectEnrichmentFacadeIntegrationTest {
 
         verify(scraperClient, never()).scrapeWebsiteSync(any(), any(Boolean.class));
     }
+
+    @Test
+    void enrichKeepsExistingHttpSchemeFromRequest() {
+        given(scraperClient.scrapeWebsiteSync("http://legacy.example.com", false)).willReturn(new ScrapingResponse(
+            false,
+            null,
+            "timeout"
+        ));
+        given(prospectEnrichService.enrichCompany(any(Company.class))).willReturn("Legacy analysis");
+
+        ProspectEnrichResponse response = facade.enrich(new ProspectEnrichRequest(
+            "Legacy Co",
+            "http://legacy.example.com",
+            "Services"
+        ));
+
+        assertThat(response.website()).isEqualTo("http://legacy.example.com");
+        verify(scraperClient).scrapeWebsiteSync("http://legacy.example.com", false);
+    }
 }

@@ -30,4 +30,13 @@ class WebsiteTest {
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("Invalid website URL");
     }
+
+    @Test
+    void ofKeepsHttpSchemeForExistingNonSecureUrls() {
+        Website website = Website.of("  http://WWW.Example.com/path  ");
+
+        assertThat(website.getUrl()).isEqualTo("http://WWW.Example.com/path");
+        assertThat(website.getDomain()).isEqualTo("example.com");
+        assertThat(website.isSecure()).isFalse();
+    }
 }

@@ -14,6 +14,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -81,5 +82,16 @@ class CompanyRepositoryAdapterTest {
         assertThat(adapter.findStaleProspects(40.0, since)).containsExactly(company);
 
         verify(jpaRepository).delete(company);
+    }
+
+    @Test
+    void findRecentlyUpdatedDelegatesToRepositorySpecificMethod() {
+        Instant since = Instant.now();
+        when(jpaRepository.findRecentlyUpdatedProspects(since)).thenReturn(List.of(company));
+
+        List<Company> result = adapter.findRecentlyUpdated(since);
+
+        assertThat(result).containsExactly(company);
+        verify(jpaRepository).findRecentlyUpdatedProspects(eq(since));
     }
 }

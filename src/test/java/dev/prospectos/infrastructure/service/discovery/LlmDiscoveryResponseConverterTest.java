@@ -72,4 +72,12 @@ class LlmDiscoveryResponseConverterTest {
         assertTrue(exception.getMessage() != null && !exception.getMessage().isBlank());
         assertEquals(1, converter.parseFailureCount("llm-discovery"));
     }
+
+    @Test
+    void convert_ReturnsEmptyListForBlankResponse() {
+        List<DiscoveredLeadCandidate> result = converter.convert("   ", "llm-discovery");
+
+        assertTrue(result.isEmpty());
+        assertEquals(0, converter.parseFailureCount("llm-discovery"));
+    }
 }

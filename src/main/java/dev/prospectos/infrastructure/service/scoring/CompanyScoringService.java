@@ -1,6 +1,5 @@
 package dev.prospectos.infrastructure.service.scoring;
 
-import dev.prospectos.ai.dto.PriorityLevel;
 import dev.prospectos.ai.dto.ScoringResult;
 import dev.prospectos.ai.service.ScoringService;
 import dev.prospectos.api.CompanyDataService;
@@ -19,7 +18,6 @@ import java.util.List;
 @Slf4j
 @Service
 public class CompanyScoringService {
-
     private static final int MIN_SCORE = 0;
     private static final int MAX_SCORE = 100;
     private static final String DEFAULT_PRIORITY = "COLD";
@@ -28,12 +26,8 @@ public class CompanyScoringService {
     private final ScoringService scoringService;
     private final CompanyDataService companyDataService;
     private final ICPDataService icpDataService;
-
-    public CompanyScoringService(
-        ScoringService scoringService,
-        CompanyDataService companyDataService,
-        ICPDataService icpDataService
-    ) {
+    public CompanyScoringService(ScoringService scoringService, CompanyDataService companyDataService,
+                                 ICPDataService icpDataService) {
         this.scoringService = scoringService;
         this.companyDataService = companyDataService;
         this.icpDataService = icpDataService;
@@ -43,34 +37,19 @@ public class CompanyScoringService {
         if (companyId == null || icpId == null) {
             throw new IllegalArgumentException("Company ID and ICP ID are required");
         }
-
         CompanyDTO companyDTO = companyDataService.findCompany(companyId);
         if (companyDTO == null) {
             throw new IllegalArgumentException("Company not found");
         }
-
         ICPDto icpDTO = icpDataService.findICP(icpId);
         if (icpDTO == null) {
             throw new IllegalArgumentException("ICP not found");
         }
-
-        Company company = CompanyMapper.toDomain(companyDTO);
-        ICP icp = toDomainICP(icpDTO);
-
-        ScoreDTO score = scoreCompanySafely(company, icp);
+        ScoreDTO score = scoreCompanySafely(CompanyMapper.toDomain(companyDTO), toDomainICP(icpDTO));
         companyDataService.updateCompanyScore(companyId, score);
-
         return score;
     }
 
-    /**
-     * Scores a company candidate (preview mode - no persistence).
-     * This method calculates score without requiring the company to be persisted.
-     * 
-     * @param company Company domain object (can be transient)
-     * @param icp ICP domain object
-     * @return ScoreDTO with calculated score
-     */
     public ScoreDTO scoreCandidate(Company company, ICP icp) {
         if (company == null) {
             throw new IllegalArgumentException("Company cannot be null");
@@ -78,7 +57,6 @@ public class CompanyScoringService {
         if (icp == null) {
             throw new IllegalArgumentException("ICP cannot be null");
         }
-
         return scoreCompanySafely(company, icp);
     }
 
@@ -109,29 +87,10 @@ public class CompanyScoringService {
         if (result == null) {
             return fallbackScore("AI scoring failed: empty result");
         }
-
-        int boundedScore = clamp(result.score());
-        String priority = resolvePriority(result.priority());
+        int boundedScore = result.score() < MIN_SCORE ? MIN_SCORE : Math.min(result.score(), MAX_SCORE);
+        String priority = result.priority() == null ? DEFAULT_PRIORITY : result.priority().name();
         String reasoning = result.reasoning() == null ? "AI scoring completed" : result.reasoning();
-
         return new ScoreDTO(boundedScore, priority, reasoning);
-    }
-
-    private int clamp(int score) {
-        if (score < MIN_SCORE) {
-            return MIN_SCORE;
-        }
-        if (score > MAX_SCORE) {
-            return MAX_SCORE;
-        }
-        return score;
-    }
-
-    private String resolvePriority(PriorityLevel priority) {
-        if (priority == null) {
-            return DEFAULT_PRIORITY;
-        }
-        return priority.name();
     }
 
     private ScoreDTO fallbackScore(String message) {

@@ -13,6 +13,7 @@ import dev.prospectos.core.util.LeadKeyGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -111,6 +112,54 @@ class LeadAcceptServiceTest {
 
         verify(companyDataService).findByWebsite("https://beta.com");
         verify(companyDataService, never()).findAllCompanies();
+    }
+
+    @Test
+    void acceptLead_UsesDefaultScoreWhenRequestScoreIsNull() {
+        CompanyDTO existing = new CompanyDTO(
+            12L,
+            "Gamma",
+            "Software",
+            "https://gamma.com",
+            "Existing",
+            null,
+            "Florianopolis",
+            null
+        );
+        CompanyDTO updated = new CompanyDTO(
+            12L,
+            "Gamma",
+            "Software",
+            "https://gamma.com",
+            "Existing",
+            null,
+            "Florianopolis",
+            new ScoreDTO(0, "COLD", "No score provided")
+        );
+
+        when(companyDataService.findByWebsite("https://gamma.com")).thenReturn(existing);
+        when(companyDataService.findCompany(12L)).thenReturn(updated);
+
+        CompanyCandidateDTO candidate = new CompanyCandidateDTO(
+            "Gamma",
+            "https://gamma.com",
+            "Software",
+            "Desc",
+            "SMALL",
+            "Brazil",
+            List.of("contact@gamma.com")
+        );
+        SourceProvenanceDTO source = new SourceProvenanceDTO("apollo", "https://gamma.com", Instant.now());
+        String leadKey = LeadKeyGenerator.generate("https://gamma.com", "apollo");
+        AcceptLeadRequest request = new AcceptLeadRequest(leadKey, candidate, null, source);
+
+        service.acceptLead(request);
+
+        ArgumentCaptor<ScoreDTO> captor = ArgumentCaptor.forClass(ScoreDTO.class);
+        verify(companyDataService).updateCompanyScore(eq(12L), captor.capture());
+        assertEquals(0, captor.getValue().value());
+        assertEquals("COLD", captor.getValue().category());
+        assertEquals("No score provided", captor.getValue().reasoning());
     }
 
     private AcceptLeadRequest buildRequest(String website, String sourceName) {

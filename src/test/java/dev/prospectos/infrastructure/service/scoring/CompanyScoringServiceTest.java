@@ -8,6 +8,9 @@ import dev.prospectos.api.ICPDataService;
 import dev.prospectos.api.dto.CompanyDTO;
 import dev.prospectos.api.dto.ICPDto;
 import dev.prospectos.api.dto.ScoreDTO;
+import dev.prospectos.core.domain.Company;
+import dev.prospectos.core.domain.ICP;
+import dev.prospectos.core.domain.Website;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -156,5 +159,23 @@ class CompanyScoringServiceTest {
         // Act & Assert
         assertThrows(IllegalArgumentException.class,
                 () -> companyScoringService.scoreCompany(1L, 1L));
+    }
+
+    @Test
+    void scoreCandidate_UsesDefaultPriorityWhenAiReturnsNullPriority() {
+        Company company = Company.create("Acme", Website.of("https://acme.com"), "Software");
+        ICP icp = ICP.create("ICP", "Desc", List.of("Software"), List.of("BR"), List.of("CTO"), "Growth");
+        when(scoringAIService.scoreCompany(any(), any())).thenReturn(new ScoringResult(
+            55,
+            null,
+            "No explicit priority",
+            Map.of(),
+            "Observe"
+        ));
+
+        ScoreDTO result = companyScoringService.scoreCandidate(company, icp);
+
+        assertEquals(55, result.value());
+        assertEquals("COLD", result.category());
     }
 }

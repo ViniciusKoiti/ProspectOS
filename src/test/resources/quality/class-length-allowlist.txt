@@ -1,0 +1,25 @@
+# Baseline allowlist for production Java files above 100 lines.
+# Goal: classes should preferably stay up to 50 lines.
+# Acceptable hard limit: 100 lines.
+# Keep this list shrinking over time.
+
+src/main/java/dev/prospectos/ai/client/AIWebSearchScraperClient.java
+src/main/java/dev/prospectos/ai/client/LlmScoringResponseConverter.java
+src/main/java/dev/prospectos/ai/client/LlmScrapingResponseConverter.java
+src/main/java/dev/prospectos/ai/client/LlmStructuredResponseSanitizer.java
+src/main/java/dev/prospectos/ai/factory/LLMClientFactory.java
+src/main/java/dev/prospectos/ai/service/MockScoringAIService.java
+src/main/java/dev/prospectos/core/domain/Company.java
+src/main/java/dev/prospectos/core/domain/Score.java
+src/main/java/dev/prospectos/core/enrichment/CompanyEnrichmentService.java
+src/main/java/dev/prospectos/core/enrichment/ContactProcessor.java
+src/main/java/dev/prospectos/core/enrichment/DataNormalizer.java
+src/main/java/dev/prospectos/core/enrichment/EmailFilter.java
+src/main/java/dev/prospectos/infrastructure/config/DataSeeder.java
+src/main/java/dev/prospectos/infrastructure/service/discovery/CNPJLeadDiscoverySource.java
+src/main/java/dev/prospectos/infrastructure/service/discovery/DefaultLeadDiscoveryService.java
+src/main/java/dev/prospectos/infrastructure/service/inmemory/InMemoryCompanyDataService.java
+src/main/java/dev/prospectos/infrastructure/service/inmemory/InMemoryCoreDataStore.java
+src/main/java/dev/prospectos/infrastructure/service/inmemory/InMemoryLeadSearchService.java
+src/main/java/dev/prospectos/infrastructure/service/jpa/CompanyDataServiceJpa.java
+src/main/java/dev/prospectos/infrastructure/service/leads/ScraperLeadSearchService.java

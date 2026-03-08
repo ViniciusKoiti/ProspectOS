@@ -12,28 +12,18 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Repository-backed ICP data service for non-test profiles.
- */
 @Service
 @Profile({"development", "production"})
 public class ICPDataServiceJpa implements ICPDataService {
-
     private final ICPDomainRepository icpRepository;
-
     public ICPDataServiceJpa(ICPDomainRepository icpRepository) {
         this.icpRepository = icpRepository;
     }
 
     @Override
     public ICPDto findICP(Long icpId) {
-        Optional<ICP> icp = findICPByExternalId(icpId);
-        if (icp.isEmpty()) {
-            return null;
-        }
-        return toDTO(icp.get());
+        return findICPByExternalId(icpId).map(this::toDTO).orElse(null);
     }
-
     @Override
     public List<ICPDto> findAllICPs() {
         return icpRepository.findAll()
@@ -47,9 +37,9 @@ public class ICPDataServiceJpa implements ICPDataService {
         ICP icp = ICP.create(
             request.name(),
             request.description(),
-            request.industries() != null ? request.industries() : List.of(),
-            request.regions() != null ? request.regions() : List.of(),
-            request.targetRoles() != null ? request.targetRoles() : List.of(),
+            orEmpty(request.industries()),
+            orEmpty(request.regions()),
+            orEmpty(request.targetRoles()),
             request.interestTheme()
         );
         return toDTO(icpRepository.save(icp));
@@ -65,9 +55,9 @@ public class ICPDataServiceJpa implements ICPDataService {
         icp.updateProfile(
             request.name(),
             request.description(),
-            request.industries() != null ? request.industries() : List.of(),
-            request.regions() != null ? request.regions() : List.of(),
-            request.targetRoles() != null ? request.targetRoles() : List.of(),
+            orEmpty(request.industries()),
+            orEmpty(request.regions()),
+            orEmpty(request.targetRoles()),
             request.interestTheme()
         );
         return toDTO(icpRepository.save(icp));
@@ -84,10 +74,11 @@ public class ICPDataServiceJpa implements ICPDataService {
     }
 
     private Optional<ICP> findICPByExternalId(Long externalId) {
-        if (externalId == null) {
-            return Optional.empty();
-        }
-        return icpRepository.findByExternalId(externalId);
+        return externalId == null ? Optional.empty() : icpRepository.findByExternalId(externalId);
+    }
+
+    private List<String> orEmpty(List<String> values) {
+        return values == null ? List.of() : values;
     }
 
     private ICPDto toDTO(ICP icp) {
