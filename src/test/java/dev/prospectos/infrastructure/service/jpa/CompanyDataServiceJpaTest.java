@@ -1,6 +1,7 @@
 package dev.prospectos.infrastructure.service.jpa;
 
 import dev.prospectos.api.dto.CompanyDTO;
+import dev.prospectos.api.dto.request.CompanyCreateRequest;
 import dev.prospectos.core.domain.Company;
 import dev.prospectos.core.domain.ICP;
 import dev.prospectos.core.domain.Website;
@@ -19,6 +20,8 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -79,5 +82,57 @@ class CompanyDataServiceJpaTest {
         assertFalse(found.isEmpty());
         verify(icpRepository).findByExternalId(77L);
         verify(icpRepository, never()).findAll();
+    }
+
+    @Test
+    void findByWebsite_ReturnsNullForInvalidWebsite() {
+        CompanyDTO found = service.findByWebsite("://invalid");
+
+        assertNull(found);
+        verify(companyRepository, never()).findByWebsiteDomain(org.mockito.ArgumentMatchers.anyString());
+    }
+
+    @Test
+    void findCompaniesByIcp_DeduplicatesCompaniesAcrossIndustries() {
+        ICP icp = ICP.createWithExternalId(
+            88L,
+            "ICP Multi",
+            "Desc",
+            List.of("Software", "Technology"),
+            List.of(),
+            List.of(),
+            "Theme"
+        );
+        Company shared = Company.create("Shared", Website.of("https://shared.com"), "Software");
+
+        when(icpRepository.findByExternalId(88L)).thenReturn(Optional.of(icp));
+        when(companyRepository.findByIndustry("Software")).thenReturn(List.of(shared));
+        when(companyRepository.findByIndustry("Technology")).thenReturn(List.of(shared));
+
+        List<CompanyDTO> found = service.findCompaniesByICP(88L);
+
+        assertEquals(1, found.size());
+        assertEquals("Shared", found.getFirst().name());
+    }
+
+    @Test
+    void createCompany_ThrowsForInvalidSize() {
+        CompanyCreateRequest request = new CompanyCreateRequest(
+            "Acme",
+            "Software",
+            "https://acme.com",
+            "Desc",
+            null,
+            null,
+            "tiny"
+        );
+
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> service.createCompany(request)
+        );
+
+        assertEquals("Invalid company size: tiny", exception.getMessage());
+        verify(companyRepository, never()).save(org.mockito.ArgumentMatchers.any());
     }
 }

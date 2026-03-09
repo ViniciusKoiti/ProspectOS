@@ -3,7 +3,7 @@ package dev.prospectos.integration;
 import dev.prospectos.ai.factory.AIProviderFactory;
 import dev.prospectos.ai.service.OutreachAIService;
 import dev.prospectos.ai.service.ProspectorAIService;
-import dev.prospectos.ai.service.ScoringAIService;
+import dev.prospectos.ai.service.ScoringService;
 import dev.prospectos.ai.service.StrategyAIService;
 import dev.prospectos.api.CompanyDataService;
 import dev.prospectos.api.ICPDataService;
@@ -21,7 +21,12 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
 
-@SpringBootTest(properties = "spring.profiles.active=test")
+@SpringBootTest(properties = {
+    "prospectos.ai.enabled=true",
+    "prospectos.ai.active-providers=mock",
+    "prospectos.scoring.mock.enabled=true",
+    "scraper.ai.enabled=false"
+})
 @ActiveProfiles("test")
 class AIServicesIntegrationTest {
 
@@ -29,7 +34,7 @@ class AIServicesIntegrationTest {
     private ProspectorAIService prospectorService;
 
     @Autowired
-    private ScoringAIService scoringService;
+    private ScoringService scoringService;
 
     @Autowired
     private StrategyAIService strategyService;

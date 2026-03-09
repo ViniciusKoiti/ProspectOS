@@ -97,6 +97,15 @@ class AIPromptServiceTest {
     }
 
     @Test
+    @DisplayName("Should report lengths consistent with loaded prompt content")
+    void shouldReportLengthsConsistentWithLoadedPromptContent() {
+        Map<PromptType, Integer> lengths = promptService.getPromptLengths();
+
+        assertEquals(promptService.getB2BProspectingPrompt().length(), lengths.get(PromptType.B2B_PROSPECTING));
+        assertEquals(promptService.getScoringPrompt().length(), lengths.get(PromptType.SCORING_SYSTEM));
+    }
+
+    @Test
     @DisplayName("Should handle consistent prompt content")
     void shouldHandleConsistentPromptContent() {
         // When - call multiple times

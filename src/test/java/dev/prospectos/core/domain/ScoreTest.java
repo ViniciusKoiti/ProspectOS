@@ -39,4 +39,12 @@ class ScoreTest {
         assertEquals(100.0, score.getDoubleValue());
         assertTrue(score.isHighPriority());
     }
+
+    @Test
+    void roundsHalfUpAndTreatsThresholdAsInclusive() {
+        Score rounded = Score.of(new BigDecimal("12.345"));
+
+        assertEquals(new BigDecimal("12.35"), rounded.getValue());
+        assertTrue(rounded.isAboveThreshold(Score.of(new BigDecimal("12.35"))));
+    }
 }

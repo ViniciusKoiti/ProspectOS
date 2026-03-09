@@ -1,3 +1,4 @@
+
 # AI Configuration Properties Reference
 
 ## Primary Properties

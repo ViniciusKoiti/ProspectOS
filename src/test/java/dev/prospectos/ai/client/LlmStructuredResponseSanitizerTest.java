@@ -38,4 +38,19 @@ class LlmStructuredResponseSanitizerTest {
         assertThat(extracted).startsWith("{").endsWith("}");
         assertThat(sanitized).doesNotContain(",}");
     }
+
+    @Test
+    void preprocessKeepsDoubleSlashInsideQuotedStrings() {
+        String input = """
+            {
+              "url": "https://example.com/path",
+              "note": "ok" // remove this comment
+            }
+            """;
+
+        String preprocessed = sanitizer.preprocess(input);
+
+        assertThat(preprocessed).contains("https://example.com/path");
+        assertThat(preprocessed).doesNotContain("// remove this comment");
+    }
 }

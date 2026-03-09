@@ -1,6 +1,6 @@
 package dev.prospectos.core.enrichment;
 
-import dev.prospectos.core.domain.Company.Contact;
+import dev.prospectos.core.domain.Contact;
 import dev.prospectos.core.domain.Email;
 import org.junit.jupiter.api.Test;
 
@@ -61,4 +61,17 @@ class ContactProcessorTest {
         assertThat(stats.getProcessingRate()).isEqualTo(1.0);
         assertThat(stats.hasGoodQuality()).isTrue();
     }
+
+    @Test
+    void processContactsMapsHyphenatedRoleNames() {
+        List<Contact> contacts = processor.processContacts(List.of(
+            ValidatedContact.valid(Email.of("customer-service@acme.com"), ValidatedContact.ContactType.ROLE_BASED)
+        ));
+
+        assertThat(contacts).singleElement().satisfies(contact -> {
+            assertThat(contact.getName()).isEqualTo("Customer Service");
+            assertThat(contact.getPosition()).isEqualTo("Contact");
+        });
+    }
 }
+

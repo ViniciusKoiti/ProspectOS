@@ -1,0 +1,4 @@
+# Baseline allowlist for production Java files above 100 lines.
+# Goal: classes should preferably stay up to 50 lines.
+# Acceptable hard limit: 100 lines.
+# Keep this list shrinking over time.

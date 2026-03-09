@@ -1,6 +1,7 @@
 package dev.prospectos.integration;
 
 import dev.prospectos.infrastructure.service.discovery.CNPJLeadDiscoverySource;
+import dev.prospectos.infrastructure.service.discovery.CnpjValidationResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -55,7 +56,7 @@ class CNPJLeadDiscoveryValidationIntegrationTest {
                 }
                 """, MediaType.APPLICATION_JSON));
 
-        CNPJLeadDiscoverySource.CNPJValidationResult result = source.validateCNPJ("12.345.678/0001-90");
+        CnpjValidationResult result = source.validateCNPJ("12.345.678/0001-90");
 
         assertThat(result.isValid()).isTrue();
         assertThat(result.getCompanyName()).isEqualTo("Acme Tecnologia Ltda");
@@ -70,7 +71,7 @@ class CNPJLeadDiscoveryValidationIntegrationTest {
         server.expect(requestTo("https://cnpj.ws/v1/12345678000190"))
             .andRespond(withServerError());
 
-        CNPJLeadDiscoverySource.CNPJValidationResult result = source.validateCNPJ("12.345.678/0001-90");
+        CnpjValidationResult result = source.validateCNPJ("12.345.678/0001-90");
 
         assertThat(result.isValid()).isFalse();
         assertThat(result.getErrorMessage()).isEqualTo("CNPJ validation service unavailable");

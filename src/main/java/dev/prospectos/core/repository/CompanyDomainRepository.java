@@ -1,6 +1,8 @@
 package dev.prospectos.core.repository;
 
 import dev.prospectos.core.domain.Company;
+import dev.prospectos.core.domain.CompanySize;
+import dev.prospectos.core.domain.ProspectingStatus;
 import dev.prospectos.core.domain.Score;
 
 import java.time.Instant;
@@ -23,19 +25,19 @@ public interface CompanyDomainRepository {
     // Business-focused queries
     Optional<Company> findByWebsiteUrl(String websiteUrl);
     List<Company> findByIndustry(String industry);
-    List<Company> findByStatus(Company.ProspectingStatus status);
+    List<Company> findByStatus(ProspectingStatus status);
     
     // Prospecting queries
     List<Company> findByMinScore(double minScore);
-    List<Company> findByScoreAndStatus(double minScore, Company.ProspectingStatus status);
+    List<Company> findByScoreAndStatus(double minScore, ProspectingStatus status);
     List<Company> findTopQualifiedProspects();
-    List<Company> findByIndustryAndSize(String industry, Company.CompanySize size);
+    List<Company> findByIndustryAndSize(String industry, CompanySize size);
     List<Company> findByCountryAndMinScore(String country, double minScore);
     
     // Analytics queries
     List<Company> findRecentlyUpdated(Instant since);
     List<Company> findRecentlyAdded(Instant since);
-    long countByStatus(Company.ProspectingStatus status);
+    long countByStatus(ProspectingStatus status);
     Double getAverageScoreByIndustry(String industry);
     
     // Signal-based queries
@@ -44,3 +46,4 @@ public interface CompanyDomainRepository {
     List<Company> findByWebsiteDomain(String domain);
     List<Company> findStaleProspects(double maxScore, Instant olderThan);
 }
+

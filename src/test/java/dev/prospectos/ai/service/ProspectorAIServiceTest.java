@@ -81,6 +81,20 @@ class ProspectorAIServiceTest {
         verify(llmClient).queryWithFunctions(org.mockito.ArgumentMatchers.contains("Best outreach channel"), eq("analyzeCompanySignals"));
     }
 
+    @Test
+    void recommendApproachStrategyUsesFallbackWhenAiAnalysisMissing() {
+        Company company = company();
+        company.updateScore(Score.of(70), "ok");
+        ICP icp = icp();
+        when(aiProvider.getClient()).thenReturn(llmClient);
+        when(llmClient.queryWithFunctions(org.mockito.ArgumentMatchers.anyString(), eq("analyzeCompanySignals")))
+            .thenReturn("Use email");
+
+        service.recommendApproachStrategy(company, icp);
+
+        verify(llmClient).queryWithFunctions(org.mockito.ArgumentMatchers.contains("AI analysis: Not available"), eq("analyzeCompanySignals"));
+    }
+
     private Company company() {
         return Company.create("Acme", Website.of("https://acme.com"), "Software");
     }

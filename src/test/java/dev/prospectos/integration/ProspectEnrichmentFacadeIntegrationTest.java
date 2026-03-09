@@ -6,6 +6,7 @@ import dev.prospectos.api.ProspectEnrichService;
 import dev.prospectos.api.dto.ProspectEnrichRequest;
 import dev.prospectos.api.dto.ProspectEnrichResponse;
 import dev.prospectos.core.domain.Company;
+import dev.prospectos.core.domain.CompanySize;
 import dev.prospectos.core.domain.Email;
 import dev.prospectos.core.domain.Website;
 import dev.prospectos.core.enrichment.CompanyEnrichmentService;
@@ -69,7 +70,7 @@ class ProspectEnrichmentFacadeIntegrationTest {
             null,
             List.of("Java"),
             "SaaS",
-            Company.CompanySize.MEDIUM,
+            CompanySize.MEDIUM,
             List.of("Raised Series A"),
             Website.of("https://acme.com"),
             EnrichmentQuality.calculate(1, 1, 1, 0, 0, 0, 5, 6)
@@ -90,7 +91,7 @@ class ProspectEnrichmentFacadeIntegrationTest {
         assertThat(enrichedCompany.getWebsite().getUrl()).isEqualTo("https://acme.com");
         assertThat(enrichedCompany.getIndustry()).isEqualTo("SaaS");
         assertThat(enrichedCompany.getDescription()).isEqualTo("Clean description");
-        assertThat(enrichedCompany.getSize()).isEqualTo(Company.CompanySize.MEDIUM);
+        assertThat(enrichedCompany.getSize()).isEqualTo(CompanySize.MEDIUM);
         assertThat(enrichedCompany.getContacts()).hasSize(1);
         assertThat(enrichedCompany.getContacts().getFirst().getEmail().getAddress()).isEqualTo("ceo@acme.com");
 
@@ -148,4 +149,24 @@ class ProspectEnrichmentFacadeIntegrationTest {
 
         verify(scraperClient, never()).scrapeWebsiteSync(any(), any(Boolean.class));
     }
+
+    @Test
+    void enrichKeepsExistingHttpSchemeFromRequest() {
+        given(scraperClient.scrapeWebsiteSync("http://legacy.example.com", false)).willReturn(new ScrapingResponse(
+            false,
+            null,
+            "timeout"
+        ));
+        given(prospectEnrichService.enrichCompany(any(Company.class))).willReturn("Legacy analysis");
+
+        ProspectEnrichResponse response = facade.enrich(new ProspectEnrichRequest(
+            "Legacy Co",
+            "http://legacy.example.com",
+            "Services"
+        ));
+
+        assertThat(response.website()).isEqualTo("http://legacy.example.com");
+        verify(scraperClient).scrapeWebsiteSync("http://legacy.example.com", false);
+    }
 }
+

@@ -12,20 +12,13 @@ import dev.prospectos.core.util.LeadKeyGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-/**
- * Service for accepting leads from preview and persisting them.
- * Handles validation, deduplication, and persistence of company data.
- */
 @Service
 @Slf4j
 public class LeadAcceptService {
 
-    private static final int MIN_SCORE = 0;
-    private static final int MAX_SCORE = 100;
-    private static final String DEFAULT_PRIORITY = "COLD";
-
     private final CompanyDataService companyDataService;
     private final SourceProvenanceService sourceProvenanceService;
+    private final LeadScoreSanitizer scoreSanitizer;
 
     public LeadAcceptService(
         CompanyDataService companyDataService,
@@ -33,27 +26,16 @@ public class LeadAcceptService {
     ) {
         this.companyDataService = companyDataService;
         this.sourceProvenanceService = sourceProvenanceService;
+        this.scoreSanitizer = new LeadScoreSanitizer();
     }
 
-    /**
-     * Accepts a lead from preview and persists it.
-     * Validates leadKey, sanitizes score, and handles deduplication.
-     *
-     * @param request the accept lead request with full lead data
-     * @return response with persisted company
-     * @throws IllegalArgumentException if leadKey is invalid or data is malformed
-     */
     public AcceptLeadResponse acceptLead(AcceptLeadRequest request) {
         validateLeadKey(request.leadKey());
-
         CompanyCandidateDTO candidate = request.candidate();
-        ScoreDTO sanitizedScore = sanitizeScore(request.score());
-
+        ScoreDTO sanitizedScore = scoreSanitizer.sanitize(request.score());
         CompanyDTO existingCompany = companyDataService.findByWebsite(candidate.website());
-
         CompanyDTO company;
         String message;
-
         if (existingCompany != null) {
             log.info("Lead with website {} already exists as company {}, updating score",
                 candidate.website(), existingCompany.id());
@@ -61,28 +43,15 @@ public class LeadAcceptService {
             company = companyDataService.findCompany(existingCompany.id());
             message = "Lead accepted and updated (already existed)";
         } else {
-            CompanyCreateRequest createRequest = new CompanyCreateRequest(
-                candidate.name(),
-                candidate.industry() != null ? candidate.industry() : "Other",
-                candidate.website(),
-                candidate.description(),
-                null, // country
-                null, // city
-                candidate.size()
-            );
-
-            company = companyDataService.createCompany(createRequest);
+            company = companyDataService.createCompany(toCreateRequest(candidate));
             companyDataService.updateCompanyScore(company.id(), sanitizedScore);
             company = companyDataService.findCompany(company.id());
             log.info("Created new company {} from lead with key {}", company.id(), request.leadKey());
             message = "Lead accepted and created";
         }
-
-        // Record source provenance
         if (request.source() != null) {
             sourceProvenanceService.record(company, request.source());
         }
-
         return new AcceptLeadResponse(company, message);
     }
 
@@ -92,44 +61,15 @@ public class LeadAcceptService {
         }
     }
 
-    private ScoreDTO sanitizeScore(ScoreDTO score) {
-        if (score == null) {
-            return new ScoreDTO(MIN_SCORE, DEFAULT_PRIORITY, "No score provided");
-        }
-
-        int boundedScore = clamp(score.value());
-        String priority = normalizePriority(score.category());
-        String reasoning = score.reasoning() != null && !score.reasoning().isBlank()
-            ? score.reasoning()
-            : "Accepted from lead preview";
-
-        return new ScoreDTO(boundedScore, priority, reasoning);
-    }
-
-    private int clamp(int score) {
-        if (score < MIN_SCORE) {
-            return MIN_SCORE;
-        }
-        if (score > MAX_SCORE) {
-            return MAX_SCORE;
-        }
-        return score;
-    }
-
-    private String normalizePriority(String category) {
-        if (category == null || category.isBlank()) {
-            return DEFAULT_PRIORITY;
-        }
-
-        String normalized = category.trim().toUpperCase();
-
-        // Validate against known priorities
-        return switch (normalized) {
-            case "HOT", "WARM", "COLD", "IGNORE" -> normalized;
-            default -> {
-                log.warn("Unknown priority category '{}', defaulting to {}", category, DEFAULT_PRIORITY);
-                yield DEFAULT_PRIORITY;
-            }
-        };
+    private CompanyCreateRequest toCreateRequest(CompanyCandidateDTO candidate) {
+        return new CompanyCreateRequest(
+            candidate.name(),
+            candidate.industry() != null ? candidate.industry() : "Other",
+            candidate.website(),
+            candidate.description(),
+            null,
+            null,
+            candidate.size()
+        );
     }
 }

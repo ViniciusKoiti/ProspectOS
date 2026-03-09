@@ -125,6 +125,11 @@ Diagnostics:
 - 4-space indentation; keep diffs minimal; avoid large refactors/rewraps unrelated to the task.
 - Prefer small, focused methods and clear naming over cleverness.
 
+### Class size
+- Prefer Java classes with up to 50 lines when practical.
+- Acceptable hard limit is 100 lines per class.
+- If a class exceeds 100 lines, split responsibilities or register an explicit temporary exception with a clear follow-up plan.
+
 ### Imports
 - No wildcard imports.
 - Keep imports grouped (typical order): `java.*`, `jakarta.*`, `org.*`, `dev.prospectos.*`, then `import static`.
@@ -198,6 +203,23 @@ Diagnostics:
 - Preserve sustainable pace: avoid batching too many unrelated concerns into one change.
 - Shared code ownership is expected; keep code understandable so another engineer can continue the work quickly.
 - Respect existing module boundaries in the backend and the component architecture direction for the future Flutter app.
+
+## Commit Convention (commitlint)
+- Use Conventional Commits for all commit messages.
+- Prefer format: `type(scope): short imperative summary`.
+- Allowed `type` values (commitlint-config-conventional / Angular style):
+  - `build`
+  - `chore`
+  - `ci`
+  - `docs`
+  - `feat`
+  - `fix`
+  - `perf`
+  - `refactor`
+  - `revert`
+  - `style`
+  - `test`
+- Keep the subject concise, lower case (except proper nouns), and without trailing period.
 
 ## Other Agent/Tooling Rules
 - Cursor rules: none found (`.cursor/rules/` and `.cursorrules` are absent).

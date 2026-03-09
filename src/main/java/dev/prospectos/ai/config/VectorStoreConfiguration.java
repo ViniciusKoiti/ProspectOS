@@ -66,7 +66,7 @@ public class VectorStoreConfiguration {
     @Profile("!test")
     @ConditionalOnProperty(
         prefix = "prospectos.vectorization",
-        name = "backend", 
+        name = "backend",
         havingValue = "pgvector"
     )
     @ConditionalOnMissingBean(VectorStore.class)

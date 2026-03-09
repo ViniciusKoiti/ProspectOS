@@ -5,18 +5,9 @@ import dev.prospectos.api.CompanyDataService;
 import dev.prospectos.api.dto.LeadDiscoveryRequest;
 import dev.prospectos.api.dto.request.CompanyCreateRequest;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Disabled;
-import org.springframework.ai.document.Document;
-import org.springframework.ai.embedding.Embedding;
-import org.springframework.ai.embedding.EmbeddingModel;
-import org.springframework.ai.embedding.EmbeddingRequest;
-import org.springframework.ai.embedding.EmbeddingResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -27,9 +18,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -39,12 +28,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Testcontainers
-@Disabled("Temporarily disabled - requires PGVector TestContainers setup and VectorStore bean configuration")
 @TestPropertySource(properties = {
-    "spring.autoconfigure.exclude=",
+    "spring.autoconfigure.exclude=org.springframework.ai.model.openai.autoconfigure.OpenAiAudioSpeechAutoConfiguration,org.springframework.ai.model.openai.autoconfigure.OpenAiAudioTranscriptionAutoConfiguration,org.springframework.ai.model.openai.autoconfigure.OpenAiChatAutoConfiguration,org.springframework.ai.model.openai.autoconfigure.OpenAiEmbeddingAutoConfiguration,org.springframework.ai.model.openai.autoconfigure.OpenAiImageAutoConfiguration,org.springframework.ai.model.openai.autoconfigure.OpenAiModerationAutoConfiguration,org.springframework.ai.model.anthropic.autoconfigure.AnthropicChatAutoConfiguration",
     "prospectos.leads.allowed-sources=in-memory,vector-company",
     "prospectos.vectorization.backend=pgvector",
     "prospectos.vectorization.embedding-dimension=64",
+    "spring.ai.vectorstore.type=pgvector",
     "spring.ai.vectorstore.pgvector.enabled=true",
     "spring.ai.vectorstore.pgvector.initialize-schema=true",
     "spring.ai.vectorstore.pgvector.table-name=company_vectors",
@@ -79,7 +68,6 @@ class LeadDiscoveryVectorPgIntegrationTest {
     private ObjectMapper objectMapper;
 
     @Test
-    @org.junit.jupiter.api.condition.EnabledIfSystemProperty(named = "test.pgvector.enabled", matches = "true")
     void leadDiscovery_WithPgVectorBackend_ReturnsIndexedCompany() throws Exception {
         companyDataService.createCompany(new CompanyCreateRequest(
             "Vector Agile Labs",
@@ -107,72 +95,5 @@ class LeadDiscoveryVectorPgIntegrationTest {
             .andExpect(jsonPath("$.leads[0]").exists())
             .andExpect(jsonPath("$.leads[0].source.sourceName").value("vector-company"))
             .andExpect(jsonPath("$.leads[0].candidate.name").value("Vector Agile Labs"));
-    }
-
-    @TestConfiguration
-    static class TestEmbeddingConfiguration {
-
-        @Bean
-        @Primary
-        EmbeddingModel embeddingModel() {
-            return new DeterministicEmbeddingModel(64);
-        }
-    }
-
-    static class DeterministicEmbeddingModel implements EmbeddingModel {
-
-        private final int dimensions;
-
-        DeterministicEmbeddingModel(int dimensions) {
-            this.dimensions = dimensions;
-        }
-
-        @Override
-        public EmbeddingResponse call(EmbeddingRequest request) {
-            List<Embedding> embeddings = new ArrayList<>();
-            List<String> instructions = request == null ? List.of() : request.getInstructions();
-            for (int i = 0; i < instructions.size(); i++) {
-                embeddings.add(new Embedding(embedText(instructions.get(i)), i));
-            }
-            return new EmbeddingResponse(embeddings);
-        }
-
-        @Override
-        public float[] embed(Document document) {
-            return embedText(document == null ? "" : document.getText());
-        }
-
-        private float[] embedText(String text) {
-            float[] vector = new float[dimensions];
-            if (text == null || text.isBlank()) {
-                return vector;
-            }
-
-            String[] tokens = text.toLowerCase(Locale.ROOT).split("[^\\p{L}\\p{N}]+");
-            for (String token : tokens) {
-                if (token == null || token.isBlank()) {
-                    continue;
-                }
-                int hash = token.hashCode();
-                int index = Math.floorMod(hash, dimensions);
-                vector[index] += ((Integer.rotateLeft(hash, 7) & 1) == 0) ? 1.0f : -1.0f;
-            }
-            return normalize(vector);
-        }
-
-        private float[] normalize(float[] vector) {
-            double norm = 0.0d;
-            for (float value : vector) {
-                norm += value * value;
-            }
-            if (norm == 0.0d) {
-                return vector;
-            }
-            float scale = (float) (1.0d / Math.sqrt(norm));
-            for (int i = 0; i < vector.length; i++) {
-                vector[i] = vector[i] * scale;
-            }
-            return vector;
-        }
     }
 }
