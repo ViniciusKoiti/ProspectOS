@@ -7,6 +7,8 @@ Substituir configuracao manual de Testcontainers por `@ServiceConnection` com ba
 - Etapas 1, 2, 3, 4, 5, 6 e 7: concluidas.
 - Etapa 8: concluida para o escopo atual.
 - Etapas 9 e 10: concluidas para o escopo dos testes migrados.
+- Proximo lote recomendado #2 (avaliacao de testes sem dependencia direta de DB): concluido para
+  `AIServicesIntegrationTest`, `AIProvidersIntegrationTest` e `EnrichmentPipelineIntegrationTest` (migrados para perfil `test` puro, sem `test-pg`).
 
 ## Etapa 1 - Inventario dos testes de integracao
 
@@ -123,5 +125,4 @@ Concluida no escopo atual:
 
 ## Proximos lotes recomendados
 1. Consolidar cenarios de pgvector que hoje ainda usam combinacao parcial de perfil legado.
-2. Avaliar migracao dos testes sem dependencia direta de DB conforme custo-beneficio (`AIServicesIntegrationTest`, `AIProvidersIntegrationTest`, `EnrichmentPipelineIntegrationTest`).
-3. Definir gate de CI com Docker obrigatorio para testes `test-pg`.
+2. Definir gate de CI com Docker obrigatorio para testes `test-pg`.

@@ -12,7 +12,6 @@ import dev.prospectos.api.dto.ICPDto;
 import dev.prospectos.api.mapper.CompanyMapper;
 import dev.prospectos.core.domain.Company;
 import dev.prospectos.core.domain.ICP;
-import dev.prospectos.support.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,8 +27,8 @@ import static org.assertj.core.api.Assertions.*;
     "prospectos.scoring.mock.enabled=true",
     "scraper.ai.enabled=false"
 })
-@ActiveProfiles({"test", "test-pg"})
-class AIServicesIntegrationTest extends PostgresIntegrationTestBase {
+@ActiveProfiles("test")
+class AIServicesIntegrationTest {
 
     @Autowired
     private ProspectorAIService prospectorService;
