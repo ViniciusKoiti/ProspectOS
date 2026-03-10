@@ -8,12 +8,13 @@ import dev.prospectos.core.domain.ICP;
 import dev.prospectos.core.repository.ICPDomainRepository;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
-@Profile({"development", "production"})
+@Profile({"development", "production", "test-pg"})
 public class ICPDataServiceJpa implements ICPDataService {
     private final ICPDomainRepository icpRepository;
     public ICPDataServiceJpa(ICPDomainRepository icpRepository) {
@@ -21,10 +22,12 @@ public class ICPDataServiceJpa implements ICPDataService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ICPDto findICP(Long icpId) {
         return findICPByExternalId(icpId).map(this::toDTO).orElse(null);
     }
     @Override
+    @Transactional(readOnly = true)
     public List<ICPDto> findAllICPs() {
         return icpRepository.findAll()
             .stream()
@@ -33,6 +36,7 @@ public class ICPDataServiceJpa implements ICPDataService {
     }
 
     @Override
+    @Transactional
     public ICPDto createICP(ICPCreateRequest request) {
         ICP icp = ICP.create(
             request.name(),
@@ -46,6 +50,7 @@ public class ICPDataServiceJpa implements ICPDataService {
     }
 
     @Override
+    @Transactional
     public ICPDto updateICP(Long icpId, ICPUpdateRequest request) {
         Optional<ICP> existing = findICPByExternalId(icpId);
         if (existing.isEmpty()) {
@@ -64,6 +69,7 @@ public class ICPDataServiceJpa implements ICPDataService {
     }
 
     @Override
+    @Transactional
     public boolean deleteICP(Long icpId) {
         Optional<ICP> existing = findICPByExternalId(icpId);
         if (existing.isEmpty()) {
@@ -86,13 +92,17 @@ public class ICPDataServiceJpa implements ICPDataService {
             icp.getExternalId(),
             icp.getName(),
             icp.getDescription(),
-            icp.getIndustries(),
-            icp.getRegions(),
+            copyOrEmpty(icp.getIndustries()),
+            copyOrEmpty(icp.getRegions()),
             List.of(),
             null,
             null,
-            icp.getTargetRoles(),
+            copyOrEmpty(icp.getTargetRoles()),
             icp.getInterestTheme()
         );
+    }
+
+    private List<String> copyOrEmpty(List<String> values) {
+        return values == null ? List.of() : List.copyOf(values);
     }
 }

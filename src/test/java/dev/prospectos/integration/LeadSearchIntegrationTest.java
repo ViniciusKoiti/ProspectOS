@@ -1,7 +1,9 @@
 package dev.prospectos.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.prospectos.api.ICPDataService;
 import dev.prospectos.api.dto.LeadSearchRequest;
+import dev.prospectos.support.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -18,8 +20,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("test")
-class LeadSearchIntegrationTest {
+@ActiveProfiles({"test", "test-pg"})
+class LeadSearchIntegrationTest extends PostgresIntegrationTestBase {
 
     @Autowired
     private MockMvc mockMvc;
@@ -27,13 +29,16 @@ class LeadSearchIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private ICPDataService icpDataService;
+
     @Test
     void leadSearch_ReturnsResultsFromInMemorySource() throws Exception {
         LeadSearchRequest request = new LeadSearchRequest(
             "software",
             3,
             List.of("in-memory"),
-            null
+            existingIcpId()
         );
 
         mockMvc.perform(post("/api/leads/search")
@@ -57,7 +62,7 @@ class LeadSearchIntegrationTest {
             "software",
             1,
             List.of("unknown"),
-            null
+            existingIcpId()
         );
 
         mockMvc.perform(post("/api/leads/search")
@@ -65,5 +70,12 @@ class LeadSearchIntegrationTest {
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.error").isNotEmpty());
+    }
+
+    private Long existingIcpId() {
+        return icpDataService.findAllICPs().stream()
+            .findFirst()
+            .orElseThrow(() -> new IllegalStateException("No ICP seeded for integration test"))
+            .id();
     }
 }

@@ -6,6 +6,7 @@ import dev.prospectos.ai.dto.OutreachMessage;
 import dev.prospectos.ai.dto.ScoringResult;
 import dev.prospectos.ai.dto.StrategyRecommendation;
 import dev.prospectos.ai.factory.AIProviderFactory;
+import dev.prospectos.support.PostgresIntegrationTestBase;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +18,8 @@ import org.springframework.test.context.DynamicPropertySource;
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
-@ActiveProfiles("test")
-class AIProvidersIntegrationTest {
+@ActiveProfiles({"test", "test-pg"})
+class AIProvidersIntegrationTest extends PostgresIntegrationTestBase {
 
     @DynamicPropertySource
     static void dotenvProperties(DynamicPropertyRegistry registry) {

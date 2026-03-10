@@ -1,7 +1,9 @@
 package dev.prospectos.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.prospectos.api.ICPDataService;
 import dev.prospectos.api.dto.LeadDiscoveryRequest;
+import dev.prospectos.support.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -19,15 +21,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("test")
+@ActiveProfiles({"test", "test-pg"})
 @TestPropertySource(properties = "prospectos.leads.allowed-sources=in-memory,llm-discovery")
-class LeadDiscoveryIntegrationTest {
+class LeadDiscoveryIntegrationTest extends PostgresIntegrationTestBase {
 
     @Autowired
     private MockMvc mockMvc;
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private ICPDataService icpDataService;
 
     @Test
     void leadDiscovery_ReturnsResultsFromLlmDiscoverySource() throws Exception {
@@ -36,7 +41,7 @@ class LeadDiscoveryIntegrationTest {
             "SUPPLIER",
             3,
             List.of("llm-discovery"),
-            null
+            existingIcpId()
         );
 
         mockMvc.perform(post("/api/leads/discover")
@@ -59,7 +64,7 @@ class LeadDiscoveryIntegrationTest {
             "SUPPLIER",
             1,
             List.of("unknown-source"),
-            null
+            existingIcpId()
         );
 
         mockMvc.perform(post("/api/leads/discover")
@@ -93,7 +98,7 @@ class LeadDiscoveryIntegrationTest {
             "SUPPLIER",
             1,
             List.of("llm-discovery"),
-            null
+            existingIcpId()
         );
 
         mockMvc.perform(post("/api/leads/discover")
@@ -101,5 +106,12 @@ class LeadDiscoveryIntegrationTest {
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.error").isNotEmpty());
+    }
+
+    private Long existingIcpId() {
+        return icpDataService.findAllICPs().stream()
+            .findFirst()
+            .orElseThrow(() -> new IllegalStateException("No ICP seeded for integration test"))
+            .id();
     }
 }

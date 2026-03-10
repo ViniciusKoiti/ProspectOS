@@ -6,7 +6,7 @@ import dev.prospectos.api.dto.CompanyDTO;
 import dev.prospectos.api.dto.ICPDto;
 import dev.prospectos.api.dto.ScoreDTO;
 import dev.prospectos.api.dto.request.CompanyCreateRequest;
-import dev.prospectos.infrastructure.service.inmemory.InMemoryCoreDataStore;
+import dev.prospectos.support.PostgresIntegrationTestBase;
 import dev.prospectos.infrastructure.service.scoring.CompanyScoringService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,11 +17,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * Integration test for scoring flow using in-memory persistence.
+ * Integration test for scoring flow and persisted score updates.
  */
 @SpringBootTest
-@ActiveProfiles("test")
-class ScoringPersistenceIntegrationTest {
+@ActiveProfiles({"test", "test-pg"})
+class ScoringPersistenceIntegrationTest extends PostgresIntegrationTestBase {
 
     @Autowired
     private CompanyScoringService companyScoringService;
@@ -31,9 +31,6 @@ class ScoringPersistenceIntegrationTest {
 
     @Autowired
     private ICPDataService icpDataService;
-
-    @Autowired
-    private InMemoryCoreDataStore dataStore;
 
     @Test
     void scoringFlow_PersistsScoreForCreatedCompany() {
@@ -48,20 +45,27 @@ class ScoringPersistenceIntegrationTest {
         );
 
         CompanyDTO createdCompany = companyDataService.createCompany(companyRequest);
-        ICPDto testIcp = icpDataService.findICP(1L);
+        ICPDto testIcp = icpDataService.findAllICPs().stream()
+            .findFirst()
+            .orElseThrow(() -> new IllegalStateException("Expected seeded ICP data for tests"));
 
         ScoreDTO score = companyScoringService.scoreCompany(createdCompany.id(), testIcp.id());
 
         assertThat(score.value()).isBetween(0, 100);
         assertThat(score.category()).isNotBlank();
         assertThat(score.reasoning()).isNotBlank();
-        assertThat(dataStore.companyScores()).containsKey(createdCompany.id());
-        assertThat(dataStore.companyScores().get(createdCompany.id()).value()).isEqualTo(score.value());
+
+        CompanyDTO updatedCompany = companyDataService.findCompany(createdCompany.id());
+        assertThat(updatedCompany).isNotNull();
+        assertThat(updatedCompany.score()).isNotNull();
+        assertThat(updatedCompany.score().value()).isEqualTo(score.value());
     }
 
     @Test
     void scoringFlow_RejectsMissingCompany() {
-        ICPDto testIcp = icpDataService.findICP(1L);
+        ICPDto testIcp = icpDataService.findAllICPs().stream()
+            .findFirst()
+            .orElseThrow(() -> new IllegalStateException("Expected seeded ICP data for tests"));
 
         assertThatThrownBy(() -> companyScoringService.scoreCompany(999L, testIcp.id()))
             .isInstanceOf(IllegalArgumentException.class)

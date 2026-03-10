@@ -5,13 +5,15 @@ import dev.prospectos.api.dto.ScoreDTO;
 import dev.prospectos.api.dto.request.CompanyCreateRequest;
 import dev.prospectos.api.dto.request.CompanyUpdateRequest;
 import dev.prospectos.api.dto.request.ICPCreateRequest;
-import dev.prospectos.core.repository.CompanyDomainRepository;
 import dev.prospectos.api.ICPDataService;
+import dev.prospectos.core.repository.CompanyDomainRepository;
+import dev.prospectos.support.PostgresIntegrationTestBase;
 import dev.prospectos.infrastructure.adapter.CompanyRepositoryAdapter;
 import dev.prospectos.infrastructure.adapter.ICPRepositoryAdapter;
 import dev.prospectos.infrastructure.service.jpa.CompanyDataServiceJpa;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
@@ -22,14 +24,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DataJpaTest
-@ActiveProfiles("development")
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@ActiveProfiles({"development", "test-pg"})
 @Import({
     CompanyRepositoryAdapter.class,
     ICPRepositoryAdapter.class,
     CompanyDataServiceJpa.class,
     dev.prospectos.infrastructure.service.jpa.ICPDataServiceJpa.class
 })
-class CompanyDataServiceJpaDevelopmentIntegrationTest {
+class CompanyDataServiceJpaDevelopmentIntegrationTest extends PostgresIntegrationTestBase {
 
     @Autowired
     private CompanyDataServiceJpa companyDataService;

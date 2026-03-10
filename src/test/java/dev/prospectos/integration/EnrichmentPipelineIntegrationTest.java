@@ -4,6 +4,7 @@ import dev.prospectos.core.enrichment.CompanyEnrichmentService;
 import dev.prospectos.core.enrichment.EnrichmentRequest;
 import dev.prospectos.core.enrichment.EnrichmentResult;
 import dev.prospectos.core.enrichment.ValidatedContact;
+import dev.prospectos.support.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,8 +20,8 @@ import static org.assertj.core.api.Assertions.*;
  * Tests the MVP-004 enrichment and email validation implementation.
  */
 @SpringBootTest
-@ActiveProfiles("test")
-class EnrichmentPipelineIntegrationTest {
+@ActiveProfiles({"test", "test-pg"})
+class EnrichmentPipelineIntegrationTest extends PostgresIntegrationTestBase {
 
     @Autowired
     private CompanyEnrichmentService enrichmentService;

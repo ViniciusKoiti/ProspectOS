@@ -4,6 +4,7 @@ import dev.prospectos.ProspectosApplication;
 import dev.prospectos.core.domain.Company;
 import dev.prospectos.core.domain.ICP;
 import dev.prospectos.core.domain.Website;
+import dev.prospectos.support.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.modulith.core.ApplicationModule;
@@ -15,8 +16,8 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
-@ActiveProfiles("test")
-class ModulithBoundariesIntegrationTest {
+@ActiveProfiles({"test", "test-pg"})
+class ModulithBoundariesIntegrationTest extends PostgresIntegrationTestBase {
 
     @Test
     void modulesRespectBoundaries() {

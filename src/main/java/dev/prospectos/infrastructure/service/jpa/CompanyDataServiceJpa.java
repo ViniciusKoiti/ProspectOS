@@ -18,7 +18,7 @@ import dev.prospectos.core.repository.ICPDomainRepository;
 import dev.prospectos.infrastructure.service.discovery.CompanyVectorReindexRequested;
 
 @Service
-@Profile({"development", "production"})
+@Profile({"development", "production", "test-pg"})
 public class CompanyDataServiceJpa implements CompanyDataService {
     private final CompanyDomainRepository companyRepository;
     private final ICPDomainRepository icpRepository;

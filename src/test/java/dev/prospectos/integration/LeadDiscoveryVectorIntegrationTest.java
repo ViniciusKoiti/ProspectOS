@@ -2,8 +2,10 @@ package dev.prospectos.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.prospectos.api.CompanyDataService;
+import dev.prospectos.api.ICPDataService;
 import dev.prospectos.api.dto.LeadDiscoveryRequest;
 import dev.prospectos.api.dto.request.CompanyCreateRequest;
+import dev.prospectos.support.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -21,12 +23,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("test")
+@ActiveProfiles({"test", "test-pg"})
 @TestPropertySource(properties = {
     "prospectos.leads.allowed-sources=in-memory,vector-company",
     "prospectos.vectorization.min-similarity=0.05"
 })
-class LeadDiscoveryVectorIntegrationTest {
+class LeadDiscoveryVectorIntegrationTest extends PostgresIntegrationTestBase {
 
     @Autowired
     private CompanyDataService companyDataService;
@@ -36,6 +38,9 @@ class LeadDiscoveryVectorIntegrationTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private ICPDataService icpDataService;
 
     @Test
     void leadDiscovery_ReturnsResultsFromVectorSource() throws Exception {
@@ -54,7 +59,7 @@ class LeadDiscoveryVectorIntegrationTest {
             "SUPPLIER",
             3,
             List.of("vector-company"),
-            null
+            existingIcpId()
         );
 
         mockMvc.perform(post("/api/leads/discover")
@@ -68,5 +73,12 @@ class LeadDiscoveryVectorIntegrationTest {
             .andExpect(jsonPath("$.leads[0].leadKey").isNotEmpty())
             .andExpect(jsonPath("$.leads[0].candidate.name").value("Agile Discovery Co"))
             .andExpect(jsonPath("$.leads[0].candidate.website").isNotEmpty());
+    }
+
+    private Long existingIcpId() {
+        return icpDataService.findAllICPs().stream()
+            .findFirst()
+            .orElseThrow(() -> new IllegalStateException("No ICP seeded for integration test"))
+            .id();
     }
 }

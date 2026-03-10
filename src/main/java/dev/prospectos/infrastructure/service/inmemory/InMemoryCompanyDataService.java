@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Service
-@Profile({"test", "development"})
+@Profile("!test-pg & (test | development)")
 public class InMemoryCompanyDataService implements CompanyDataService {
     private final InMemoryCoreDataStore store;
     private final ApplicationEventPublisher eventPublisher;

@@ -12,6 +12,7 @@ import dev.prospectos.api.dto.ICPDto;
 import dev.prospectos.api.mapper.CompanyMapper;
 import dev.prospectos.core.domain.Company;
 import dev.prospectos.core.domain.ICP;
+import dev.prospectos.support.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -27,8 +28,8 @@ import static org.assertj.core.api.Assertions.*;
     "prospectos.scoring.mock.enabled=true",
     "scraper.ai.enabled=false"
 })
-@ActiveProfiles("test")
-class AIServicesIntegrationTest {
+@ActiveProfiles({"test", "test-pg"})
+class AIServicesIntegrationTest extends PostgresIntegrationTestBase {
 
     @Autowired
     private ProspectorAIService prospectorService;
@@ -109,23 +110,24 @@ class AIServicesIntegrationTest {
     }
 
     private Company createCompanyFromSeed() {
-        CompanyDTO company = companyDataService.findCompany(1L);
+        CompanyDTO company = companyDataService.findAllCompanies().stream()
+            .findFirst()
+            .orElse(null);
         assertThat(company)
-            .withFailMessage("Company with ID 1 should exist in test data store. " +
-                "Make sure InMemoryCompanyDataService is being used with test profile.")
+            .withFailMessage("At least one company should exist in seeded test data.")
             .isNotNull();
         return CompanyMapper.toDomain(company);
     }
 
     private ICP createIcpFromSeed() {
-        ICPDto icp = icpDataService.findICP(1L);
+        ICPDto icp = icpDataService.findAllICPs().stream().findFirst().orElse(null);
         assertThat(icp).isNotNull();
         return ICP.create(
-            icp.name(),
+            icp.name() != null ? icp.name() : "Test ICP",
             icp.description(),
-            icp.targetIndustries(),
+            List.of("Technology"),
             List.of(),
-            icp.targetRoles(),
+            List.of("CTO"),
             null
         );
     }
