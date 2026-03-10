@@ -6,8 +6,10 @@ import java.util.UUID;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
+import dev.prospectos.api.CompanyDataService;
 import dev.prospectos.api.ICPDataService;
 import dev.prospectos.api.LeadSearchService;
+import dev.prospectos.api.dto.CompanyDTO;
 import dev.prospectos.api.dto.ICPDto;
 import dev.prospectos.api.dto.LeadResultDTO;
 import dev.prospectos.api.dto.LeadSearchRequest;
@@ -27,20 +29,20 @@ public class InMemoryLeadSearchService implements LeadSearchService {
 
     private static final int DEFAULT_LIMIT = 10;
 
-    private final InMemoryCoreDataStore store;
+    private final CompanyDataService companyDataService;
     private final ICPDataService icpDataService;
     private final AllowedSourcesComplianceService complianceService;
     private final LeadSearchProperties properties;
     private final InMemoryLeadResultFactory leadResultFactory;
 
     public InMemoryLeadSearchService(
-        InMemoryCoreDataStore store,
+        CompanyDataService companyDataService,
         ICPDataService icpDataService,
         CompanyScoringService scoringService,
         AllowedSourcesComplianceService complianceService,
         LeadSearchProperties properties
     ) {
-        this.store = store;
+        this.companyDataService = companyDataService;
         this.icpDataService = icpDataService;
         this.complianceService = complianceService;
         this.properties = properties;
@@ -56,7 +58,8 @@ public class InMemoryLeadSearchService implements LeadSearchService {
         String sourceName = InMemoryLeadSourceResolver.resolve(requestedSources);
         ICP icp = resolveIcp(request.icpId());
 
-        List<LeadResultDTO> leads = store.companies().values().stream()
+        List<CompanyDTO> companies = companyDataService.findAllCompanies();
+        List<LeadResultDTO> leads = companies.stream()
             .filter(company -> InMemoryLeadQueryMatcher.matches(company, tokens))
             .limit(limit)
             .map(company -> leadResultFactory.toLeadResult(company, sourceName, icp))

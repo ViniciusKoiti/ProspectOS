@@ -36,6 +36,8 @@ Substituir configuracao manual de Testcontainers por `@ServiceConnection` com ba
 - Ajuste de roteamento aplicado:
   - `CompanyDataServiceJpa` e `ICPDataServiceJpa` agora tambem ativos em `test-pg`.
   - `InMemoryCompanyDataService` e `InMemoryICPDataService` ficam desativados quando `test-pg` esta ativo.
+  - `InMemoryLeadSearchService` passa a consultar empresas via `CompanyDataService`, respeitando o backend ativo por perfil (`in-memory` em `test`, JPA em `test-pg`).
+  - `InMemoryCoreDataStore` fica desativado quando `test-pg` esta ativo.
 
 ## Etapa 3 - Preparar build para `@ServiceConnection`
 - `build.gradle` ja estava correto com:

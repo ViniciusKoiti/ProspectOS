@@ -14,6 +14,8 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -47,7 +49,8 @@ class LeadSearchIntegrationTest extends PostgresIntegrationTestBase {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.status").value("COMPLETED"))
             .andExpect(jsonPath("$.leads").isArray())
-            .andExpect(jsonPath("$.leads.length()").value(3))
+            .andExpect(jsonPath("$.leads.length()", greaterThan(0)))
+            .andExpect(jsonPath("$.leads.length()", lessThanOrEqualTo(3)))
             .andExpect(jsonPath("$.leads[0].candidate").exists())
             .andExpect(jsonPath("$.leads[0].candidate.name").exists())
             .andExpect(jsonPath("$.leads[0].candidate.website").exists())

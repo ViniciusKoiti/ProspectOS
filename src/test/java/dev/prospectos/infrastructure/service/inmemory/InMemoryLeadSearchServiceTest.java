@@ -8,7 +8,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import dev.prospectos.api.CompanyDataService;
 import dev.prospectos.api.ICPDataService;
+import dev.prospectos.api.dto.CompanyDTO;
 import dev.prospectos.api.dto.ICPDto;
 import dev.prospectos.api.dto.LeadResultDTO;
 import dev.prospectos.api.dto.LeadSearchRequest;
@@ -32,6 +34,9 @@ import static org.mockito.Mockito.when;
 class InMemoryLeadSearchServiceTest {
 
     @Mock
+    private CompanyDataService companyDataService;
+
+    @Mock
     private ICPDataService icpDataService;
 
     @Mock
@@ -43,13 +48,18 @@ class InMemoryLeadSearchServiceTest {
     @Test
     void searchLeadsUsesDefaultIcpAndBuildsLeadResults() {
         InMemoryLeadSearchService service = new InMemoryLeadSearchService(
-            new InMemoryCoreDataStore(),
+            companyDataService,
             icpDataService,
             scoringService,
             complianceService,
             new LeadSearchProperties(1L)
         );
 
+        when(companyDataService.findAllCompanies()).thenReturn(List.of(
+            new CompanyDTO(1L, "SoftNow", "software", "https://softnow.com", "software platform", 20, "Sao Paulo", null),
+            new CompanyDTO(2L, "CodeWave", "software", "https://codewave.com", "software studio", 15, "Rio", null),
+            new CompanyDTO(3L, "CloudFast", "software", "https://cloudfast.com", "cloud software", 10, "Curitiba", null)
+        ));
         when(complianceService.validateSources(List.of("in-memory"))).thenReturn(List.of("in-memory"));
         when(icpDataService.findICP(1L)).thenReturn(ICPDto.createMock());
         when(scoringService.scoreCandidate(any(Company.class), any(ICP.class))).thenReturn(new ScoreDTO(85, "HOT", "Good fit"));
@@ -69,13 +79,16 @@ class InMemoryLeadSearchServiceTest {
     @Test
     void searchLeadsFallsBackToInMemoryWhenValidatedSourcesAreBlank() {
         InMemoryLeadSearchService service = new InMemoryLeadSearchService(
-            new InMemoryCoreDataStore(),
+            companyDataService,
             icpDataService,
             scoringService,
             complianceService,
             new LeadSearchProperties(1L)
         );
 
+        when(companyDataService.findAllCompanies()).thenReturn(List.of(
+            new CompanyDTO(10L, "Local Restaurant", "Food", "https://local.restaurant", "Small local business", 8, "Curitiba", null)
+        ));
         when(complianceService.validateSources(null)).thenReturn(Arrays.asList(" ", null));
         when(icpDataService.findICP(1L)).thenReturn(ICPDto.createMock());
         when(scoringService.scoreCandidate(any(Company.class), any(ICP.class))).thenReturn(new ScoreDTO(70, "WARM", "Baseline"));
@@ -90,7 +103,7 @@ class InMemoryLeadSearchServiceTest {
     @Test
     void searchLeadsThrowsWhenNoRequestIcpAndNoDefaultConfigured() {
         InMemoryLeadSearchService service = new InMemoryLeadSearchService(
-            new InMemoryCoreDataStore(),
+            companyDataService,
             icpDataService,
             scoringService,
             complianceService,
