@@ -124,5 +124,9 @@ Concluida no escopo atual:
 - Testes legados nao migrados permanecem em `test` por decisao explicita de coexistencia.
 
 ## Proximos lotes recomendados
-1. Consolidar cenarios de pgvector que hoje ainda usam combinacao parcial de perfil legado.
-2. Definir gate de CI com Docker obrigatorio para testes `test-pg`.
+1. Definir gate de CI com Docker obrigatorio para testes `test-pg`.
+
+Status atual do gate:
+- Workflow `CI` atualizado com job dedicado `test-pg-gate` em `.github/workflows/ci.yml`.
+- Job executa: `./gradlew --no-daemon test --tests 'dev.prospectos.integration.*IntegrationTest' -x jacocoTestCoverageVerification -x jacocoTestReport`.
+- Pendente operacional fora do codigo: marcar `test-pg-gate` como check obrigatorio na protecao da branch `main`.
