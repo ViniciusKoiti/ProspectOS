@@ -6,6 +6,7 @@ import dev.prospectos.api.dto.request.ICPCreateRequest;
 import dev.prospectos.api.dto.request.ICPUpdateRequest;
 import dev.prospectos.core.domain.ICP;
 import dev.prospectos.core.repository.ICPDomainRepository;
+
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,21 +18,25 @@ import java.util.Optional;
 @Profile({"development", "production", "test-pg"})
 public class ICPDataServiceJpa implements ICPDataService {
     private final ICPDomainRepository icpRepository;
+    private final ICPJpaDtoMapper dtoMapper;
+
     public ICPDataServiceJpa(ICPDomainRepository icpRepository) {
         this.icpRepository = icpRepository;
+        this.dtoMapper = new ICPJpaDtoMapper();
     }
 
     @Override
     @Transactional(readOnly = true)
     public ICPDto findICP(Long icpId) {
-        return findICPByExternalId(icpId).map(this::toDTO).orElse(null);
+        return findICPByExternalId(icpId).map(dtoMapper::toDTO).orElse(null);
     }
+
     @Override
     @Transactional(readOnly = true)
     public List<ICPDto> findAllICPs() {
         return icpRepository.findAll()
             .stream()
-            .map(this::toDTO)
+            .map(dtoMapper::toDTO)
             .toList();
     }
 
@@ -46,7 +51,7 @@ public class ICPDataServiceJpa implements ICPDataService {
             orEmpty(request.targetRoles()),
             request.interestTheme()
         );
-        return toDTO(icpRepository.save(icp));
+        return dtoMapper.toDTO(icpRepository.save(icp));
     }
 
     @Override
@@ -65,7 +70,7 @@ public class ICPDataServiceJpa implements ICPDataService {
             orEmpty(request.targetRoles()),
             request.interestTheme()
         );
-        return toDTO(icpRepository.save(icp));
+        return dtoMapper.toDTO(icpRepository.save(icp));
     }
 
     @Override
@@ -85,24 +90,5 @@ public class ICPDataServiceJpa implements ICPDataService {
 
     private List<String> orEmpty(List<String> values) {
         return values == null ? List.of() : values;
-    }
-
-    private ICPDto toDTO(ICP icp) {
-        return new ICPDto(
-            icp.getExternalId(),
-            icp.getName(),
-            icp.getDescription(),
-            copyOrEmpty(icp.getIndustries()),
-            copyOrEmpty(icp.getRegions()),
-            List.of(),
-            null,
-            null,
-            copyOrEmpty(icp.getTargetRoles()),
-            icp.getInterestTheme()
-        );
-    }
-
-    private List<String> copyOrEmpty(List<String> values) {
-        return values == null ? List.of() : List.copyOf(values);
     }
 }
