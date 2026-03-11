@@ -75,6 +75,20 @@ tasks.named('test') {
     finalizedBy tasks.named('jacocoTestReport')
 }
 
+tasks.register('integrationTestPg', Test) {
+    description = 'Runs integration tests that depend on test-pg profile and Testcontainers.'
+    group = 'verification'
+
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform()
+    shouldRunAfter tasks.named('test')
+
+    filter {
+        includeTestsMatching 'dev.prospectos.integration.*IntegrationTest'
+    }
+}
+
 jacocoTestReport {
     dependsOn tasks.named('test')
     reports {
