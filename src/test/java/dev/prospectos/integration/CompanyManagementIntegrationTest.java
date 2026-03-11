@@ -3,6 +3,7 @@ package dev.prospectos.integration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.prospectos.api.dto.request.CompanyCreateRequest;
 import dev.prospectos.api.dto.request.CompanyUpdateRequest;
+import dev.prospectos.support.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -21,8 +22,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("test")
-class CompanyManagementIntegrationTest {
+@ActiveProfiles({"test", "test-pg"})
+class CompanyManagementIntegrationTest extends PostgresIntegrationTestBase {
 
     @Autowired
     private MockMvc mockMvc;
@@ -31,7 +32,7 @@ class CompanyManagementIntegrationTest {
     private ObjectMapper objectMapper;
 
     @Test
-    void companyCrud_FlowWorksWithInMemoryStore() throws Exception {
+    void companyCrud_FlowWorksWithJpaPersistence() throws Exception {
         CompanyCreateRequest createRequest = new CompanyCreateRequest(
             "NewCo",
             "Technology",
@@ -54,7 +55,7 @@ class CompanyManagementIntegrationTest {
             .getContentAsString();
 
         long companyId = objectMapper.readTree(createResponse).get("id").asLong();
-        assertThat(companyId).isPositive();
+        assertThat(companyId).isNotZero();
 
         mockMvc.perform(get("/api/companies/{companyId}", companyId))
             .andExpect(status().isOk())

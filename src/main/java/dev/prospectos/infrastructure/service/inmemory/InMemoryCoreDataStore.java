@@ -14,7 +14,7 @@ import dev.prospectos.api.dto.ICPDto;
 import dev.prospectos.api.dto.ScoreDTO;
 
 @Component
-@Profile({"test", "development"})
+@Profile("!test-pg & (test | development)")
 public class InMemoryCoreDataStore {
 
     private final Map<Long, CompanyDTO> companies = new ConcurrentHashMap<>();

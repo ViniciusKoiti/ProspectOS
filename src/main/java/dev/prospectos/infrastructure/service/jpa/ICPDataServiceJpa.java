@@ -6,33 +6,42 @@ import dev.prospectos.api.dto.request.ICPCreateRequest;
 import dev.prospectos.api.dto.request.ICPUpdateRequest;
 import dev.prospectos.core.domain.ICP;
 import dev.prospectos.core.repository.ICPDomainRepository;
+
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
-@Profile({"development", "production"})
+@Profile({"development", "production", "test-pg"})
 public class ICPDataServiceJpa implements ICPDataService {
     private final ICPDomainRepository icpRepository;
+    private final ICPJpaDtoMapper dtoMapper;
+
     public ICPDataServiceJpa(ICPDomainRepository icpRepository) {
         this.icpRepository = icpRepository;
+        this.dtoMapper = new ICPJpaDtoMapper();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ICPDto findICP(Long icpId) {
-        return findICPByExternalId(icpId).map(this::toDTO).orElse(null);
+        return findICPByExternalId(icpId).map(dtoMapper::toDTO).orElse(null);
     }
+
     @Override
+    @Transactional(readOnly = true)
     public List<ICPDto> findAllICPs() {
         return icpRepository.findAll()
             .stream()
-            .map(this::toDTO)
+            .map(dtoMapper::toDTO)
             .toList();
     }
 
     @Override
+    @Transactional
     public ICPDto createICP(ICPCreateRequest request) {
         ICP icp = ICP.create(
             request.name(),
@@ -42,10 +51,11 @@ public class ICPDataServiceJpa implements ICPDataService {
             orEmpty(request.targetRoles()),
             request.interestTheme()
         );
-        return toDTO(icpRepository.save(icp));
+        return dtoMapper.toDTO(icpRepository.save(icp));
     }
 
     @Override
+    @Transactional
     public ICPDto updateICP(Long icpId, ICPUpdateRequest request) {
         Optional<ICP> existing = findICPByExternalId(icpId);
         if (existing.isEmpty()) {
@@ -60,10 +70,11 @@ public class ICPDataServiceJpa implements ICPDataService {
             orEmpty(request.targetRoles()),
             request.interestTheme()
         );
-        return toDTO(icpRepository.save(icp));
+        return dtoMapper.toDTO(icpRepository.save(icp));
     }
 
     @Override
+    @Transactional
     public boolean deleteICP(Long icpId) {
         Optional<ICP> existing = findICPByExternalId(icpId);
         if (existing.isEmpty()) {
@@ -79,20 +90,5 @@ public class ICPDataServiceJpa implements ICPDataService {
 
     private List<String> orEmpty(List<String> values) {
         return values == null ? List.of() : values;
-    }
-
-    private ICPDto toDTO(ICP icp) {
-        return new ICPDto(
-            icp.getExternalId(),
-            icp.getName(),
-            icp.getDescription(),
-            icp.getIndustries(),
-            icp.getRegions(),
-            List.of(),
-            null,
-            null,
-            icp.getTargetRoles(),
-            icp.getInterestTheme()
-        );
     }
 }

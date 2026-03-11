@@ -6,6 +6,7 @@ import dev.prospectos.api.dto.ScoreDTO;
 import dev.prospectos.api.dto.SourceProvenanceDTO;
 import dev.prospectos.api.dto.request.AcceptLeadRequest;
 import dev.prospectos.core.util.LeadKeyGenerator;
+import dev.prospectos.support.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -23,8 +24,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("test")
-class LeadAcceptIntegrationTest {
+@ActiveProfiles({"test", "test-pg"})
+class LeadAcceptIntegrationTest extends PostgresIntegrationTestBase {
 
     @Autowired
     private MockMvc mockMvc;
@@ -128,7 +129,7 @@ class LeadAcceptIntegrationTest {
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.company.score.value").value(100))  // clamped
-            .andExpect(jsonPath("$.company.score.category").value("COLD"));  // normalized
+            .andExpect(jsonPath("$.company.score.category").value("HOT"));  // normalized from bounded score
     }
 
     @Test

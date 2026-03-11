@@ -3,10 +3,12 @@ package dev.prospectos.integration;
 import dev.prospectos.api.dto.ICPDto;
 import dev.prospectos.api.dto.request.ICPCreateRequest;
 import dev.prospectos.api.dto.request.ICPUpdateRequest;
+import dev.prospectos.support.PostgresIntegrationTestBase;
 import dev.prospectos.infrastructure.adapter.ICPRepositoryAdapter;
 import dev.prospectos.infrastructure.service.jpa.ICPDataServiceJpa;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
@@ -16,12 +18,13 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
-@ActiveProfiles("development")
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@ActiveProfiles({"development", "test-pg"})
 @Import({
     ICPRepositoryAdapter.class,
     ICPDataServiceJpa.class
 })
-class ICPDataServiceJpaDevelopmentIntegrationTest {
+class ICPDataServiceJpaDevelopmentIntegrationTest extends PostgresIntegrationTestBase {
 
     @Autowired
     private ICPDataServiceJpa icpDataService;

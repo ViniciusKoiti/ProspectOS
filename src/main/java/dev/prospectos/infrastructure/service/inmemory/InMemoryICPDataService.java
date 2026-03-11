@@ -13,7 +13,7 @@ import java.util.List;
  * In-memory ICP data service for demo and test profiles.
  */
 @Service
-@Profile({"test", "development"})
+@Profile("!test-pg & (test | development)")
 public class InMemoryICPDataService implements ICPDataService {
 
     private final InMemoryCoreDataStore store;

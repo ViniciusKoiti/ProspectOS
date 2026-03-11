@@ -10,6 +10,7 @@ import dev.prospectos.infrastructure.config.LeadSearchProperties;
 import dev.prospectos.infrastructure.service.compliance.AllowedSourcesComplianceService;
 import dev.prospectos.infrastructure.service.leads.ScraperLeadSearchService;
 import dev.prospectos.infrastructure.service.scoring.CompanyScoringService;
+import dev.prospectos.support.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -28,11 +29,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest(properties = "spring.profiles.active=test")
+@SpringBootTest
 @AutoConfigureMockMvc
 @TestPropertySource(properties = "prospectos.leads.allowed-sources=in-memory,scraper")
-@ActiveProfiles("test")
-class LeadSearchScraperIntegrationTest {
+@ActiveProfiles({"test", "test-pg"})
+class LeadSearchScraperIntegrationTest extends PostgresIntegrationTestBase {
 
     @Autowired
     private MockMvc mockMvc;
@@ -40,13 +41,16 @@ class LeadSearchScraperIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private ICPDataService icpDataService;
+
     @Test
     void leadSearch_UsesScraperAndPersistsCompany() throws Exception {
         LeadSearchRequest request = new LeadSearchRequest(
             "https://acme.com",
             1,
             List.of("scraper"),
-            null
+            existingIcpId()
         );
 
         mockMvc.perform(post("/api/leads/search")
@@ -59,6 +63,13 @@ class LeadSearchScraperIntegrationTest {
             .andExpect(jsonPath("$.leads[0].candidate.name").value("Example Company"))
             .andExpect(jsonPath("$.leads[0].candidate.website").value("https://acme.com"))
             .andExpect(jsonPath("$.leads[0].source.sourceName").value("scraper"));
+    }
+
+    private Long existingIcpId() {
+        return icpDataService.findAllICPs().stream()
+            .findFirst()
+            .orElseThrow(() -> new IllegalStateException("No ICP seeded for integration test"))
+            .id();
     }
 
     @TestConfiguration

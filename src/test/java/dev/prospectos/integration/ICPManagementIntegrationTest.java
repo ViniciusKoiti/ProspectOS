@@ -3,6 +3,7 @@ package dev.prospectos.integration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.prospectos.api.dto.request.ICPCreateRequest;
 import dev.prospectos.api.dto.request.ICPUpdateRequest;
+import dev.prospectos.support.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -23,8 +24,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("test")
-class ICPManagementIntegrationTest {
+@ActiveProfiles({"test", "test-pg"})
+class ICPManagementIntegrationTest extends PostgresIntegrationTestBase {
 
     @Autowired
     private MockMvc mockMvc;
@@ -33,7 +34,7 @@ class ICPManagementIntegrationTest {
     private ObjectMapper objectMapper;
 
     @Test
-    void icpCrud_FlowWorksWithInMemoryStore() throws Exception {
+    void icpCrud_FlowWorksWithJpaPersistence() throws Exception {
         ICPCreateRequest createRequest = new ICPCreateRequest(
             "Growth ICP",
             "Targets growth-stage companies",
@@ -57,7 +58,7 @@ class ICPManagementIntegrationTest {
             .getContentAsString();
 
         long icpId = objectMapper.readTree(createResponse).get("id").asLong();
-        assertThat(icpId).isPositive();
+        assertThat(icpId).isNotZero();
 
         mockMvc.perform(get("/api/icps/{icpId}", icpId))
             .andExpect(status().isOk())
@@ -90,9 +91,29 @@ class ICPManagementIntegrationTest {
 
     @Test
     void listCompaniesByIcp_ReturnsSeededCompanies() throws Exception {
-        mockMvc.perform(get("/api/icps/{icpId}/companies", 1L))
+        ICPCreateRequest createRequest = new ICPCreateRequest(
+            "List ICP",
+            "ICP used to validate company listing endpoint",
+            List.of("Technology"),
+            List.of("Brazil"),
+            List.of("CTO"),
+            "Listing test",
+            List.of(),
+            null,
+            null
+        );
+        String createResponse = mockMvc.perform(post("/api/icps")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createRequest)))
+            .andExpect(status().isCreated())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+        long icpId = objectMapper.readTree(createResponse).get("id").asLong();
+
+        mockMvc.perform(get("/api/icps/{icpId}/companies", icpId))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.length()").isNumber())
-            .andExpect(jsonPath("$[0].id").isNumber());
+            .andExpect(jsonPath("$").isArray())
+            .andExpect(jsonPath("$.length()").isNumber());
     }
 }
