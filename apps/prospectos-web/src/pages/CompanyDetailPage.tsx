@@ -1,4 +1,4 @@
-﻿import { useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
 
@@ -20,7 +20,7 @@ export default function CompanyDetailPage() {
     });
 
     if (!Number.isFinite(companyId)) {
-        return <ErrorState message="Invalid company id." />;
+        return <ErrorState message={t('pages.companyDetail.errors.invalidId')} />;
     }
 
     if (companyQuery.isLoading) {
@@ -28,7 +28,7 @@ export default function CompanyDetailPage() {
     }
 
     if (companyQuery.isError || !companyQuery.data) {
-        return <ErrorState message="Failed to load company detail." onRetry={() => void companyQuery.refetch()} />;
+        return <ErrorState message={t('pages.companyDetail.errors.load')} onRetry={() => void companyQuery.refetch()} />;
     }
 
     const company = companyQuery.data;
@@ -41,11 +41,11 @@ export default function CompanyDetailPage() {
                 <div className="flex items-center justify-between">
                     <h2 className="text-lg font-semibold text-slate-900">{company.name}</h2>
                     <Badge variant={company.score && company.score.value >= 80 ? 'success' : 'neutral'}>
-                        {company.score ? `${company.score.value}/100` : t('pages.companyDetail.placeholder')}
+                        {company.score ? `${company.score.value}/100` : t('pages.companyDetail.scoreUnavailable')}
                     </Badge>
                 </div>
                 <p className="text-sm text-slate-600">{company.description ?? t('pages.companyDetail.description')}</p>
-                <p className="text-sm text-slate-700">{company.industry ?? '-'} · {company.location ?? '-'}</p>
+                <p className="text-sm text-slate-700">{company.industry ?? '-'} � {company.location ?? '-'}</p>
                 <Link className="text-sm font-medium text-blue-700 hover:text-blue-800 hover:underline" to="/companies">
                     {t('common.backToCompanies')}
                 </Link>

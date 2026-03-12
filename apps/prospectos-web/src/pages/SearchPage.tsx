@@ -1,4 +1,4 @@
-﻿import { zodResolver } from '@hookform/resolvers/zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -84,7 +84,7 @@ export default function SearchPage() {
                         {icpsQuery.isLoading ? (
                             <LoadingState label={t('common.loading')} />
                         ) : icpsQuery.isError ? (
-                            <ErrorState message="Failed to load ICP options." onRetry={() => void icpsQuery.refetch()} />
+                            <ErrorState message={t('pages.search.errors.loadIcps')} onRetry={() => void icpsQuery.refetch()} />
                         ) : (
                             <Select id="search-icp" label={t('pages.search.fields.icp')} error={form.formState.errors.icpId?.message} {...form.register('icpId')}>
                                 <option value="">{t('pages.search.placeholders.selectIcp')}</option>
@@ -110,9 +110,15 @@ export default function SearchPage() {
                 {searchMutation.isPending ? (
                     <LoadingState />
                 ) : searchMutation.isError ? (
-                    <ErrorState message="Failed to execute search." onRetry={() => void onSubmit()} />
+                    <ErrorState message={t('pages.search.errors.execute')} onRetry={() => void onSubmit()} />
                 ) : searchMutation.data ? (
-                    <DataTable columns={columns} rows={searchMutation.data.leads} rowKey={(row) => row.leadKey} emptyTitle={t('pages.search.empty.title')} emptyDescription={t('pages.search.empty.description')} />
+                    <DataTable
+                        columns={columns}
+                        rows={searchMutation.data.leads}
+                        rowKey={(row) => row.leadKey}
+                        emptyTitle={t('pages.search.empty.title')}
+                        emptyDescription={t('pages.search.empty.description')}
+                    />
                 ) : (
                     <EmptyState title={t('pages.search.empty.title')} description={t('pages.search.empty.description')} />
                 )}

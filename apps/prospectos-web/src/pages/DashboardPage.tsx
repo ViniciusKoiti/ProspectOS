@@ -1,4 +1,4 @@
-﻿import { useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 
 import StatCard from '../components/features/StatCard';
@@ -20,12 +20,17 @@ export default function DashboardPage() {
     const companiesQuery = useQuery({ queryKey: ['companies'], queryFn: listCompanies });
     const icpsQuery = useQuery({ queryKey: ['icps'], queryFn: listIcps });
 
+    const refreshDashboard = () => {
+        void companiesQuery.refetch();
+        void icpsQuery.refetch();
+    };
+
     if (companiesQuery.isLoading || icpsQuery.isLoading) {
         return <LoadingState />;
     }
 
     if (companiesQuery.isError || icpsQuery.isError) {
-        return <ErrorState message="Failed to load dashboard metrics." onRetry={() => { void companiesQuery.refetch(); void icpsQuery.refetch(); }} />;
+        return <ErrorState message={t('pages.dashboard.errors.load')} onRetry={refreshDashboard} />;
     }
 
     const companyCount = companiesQuery.data?.length ?? 0;
@@ -41,7 +46,7 @@ export default function DashboardPage() {
             <PageHeader
                 title={t('pages.dashboard.title')}
                 description={t('pages.dashboard.description')}
-                action={<Button variant="secondary">{t('common.refresh')}</Button>}
+                action={<Button variant="secondary" onClick={refreshDashboard}>{t('common.refresh')}</Button>}
             />
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">

@@ -1,4 +1,4 @@
-﻿import { useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
@@ -39,7 +39,7 @@ export default function CompaniesPage() {
     }
 
     if (companiesQuery.isError) {
-        return <ErrorState message="Failed to load companies." onRetry={() => void companiesQuery.refetch()} />;
+        return <ErrorState message={t('pages.companies.errors.load')} onRetry={() => void companiesQuery.refetch()} />;
     }
 
     return (

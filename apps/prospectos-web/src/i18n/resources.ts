@@ -40,6 +40,9 @@ export const resources = {
                         searchesToday: 'Buscas hoje',
                         trend: 'fase de base',
                     },
+                    errors: {
+                        load: 'Falha ao carregar os indicadores do dashboard.',
+                    },
                 },
                 search: {
                     title: 'Busca',
@@ -60,6 +63,10 @@ export const resources = {
                     empty: {
                         title: 'Nenhuma busca executada',
                         description: 'Os resultados aparecerao aqui apos o envio do formulario.',
+                    },
+                    errors: {
+                        loadIcps: 'Falha ao carregar as opcoes de ICP.',
+                        execute: 'Falha ao executar a busca.',
                     },
                 },
                 icps: {
@@ -123,13 +130,20 @@ export const resources = {
                         title: 'Nenhuma empresa disponivel',
                         description: 'Leads aceitos aparecerao aqui apos integracao dos fluxos.',
                     },
+                    errors: {
+                        load: 'Falha ao carregar empresas.',
+                    },
                 },
                 companyDetail: {
                     title: 'Detalhe da empresa',
                     selectedId: 'ID selecionado: {{id}}',
                     profileTitle: 'Resumo do perfil',
-                    placeholder: 'placeholder',
+                    scoreUnavailable: 'Sem score',
                     description: 'Esta tela recebera dados reais apos finalizacao do contrato de detalhes.',
+                    errors: {
+                        invalidId: 'ID de empresa invalido.',
+                        load: 'Falha ao carregar o detalhe da empresa.',
+                    },
                 },
             },
             ui: {
@@ -190,6 +204,9 @@ export const resources = {
                         searchesToday: 'Searches today',
                         trend: 'bootstrap phase',
                     },
+                    errors: {
+                        load: 'Failed to load dashboard metrics.',
+                    },
                 },
                 search: {
                     title: 'Search',
@@ -210,6 +227,10 @@ export const resources = {
                     empty: {
                         title: 'No search executed yet',
                         description: 'Results will appear here after form submission.',
+                    },
+                    errors: {
+                        loadIcps: 'Failed to load ICP options.',
+                        execute: 'Failed to execute search.',
                     },
                 },
                 icps: {
@@ -273,13 +294,20 @@ export const resources = {
                         title: 'No companies available',
                         description: 'Accepted leads will be listed here once flows are integrated.',
                     },
+                    errors: {
+                        load: 'Failed to load companies.',
+                    },
                 },
                 companyDetail: {
                     title: 'Company detail',
                     selectedId: 'Selected id: {{id}}',
                     profileTitle: 'Profile snapshot',
-                    placeholder: 'placeholder',
+                    scoreUnavailable: 'No score',
                     description: 'This screen will receive backend data after details contract finalization.',
+                    errors: {
+                        invalidId: 'Invalid company id.',
+                        load: 'Failed to load company detail.',
+                    },
                 },
             },
             ui: {
@@ -340,6 +368,9 @@ export const resources = {
                         searchesToday: 'Busquedas hoy',
                         trend: 'fase base',
                     },
+                    errors: {
+                        load: 'No se pudieron cargar los indicadores del dashboard.',
+                    },
                 },
                 search: {
                     title: 'Busqueda',
@@ -360,6 +391,10 @@ export const resources = {
                     empty: {
                         title: 'Aun no se ejecuto ninguna busqueda',
                         description: 'Los resultados apareceran aqui despues del envio del formulario.',
+                    },
+                    errors: {
+                        loadIcps: 'No se pudieron cargar las opciones de ICP.',
+                        execute: 'No se pudo ejecutar la busqueda.',
                     },
                 },
                 icps: {
@@ -423,13 +458,20 @@ export const resources = {
                         title: 'No hay empresas disponibles',
                         description: 'Los leads aceptados apareceran aqui al integrar los flujos.',
                     },
+                    errors: {
+                        load: 'No se pudieron cargar las empresas.',
+                    },
                 },
                 companyDetail: {
                     title: 'Detalle de empresa',
                     selectedId: 'ID seleccionado: {{id}}',
                     profileTitle: 'Resumen del perfil',
-                    placeholder: 'placeholder',
+                    scoreUnavailable: 'Sin puntaje',
                     description: 'Esta pantalla recibira datos reales cuando se finalice el contrato de detalle.',
+                    errors: {
+                        invalidId: 'ID de empresa invalido.',
+                        load: 'No se pudo cargar el detalle de la empresa.',
+                    },
                 },
             },
             ui: {
