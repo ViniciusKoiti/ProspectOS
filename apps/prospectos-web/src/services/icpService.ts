@@ -1,0 +1,12 @@
+﻿import { type Icp, icpSchema, type IcpUpsert,icpUpsertSchema } from '../types/contracts';
+import { api } from './api';
+
+export async function listIcps(): Promise<Icp[]> {
+    const response = await api.get('/icps');
+    return icpSchema.array().parse(response.data);
+}
+
+export async function createIcp(payload: IcpUpsert): Promise<Icp> {
+    const response = await api.post('/icps', icpUpsertSchema.parse(payload));
+    return icpSchema.parse(response.data);
+}

@@ -52,3 +52,15 @@ out/
 *.log
 hs_err_pid*.log
 logs/
+
+### Frontend / Package Managers ###
+apps/prospectos-web/node_modules/
+apps/prospectos-web/dist/
+apps/prospectos-web/dist-ssr/
+apps/prospectos-web/.vite/
+apps/prospectos-web/*.local
+.pnpm-store/
+.pnpm-cache/
+.npm-cache/
+.tmp/
+.DS_Store

@@ -59,6 +59,7 @@ Diagnostics:
 - Backend tests: `src/test/java/dev/prospectos/**` (integration tests in `src/test/java/dev/prospectos/integration`).
 - Backend test config: `src/test/resources/application-test.properties`.
 - Flutter app target location: `apps/flutter_app/`
+- Week 2 web app (React) target location: `apps/prospectos-web/`
 - Shared docs: `docs/` (update if behavior/module boundaries change).
 - Generated output: `build/` (do not edit).
 
@@ -68,9 +69,46 @@ Diagnostics:
 - Prefer this structure for new work:
   - `src/**` for the current Spring Boot backend
   - `apps/flutter_app/**` for the Flutter application
+  - `apps/prospectos-web/**` for the Week 2 React web frontend track
   - `docs/**` for cross-cutting documentation
 - Do not mix Flutter source into backend directories.
 - If shared contracts are added later, document them explicitly before creating a shared package/module.
+
+## MVP Week 2 Web Frontend Track (React)
+- This repository currently includes a Week 2 web frontend delivery track using React + TypeScript.
+- Keep all React code inside `apps/prospectos-web/**`.
+- Treat this as a component-first implementation (reusable UI blocks before page-specific duplication).
+
+### Week 2 day-by-day implementation docs
+- `docs/milestones/semana-2/dia-1-fundacao-e-design-system.md`
+- `docs/milestones/semana-2/dia-2-layout-e-dashboard.md`
+- `docs/milestones/semana-2/dia-3-busca-e-formularios.md`
+- `docs/milestones/semana-2/dia-4-resultados-e-icp-crud.md`
+- `docs/milestones/semana-2/dia-5-companies-polimento-e-release.md`
+
+### React component quality baseline
+- UI primitives must exist under `components/ui` (`Button`, `Input`, `TextArea`, `Select`, `Modal`, `Table`, `Card`, loading/error states).
+- Layout primitives must exist under `components/layout` (`Header`, `Sidebar`, `MainLayout`, `PageHeader`).
+- Feature components must live under `components/features` and compose UI primitives.
+- Avoid `any` in component props; prefer explicit typed interfaces.
+- Standardize visual and behavioral states: `loading`, `error`, `empty`, `disabled`.
+- Prefer `react-router-dom` links/navigation APIs over raw internal `a href`.
+
+### React usage contract (must follow)
+- React pages must orchestrate screen flow only; avoid embedding heavy business logic in page components.
+- All backend communication must go through typed service modules (for example `services/api.ts` and feature service wrappers).
+- Remote state must use React Query (`useQuery` for reads, `useMutation` for writes).
+- Forms must use `react-hook-form` with schema validation (Zod) for payload safety.
+- Every data-driven screen must implement explicit `loading`, `error`, and `empty` states.
+- New UI work should compose existing primitives first; only add a new primitive when reuse is clear.
+- Internal navigation must use `react-router-dom` (`Link`, `useNavigate`, route objects), not raw anchor refreshes.
+
+### React anti-patterns (must avoid)
+- Avoid `any` in API response types, component props, and form data.
+- Avoid direct axios/fetch calls inside presentational `components/ui`.
+- Avoid duplicating the same input/table/modal behavior in multiple features.
+- Avoid coupling reusable UI components to endpoint-specific response shapes.
+- Avoid shipping a screen that only handles success state and ignores error/loading behavior.
 
 ## Architecture & Modulith Boundaries (Critical)
 - `core` = domain model + business rules. Must not depend on `ai` or `infrastructure`.
