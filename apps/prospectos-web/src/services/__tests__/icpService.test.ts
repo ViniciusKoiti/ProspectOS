@@ -1,12 +1,14 @@
-﻿import { beforeEach,describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { api } from '../api';
-import { createIcp,listIcps } from '../icpService';
+import { createIcp, deleteIcp, listIcps, updateIcp } from '../icpService';
 
 vi.mock('../api', () => ({
     api: {
         get: vi.fn(),
         post: vi.fn(),
+        put: vi.fn(),
+        delete: vi.fn(),
     },
 }));
 
@@ -77,5 +79,45 @@ describe('icpService contract', () => {
 
         expect(api.post).toHaveBeenCalledWith('/icps', expect.objectContaining({ name: 'Revenue Ops' }));
         expect(result.id).toBe(3);
+    });
+
+    it('parses update ICP request and response contracts', async () => {
+        vi.mocked(api.put).mockResolvedValue({
+            data: {
+                id: 3,
+                name: 'Revenue Ops Updated',
+                description: 'Expanded segment',
+                targetIndustries: ['SaaS'],
+                regions: ['LATAM'],
+                targetTechnologies: ['HubSpot'],
+                minEmployeeCount: 50,
+                maxEmployeeCount: 500,
+                targetRoles: ['RevOps'],
+                interestTheme: 'Forecast discipline',
+            },
+        });
+
+        const result = await updateIcp(3, {
+            name: 'Revenue Ops Updated',
+            description: 'Expanded segment',
+            industries: ['SaaS'],
+            regions: ['LATAM'],
+            targetRoles: ['RevOps'],
+            interestTheme: 'Forecast discipline',
+            targetTechnologies: ['HubSpot'],
+            minEmployeeCount: 50,
+            maxEmployeeCount: 500,
+        });
+
+        expect(api.put).toHaveBeenCalledWith('/icps/3', expect.objectContaining({ name: 'Revenue Ops Updated' }));
+        expect(result.interestTheme).toBe('Forecast discipline');
+    });
+
+    it('calls delete ICP endpoint using the backend contract', async () => {
+        vi.mocked(api.delete).mockResolvedValue({ data: null });
+
+        await deleteIcp(9);
+
+        expect(api.delete).toHaveBeenCalledWith('/icps/9');
     });
 });

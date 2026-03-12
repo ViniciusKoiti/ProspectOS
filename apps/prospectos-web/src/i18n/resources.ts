@@ -11,10 +11,17 @@ export const resources = {
                 newIcp: 'Novo ICP',
                 searchProspects: 'Buscar prospects',
                 backToCompanies: 'Voltar para empresas',
+                cancel: 'Cancelar',
+                save: 'Salvar',
+                create: 'Criar',
+                edit: 'Editar',
+                delete: 'Excluir',
+                actions: 'Acoes',
+                close: 'Fechar',
                 languageNames: {
-                    'pt-BR': 'Português (BR)',
+                    'pt-BR': 'Portugues (BR)',
                     en: 'English',
-                    es: 'Español',
+                    es: 'Espanol',
                 },
             },
             nav: {
@@ -26,7 +33,7 @@ export const resources = {
             pages: {
                 dashboard: {
                     title: 'Dashboard',
-                    description: 'Visão geral do progresso do frontend na Semana 2.',
+                    description: 'Visao geral do progresso do frontend na Semana 2.',
                     stats: {
                         companies: 'Empresas',
                         activeIcps: 'ICPs ativos',
@@ -36,32 +43,68 @@ export const resources = {
                 },
                 search: {
                     title: 'Busca',
-                    description: 'Use componentes reutilizáveis para manter consistência entre os fluxos.',
+                    description: 'Use componentes reutilizaveis para manter consistencia entre os fluxos.',
                     fields: {
                         query: 'Consulta',
                         icp: 'ICP',
                         limit: 'Limite de resultados',
                     },
                     placeholders: {
-                        query: 'CTOs de fintech em São Paulo',
+                        query: 'CTOs de fintech em Sao Paulo',
                         selectIcp: 'Selecione um ICP',
                     },
                     options: {
-                        techLeaders: 'Lideranças de tecnologia',
-                        b2bOps: 'Operações B2B SaaS',
+                        techLeaders: 'Liderancas de tecnologia',
+                        b2bOps: 'Operacoes B2B SaaS',
                     },
                     empty: {
                         title: 'Nenhuma busca executada',
-                        description: 'Os resultados aparecerão aqui após o envio do formulário.',
+                        description: 'Os resultados aparecerao aqui apos o envio do formulario.',
                     },
                 },
                 icps: {
                     title: 'ICPs',
-                    description: 'Padrões de tabela e ação compartilhados para consistência no CRUD.',
+                    description: 'Padroes de tabela e acao compartilhados para consistencia no CRUD.',
                     table: {
                         name: 'Nome',
                         focus: 'Foco',
-                        regions: 'Regiões',
+                        regions: 'Regioes',
+                    },
+                    form: {
+                        name: 'Nome',
+                        description: 'Descricao',
+                        industries: 'Industrias',
+                        regions: 'Regioes',
+                        targetRoles: 'Cargos alvo',
+                        interestTheme: 'Tema de interesse',
+                        technologies: 'Tecnologias alvo',
+                        minEmployees: 'Minimo de funcionarios',
+                        maxEmployees: 'Maximo de funcionarios',
+                        multiValueHint: 'Use virgula, ponto e virgula ou quebra de linha para separar itens.',
+                    },
+                    actions: {
+                        edit: 'Editar ICP',
+                        delete: 'Excluir ICP',
+                    },
+                    modal: {
+                        createTitle: 'Criar ICP',
+                        createDescription: 'Defina o perfil ideal do cliente com campos reutilizaveis e tipados.',
+                        editTitle: 'Editar ICP',
+                        editDescription: 'Atualize o ICP mantendo o mesmo contrato usado na criacao.',
+                    },
+                    confirmDelete: {
+                        title: 'Excluir ICP',
+                        description: 'Deseja realmente excluir "{{name}}"? Esta acao nao pode ser desfeita.',
+                    },
+                    feedback: {
+                        createSuccess: 'ICP criado com sucesso.',
+                        updateSuccess: 'ICP atualizado com sucesso.',
+                        deleteSuccess: 'ICP excluido com sucesso.',
+                    },
+                    errors: {
+                        load: 'Falha ao carregar ICPs.',
+                        save: 'Falha ao salvar o ICP.',
+                        delete: 'Falha ao excluir o ICP.',
                     },
                     empty: {
                         title: 'Nenhum ICP configurado',
@@ -70,15 +113,15 @@ export const resources = {
                 },
                 companies: {
                     title: 'Empresas',
-                    description: 'Primitivos consistentes de tabela facilitam evolução das listas.',
+                    description: 'Primitivos consistentes de tabela facilitam evolucao das listas.',
                     table: {
                         company: 'Empresa',
-                        industry: 'Indústria',
+                        industry: 'Industria',
                         score: 'Score',
                     },
                     empty: {
-                        title: 'Nenhuma empresa disponível',
-                        description: 'Leads aceitos aparecerão aqui após integração dos fluxos.',
+                        title: 'Nenhuma empresa disponivel',
+                        description: 'Leads aceitos aparecerao aqui apos integracao dos fluxos.',
                     },
                 },
                 companyDetail: {
@@ -86,19 +129,22 @@ export const resources = {
                     selectedId: 'ID selecionado: {{id}}',
                     profileTitle: 'Resumo do perfil',
                     placeholder: 'placeholder',
-                    description: 'Esta tela receberá dados reais após finalização do contrato de detalhes.',
+                    description: 'Esta tela recebera dados reais apos finalizacao do contrato de detalhes.',
                 },
             },
             ui: {
                 table: {
                     noRecords: 'Sem registros',
-                    noData: 'Não há dados disponíveis para esta visualização.',
+                    noData: 'Nao ha dados disponiveis para esta visualizacao.',
                 },
                 error: {
                     title: 'Algo deu errado',
                 },
                 loading: {
                     label: 'Carregando dados...',
+                },
+                modal: {
+                    close: 'Fechar modal',
                 },
             },
         },
@@ -115,6 +161,13 @@ export const resources = {
                 newIcp: 'New ICP',
                 searchProspects: 'Search prospects',
                 backToCompanies: 'Back to companies',
+                cancel: 'Cancel',
+                save: 'Save',
+                create: 'Create',
+                edit: 'Edit',
+                delete: 'Delete',
+                actions: 'Actions',
+                close: 'Close',
                 languageNames: {
                     'pt-BR': 'Portuguese (BR)',
                     en: 'English',
@@ -147,7 +200,7 @@ export const resources = {
                         limit: 'Result limit',
                     },
                     placeholders: {
-                        query: 'CTOs of fintech companies in São Paulo',
+                        query: 'CTOs of fintech companies in Sao Paulo',
                         selectIcp: 'Select an ICP',
                     },
                     options: {
@@ -166,6 +219,42 @@ export const resources = {
                         name: 'Name',
                         focus: 'Focus',
                         regions: 'Regions',
+                    },
+                    form: {
+                        name: 'Name',
+                        description: 'Description',
+                        industries: 'Industries',
+                        regions: 'Regions',
+                        targetRoles: 'Target roles',
+                        interestTheme: 'Interest theme',
+                        technologies: 'Target technologies',
+                        minEmployees: 'Minimum employees',
+                        maxEmployees: 'Maximum employees',
+                        multiValueHint: 'Use commas, semicolons, or line breaks to separate items.',
+                    },
+                    actions: {
+                        edit: 'Edit ICP',
+                        delete: 'Delete ICP',
+                    },
+                    modal: {
+                        createTitle: 'Create ICP',
+                        createDescription: 'Define the ideal customer profile using typed reusable fields.',
+                        editTitle: 'Edit ICP',
+                        editDescription: 'Update the ICP using the same contract as creation.',
+                    },
+                    confirmDelete: {
+                        title: 'Delete ICP',
+                        description: 'Do you really want to delete "{{name}}"? This action cannot be undone.',
+                    },
+                    feedback: {
+                        createSuccess: 'ICP created successfully.',
+                        updateSuccess: 'ICP updated successfully.',
+                        deleteSuccess: 'ICP deleted successfully.',
+                    },
+                    errors: {
+                        load: 'Failed to load ICPs.',
+                        save: 'Failed to save the ICP.',
+                        delete: 'Failed to delete the ICP.',
                     },
                     empty: {
                         title: 'No ICPs configured',
@@ -204,6 +293,9 @@ export const resources = {
                 loading: {
                     label: 'Loading data...',
                 },
+                modal: {
+                    close: 'Close modal',
+                },
             },
         },
     },
@@ -219,15 +311,22 @@ export const resources = {
                 newIcp: 'Nuevo ICP',
                 searchProspects: 'Buscar prospectos',
                 backToCompanies: 'Volver a empresas',
+                cancel: 'Cancelar',
+                save: 'Guardar',
+                create: 'Crear',
+                edit: 'Editar',
+                delete: 'Eliminar',
+                actions: 'Acciones',
+                close: 'Cerrar',
                 languageNames: {
-                    'pt-BR': 'Portugués (BR)',
-                    en: 'Inglés',
-                    es: 'Español',
+                    'pt-BR': 'Portugues (BR)',
+                    en: 'Ingles',
+                    es: 'Espanol',
                 },
             },
             nav: {
                 dashboard: 'Dashboard',
-                search: 'Búsqueda',
+                search: 'Busqueda',
                 icps: 'ICPs',
                 companies: 'Empresas',
             },
@@ -238,29 +337,29 @@ export const resources = {
                     stats: {
                         companies: 'Empresas',
                         activeIcps: 'ICPs activos',
-                        searchesToday: 'Búsquedas hoy',
+                        searchesToday: 'Busquedas hoy',
                         trend: 'fase base',
                     },
                 },
                 search: {
-                    title: 'Búsqueda',
+                    title: 'Busqueda',
                     description: 'Usa componentes reutilizables para mantener consistencia entre flujos.',
                     fields: {
                         query: 'Consulta',
                         icp: 'ICP',
-                        limit: 'Límite de resultados',
+                        limit: 'Limite de resultados',
                     },
                     placeholders: {
-                        query: 'CTOs de fintech en São Paulo',
+                        query: 'CTOs de fintech en Sao Paulo',
                         selectIcp: 'Selecciona un ICP',
                     },
                     options: {
-                        techLeaders: 'Liderazgo tecnológico',
+                        techLeaders: 'Liderazgo tecnologico',
                         b2bOps: 'Operaciones B2B SaaS',
                     },
                     empty: {
-                        title: 'Aún no se ejecutó ninguna búsqueda',
-                        description: 'Los resultados aparecerán aquí después del envío del formulario.',
+                        title: 'Aun no se ejecuto ninguna busqueda',
+                        description: 'Los resultados apareceran aqui despues del envio del formulario.',
                     },
                 },
                 icps: {
@@ -271,6 +370,42 @@ export const resources = {
                         focus: 'Enfoque',
                         regions: 'Regiones',
                     },
+                    form: {
+                        name: 'Nombre',
+                        description: 'Descripcion',
+                        industries: 'Industrias',
+                        regions: 'Regiones',
+                        targetRoles: 'Cargos objetivo',
+                        interestTheme: 'Tema de interes',
+                        technologies: 'Tecnologias objetivo',
+                        minEmployees: 'Minimo de empleados',
+                        maxEmployees: 'Maximo de empleados',
+                        multiValueHint: 'Usa comas, punto y coma o saltos de linea para separar elementos.',
+                    },
+                    actions: {
+                        edit: 'Editar ICP',
+                        delete: 'Eliminar ICP',
+                    },
+                    modal: {
+                        createTitle: 'Crear ICP',
+                        createDescription: 'Define el perfil ideal del cliente usando campos reutilizables y tipados.',
+                        editTitle: 'Editar ICP',
+                        editDescription: 'Actualiza el ICP usando el mismo contrato que en la creacion.',
+                    },
+                    confirmDelete: {
+                        title: 'Eliminar ICP',
+                        description: 'Deseas eliminar "{{name}}"? Esta accion no se puede deshacer.',
+                    },
+                    feedback: {
+                        createSuccess: 'ICP creado correctamente.',
+                        updateSuccess: 'ICP actualizado correctamente.',
+                        deleteSuccess: 'ICP eliminado correctamente.',
+                    },
+                    errors: {
+                        load: 'No se pudieron cargar los ICPs.',
+                        save: 'No se pudo guardar el ICP.',
+                        delete: 'No se pudo eliminar el ICP.',
+                    },
                     empty: {
                         title: 'No hay ICPs configurados',
                         description: 'Crea el primer ICP para habilitar descubrimiento dirigido.',
@@ -278,7 +413,7 @@ export const resources = {
                 },
                 companies: {
                     title: 'Empresas',
-                    description: 'Primitivos consistentes de tabla facilitan evolución de listados.',
+                    description: 'Primitivos consistentes de tabla facilitan la evolucion de listados.',
                     table: {
                         company: 'Empresa',
                         industry: 'Industria',
@@ -286,7 +421,7 @@ export const resources = {
                     },
                     empty: {
                         title: 'No hay empresas disponibles',
-                        description: 'Los leads aceptados aparecerán aquí al integrar los flujos.',
+                        description: 'Los leads aceptados apareceran aqui al integrar los flujos.',
                     },
                 },
                 companyDetail: {
@@ -294,7 +429,7 @@ export const resources = {
                     selectedId: 'ID seleccionado: {{id}}',
                     profileTitle: 'Resumen del perfil',
                     placeholder: 'placeholder',
-                    description: 'Esta pantalla recibirá datos reales cuando se finalice el contrato de detalle.',
+                    description: 'Esta pantalla recibira datos reales cuando se finalice el contrato de detalle.',
                 },
             },
             ui: {
@@ -303,10 +438,13 @@ export const resources = {
                     noData: 'No hay datos disponibles para esta vista.',
                 },
                 error: {
-                    title: 'Algo salió mal',
+                    title: 'Algo salio mal',
                 },
                 loading: {
                     label: 'Cargando datos...',
+                },
+                modal: {
+                    close: 'Cerrar modal',
                 },
             },
         },
