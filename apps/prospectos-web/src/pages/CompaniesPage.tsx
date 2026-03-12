@@ -9,7 +9,7 @@ import ErrorState from '../components/ui/ErrorState';
 import LoadingState from '../components/ui/LoadingState';
 import PageHeader from '../components/ui/PageHeader';
 import { listCompanies } from '../services/companyService';
-import type { Company } from '../types/contracts';
+import type { Company } from '../types/companyContracts';
 
 export default function CompaniesPage() {
     const { t } = useTranslation();
@@ -55,3 +55,4 @@ export default function CompaniesPage() {
         </section>
     );
 }
+

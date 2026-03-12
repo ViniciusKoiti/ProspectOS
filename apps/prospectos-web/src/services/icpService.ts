@@ -1,4 +1,5 @@
-import { type Icp, icpSchema, type IcpUpsert, icpUpsertSchema } from '../types/contracts';
+import type { Icp, IcpUpsert } from '../types/icpContracts';
+import { icpSchema, icpUpsertSchema } from '../types/icpContracts';
 import { api } from './api';
 
 export async function listIcps(): Promise<Icp[]> {

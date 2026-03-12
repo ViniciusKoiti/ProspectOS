@@ -1,4 +1,5 @@
-﻿import { type Company,companySchema } from '../types/contracts';
+import type { Company } from '../types/companyContracts';
+import { companySchema } from '../types/companyContracts';
 import { api } from './api';
 
 export async function listCompanies(): Promise<Company[]> {

@@ -64,9 +64,17 @@ export const resources = {
                         title: 'Nenhuma busca executada',
                         description: 'Os resultados aparecerao aqui apos o envio do formulario.',
                     },
+                    actions: {
+                        accept: 'Aceitar lead',
+                        viewCompany: 'Ver empresa',
+                    },
+                    feedback: {
+                        acceptSuccess: 'Lead salvo com sucesso em empresas.',
+                    },
                     errors: {
                         loadIcps: 'Falha ao carregar as opcoes de ICP.',
                         execute: 'Falha ao executar a busca.',
+                        accept: 'Falha ao aceitar o lead.',
                     },
                 },
                 icps: {
@@ -228,9 +236,17 @@ export const resources = {
                         title: 'No search executed yet',
                         description: 'Results will appear here after form submission.',
                     },
+                    actions: {
+                        accept: 'Accept lead',
+                        viewCompany: 'View company',
+                    },
+                    feedback: {
+                        acceptSuccess: 'Lead saved successfully to companies.',
+                    },
                     errors: {
                         loadIcps: 'Failed to load ICP options.',
                         execute: 'Failed to execute search.',
+                        accept: 'Failed to accept the lead.',
                     },
                 },
                 icps: {
@@ -392,9 +408,17 @@ export const resources = {
                         title: 'Aun no se ejecuto ninguna busqueda',
                         description: 'Los resultados apareceran aqui despues del envio del formulario.',
                     },
+                    actions: {
+                        accept: 'Aceptar lead',
+                        viewCompany: 'Ver empresa',
+                    },
+                    feedback: {
+                        acceptSuccess: 'Lead guardado correctamente en empresas.',
+                    },
                     errors: {
                         loadIcps: 'No se pudieron cargar las opciones de ICP.',
                         execute: 'No se pudo ejecutar la busqueda.',
+                        accept: 'No se pudo aceptar el lead.',
                     },
                 },
                 icps: {
@@ -492,3 +516,5 @@ export const resources = {
         },
     },
 } as const;
+
+

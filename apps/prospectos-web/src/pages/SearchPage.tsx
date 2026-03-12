@@ -1,7 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import { z } from 'zod';
 
 import Button from '../components/ui/Button';
@@ -15,8 +17,8 @@ import PageHeader from '../components/ui/PageHeader';
 import Select from '../components/ui/Select';
 import TextArea from '../components/ui/TextArea';
 import { listIcps } from '../services/icpService';
-import { searchLeads } from '../services/leadService';
-import type { LeadResult } from '../types/contracts';
+import { acceptLead, searchLeads } from '../services/leadService';
+import type { AcceptLeadResponse, LeadResult } from '../types/leadContracts';
 
 const searchFormSchema = z.object({
     query: z.string().min(1),
@@ -29,8 +31,31 @@ type SearchFormValues = z.output<typeof searchFormSchema>;
 
 export default function SearchPage() {
     const { t } = useTranslation();
+    const queryClient = useQueryClient();
+    const [acceptingLeadKey, setAcceptingLeadKey] = useState<string | null>(null);
+    const [acceptedCompaniesByLeadKey, setAcceptedCompaniesByLeadKey] = useState<Record<string, AcceptLeadResponse['company']>>({});
+    const [acceptFeedback, setAcceptFeedback] = useState<AcceptLeadResponse['company'] | null>(null);
+
     const icpsQuery = useQuery({ queryKey: ['icps'], queryFn: listIcps });
-    const searchMutation = useMutation({ mutationFn: searchLeads });
+    const searchMutation = useMutation({
+        mutationFn: searchLeads,
+        onSuccess: () => {
+            setAcceptedCompaniesByLeadKey({});
+            setAcceptFeedback(null);
+        },
+    });
+    const acceptMutation = useMutation({
+        mutationFn: acceptLead,
+        onSuccess: async (response, variables) => {
+            setAcceptedCompaniesByLeadKey((current) => ({
+                ...current,
+                [variables.leadKey]: response.company,
+            }));
+            setAcceptFeedback(response.company);
+            await queryClient.invalidateQueries({ queryKey: ['companies'] });
+        },
+    });
+
     const form = useForm<SearchFormInput, unknown, SearchFormValues>({
         resolver: zodResolver(searchFormSchema),
         defaultValues: {
@@ -39,6 +64,22 @@ export default function SearchPage() {
             icpId: null,
         },
     });
+
+    const handleAcceptLead = async (lead: LeadResult) => {
+        setAcceptingLeadKey(lead.leadKey);
+        setAcceptFeedback(null);
+
+        try {
+            await acceptMutation.mutateAsync({
+                leadKey: lead.leadKey,
+                candidate: lead.candidate,
+                score: lead.score,
+                source: lead.source,
+            });
+        } finally {
+            setAcceptingLeadKey(null);
+        }
+    };
 
     const columns: DataTableColumn<LeadResult>[] = [
         {
@@ -56,9 +97,39 @@ export default function SearchPage() {
             header: t('pages.companies.table.score'),
             render: (row) => `${row.score.value}/100`,
         },
+        {
+            key: 'actions',
+            header: t('common.actions'),
+            render: (row) => {
+                const acceptedCompany = acceptedCompaniesByLeadKey[row.leadKey];
+
+                if (acceptedCompany) {
+                    return (
+                        <Link className="text-sm font-medium text-blue-700 hover:text-blue-800 hover:underline" to={`/companies/${acceptedCompany.id}`}>
+                            {t('pages.search.actions.viewCompany')}
+                        </Link>
+                    );
+                }
+
+                return (
+                    <Button
+                        variant="secondary"
+                        loading={acceptMutation.isPending && acceptingLeadKey === row.leadKey}
+                        disabled={acceptMutation.isPending}
+                        onClick={() => void handleAcceptLead(row)}
+                    >
+                        {t('pages.search.actions.accept')}
+                    </Button>
+                );
+            },
+        },
     ];
 
     const onSubmit = form.handleSubmit(async (values) => {
+        setAcceptedCompaniesByLeadKey({});
+        setAcceptFeedback(null);
+        acceptMutation.reset();
+
         await searchMutation.mutateAsync({
             query: values.query,
             limit: values.limit,
@@ -107,22 +178,38 @@ export default function SearchPage() {
                     </form>
                 </Card>
 
-                {searchMutation.isPending ? (
-                    <LoadingState />
-                ) : searchMutation.isError ? (
-                    <ErrorState message={t('pages.search.errors.execute')} onRetry={() => void onSubmit()} />
-                ) : searchMutation.data ? (
-                    <DataTable
-                        columns={columns}
-                        rows={searchMutation.data.leads}
-                        rowKey={(row) => row.leadKey}
-                        emptyTitle={t('pages.search.empty.title')}
-                        emptyDescription={t('pages.search.empty.description')}
-                    />
-                ) : (
-                    <EmptyState title={t('pages.search.empty.title')} description={t('pages.search.empty.description')} />
-                )}
+                <div className="space-y-4">
+                    {acceptFeedback ? (
+                        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                            <div>{t('pages.search.feedback.acceptSuccess')}</div>
+                            <Link className="mt-2 inline-flex font-medium text-emerald-800 underline" to={`/companies/${acceptFeedback.id}`}>
+                                {t('pages.search.actions.viewCompany')}
+                            </Link>
+                        </div>
+                    ) : null}
+
+                    {acceptMutation.isError ? (
+                        <ErrorState message={t('pages.search.errors.accept')} />
+                    ) : null}
+
+                    {searchMutation.isPending ? (
+                        <LoadingState />
+                    ) : searchMutation.isError ? (
+                        <ErrorState message={t('pages.search.errors.execute')} onRetry={() => void onSubmit()} />
+                    ) : searchMutation.data ? (
+                        <DataTable
+                            columns={columns}
+                            rows={searchMutation.data.leads}
+                            rowKey={(row) => row.leadKey}
+                            emptyTitle={t('pages.search.empty.title')}
+                            emptyDescription={t('pages.search.empty.description')}
+                        />
+                    ) : (
+                        <EmptyState title={t('pages.search.empty.title')} description={t('pages.search.empty.description')} />
+                    )}
+                </div>
             </div>
         </section>
     );
 }
+

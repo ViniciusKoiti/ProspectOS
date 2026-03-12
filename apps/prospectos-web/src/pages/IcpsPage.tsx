@@ -11,7 +11,7 @@ import LoadingState from '../components/ui/LoadingState';
 import Modal from '../components/ui/Modal';
 import PageHeader from '../components/ui/PageHeader';
 import { createIcp, deleteIcp, listIcps, updateIcp } from '../services/icpService';
-import type { Icp, IcpUpsert } from '../types/contracts';
+import type { Icp, IcpUpsert } from '../types/icpContracts';
 
 export default function IcpsPage() {
     const { t } = useTranslation();
@@ -189,3 +189,4 @@ export default function IcpsPage() {
         </>
     );
 }
+

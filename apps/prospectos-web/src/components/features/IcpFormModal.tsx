@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
 import { createIcpFormDefaultValues, type IcpFormInput, icpFormSchema, type IcpFormValues, toIcpUpsert } from '../../features/icps/icpForm';
-import type { Icp, IcpUpsert } from '../../types/contracts';
+import type { Icp, IcpUpsert } from '../../types/icpContracts';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Modal from '../ui/Modal';

@@ -1,7 +1,7 @@
-﻿import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { api } from '../api';
-import { searchLeads } from '../leadService';
+import { acceptLead, searchLeads } from '../leadService';
 
 vi.mock('../api', () => ({
     api: {
@@ -73,5 +73,53 @@ describe('leadService contract', () => {
                 icpId: null,
             })
         ).rejects.toThrow();
+    });
+
+    it('parses accept lead request and response contracts', async () => {
+        vi.mocked(api.post).mockResolvedValue({
+            data: {
+                company: {
+                    id: 12,
+                    name: 'Alpha Systems',
+                    industry: 'Software',
+                    website: 'https://alpha.example',
+                    description: 'Platform vendor',
+                    employeeCount: null,
+                    location: null,
+                    score: {
+                        value: 82,
+                        category: 'HOT',
+                        reasoning: 'Good fit',
+                    },
+                },
+                message: 'Lead accepted and created',
+            },
+        });
+
+        const result = await acceptLead({
+            leadKey: 'lead-key-1',
+            candidate: {
+                name: 'Alpha Systems',
+                website: 'https://alpha.example',
+                industry: 'Software',
+                description: 'Platform vendor',
+                size: 'MEDIUM',
+                location: 'Sao Paulo',
+                contacts: ['hello@alpha.example'],
+            },
+            score: {
+                value: 82,
+                category: 'HOT',
+                reasoning: 'Good fit',
+            },
+            source: {
+                sourceName: 'in-memory',
+                sourceUrl: 'https://example.test',
+                collectedAt: '2026-03-11T12:00:00Z',
+            },
+        });
+
+        expect(api.post).toHaveBeenCalledWith('/leads/accept', expect.objectContaining({ leadKey: 'lead-key-1' }));
+        expect(result.company.id).toBe(12);
     });
 });

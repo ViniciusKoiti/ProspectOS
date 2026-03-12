@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import type { Icp, IcpUpsert } from '../../types/contracts';
+import type { Icp, IcpUpsert } from '../../types/icpContracts';
 
 function blankToNull(value: string | null | undefined) {
     const trimmed = value?.trim() ?? '';
@@ -114,4 +114,5 @@ export function toIcpUpsert(values: IcpFormValues): IcpUpsert {
         maxEmployeeCount: values.maxEmployeeCount,
     };
 }
+
 
