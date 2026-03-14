@@ -49,14 +49,22 @@ public class ChatClientConfig {
             openAiChatModel != null,
             groqChatModel != null,
             anthropicChatModel != null);
+        log.info("Configured active providers order: {}", activationProperties.activeProviders());
 
         for (LLMProvider provider : activationProperties.activeProviders()) {
+            boolean keyValid = switch (provider) {
+                case OPENAI -> isValidApiKey(openaiKey);
+                case GROQ -> isValidApiKey(groqKey);
+                case ANTHROPIC -> isValidApiKey(anthropicKey);
+                default -> false;
+            };
             ChatModel candidate = switch (provider) {
-                case OPENAI -> isValidApiKey(openaiKey) ? openAiChatModel : null;
-                case GROQ -> isValidApiKey(groqKey) ? groqChatModel : null;
-                case ANTHROPIC -> isValidApiKey(anthropicKey) ? anthropicChatModel : null;
+                case OPENAI -> keyValid ? openAiChatModel : null;
+                case GROQ -> keyValid ? groqChatModel : null;
+                case ANTHROPIC -> keyValid ? anthropicChatModel : null;
                 default -> null;
             };
+            log.info("Provider {} evaluation -> keyValid={}, modelPresent={}", provider, keyValid, candidate != null);
 
             if (candidate != null) {
                 log.info("Using {} ChatModel as primary.", provider.getDisplayName());

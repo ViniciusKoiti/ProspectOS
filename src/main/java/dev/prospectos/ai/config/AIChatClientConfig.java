@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,9 +34,8 @@ public class AIChatClientConfig {
      * Primary ChatClient with default B2B prospecting prompt.
      */
     @Bean
-    @ConditionalOnBean(name = "primaryChatModel")
     public ChatClient chatClient(@Qualifier("primaryChatModel") ChatModel chatModel) {
-        log.info("Creating default ChatClient (primary ChatModel present)");
+        log.info("Creating default ChatClient");
         
         String systemPrompt = promptService.getB2BProspectingPrompt();
         return ChatClient.builder(chatModel)
@@ -49,9 +47,8 @@ public class AIChatClientConfig {
      * Specialized ChatClient for scoring with scoring prompt.
      */
     @Bean("scoringChatClient")
-    @ConditionalOnBean(name = "primaryChatModel")
     public ChatClient scoringChatClient(@Qualifier("primaryChatModel") ChatModel chatModel) {
-        log.info("Creating scoring ChatClient (primary ChatModel present)");
+        log.info("Creating scoring ChatClient");
         
         String systemPrompt = promptService.getScoringPrompt();
         return ChatClient.builder(chatModel)
@@ -63,7 +60,6 @@ public class AIChatClientConfig {
      * Groq-specific ChatClient with default prompt.
      */
     @Bean("groqChatClient")
-    @ConditionalOnBean(name = "groqChatModel")
     public ChatClient groqChatClient(@Qualifier("groqChatModel") ChatModel chatModel) {
         log.info("Creating Groq ChatClient");
         
@@ -77,7 +73,6 @@ public class AIChatClientConfig {
      * Groq-specific scoring ChatClient.
      */
     @Bean("groqScoringChatClient")
-    @ConditionalOnBean(name = "groqChatModel")
     public ChatClient groqScoringChatClient(@Qualifier("groqChatModel") ChatModel chatModel) {
         log.info("Creating Groq scoring ChatClient");
         

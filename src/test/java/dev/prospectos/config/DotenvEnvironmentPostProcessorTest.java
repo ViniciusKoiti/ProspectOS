@@ -60,6 +60,10 @@ class DotenvEnvironmentPostProcessorTest {
         assertThat(mappings.get("ANTHROPIC_API_KEY")).isEqualTo("spring.ai.anthropic.api-key");
         assertThat(mappings.get("AI_PROVIDER_PRIORITY")).isEqualTo("prospectos.ai.active-providers");
         assertThat(mappings.get("PROSPECTOS_AI_GROQ_API_KEY")).isEqualTo("prospectos.ai.groq.api-key");
+        assertThat(mappings.get("PROSPECTOS_AI_ENABLED")).isEqualTo("prospectos.ai.enabled");
+        assertThat(mappings.get("DEBUG")).isEqualTo("debug");
+        assertThat(mappings.get("LOGGING_LEVEL_DEV_PROSPECTOS_AI_CONFIG"))
+            .isEqualTo("logging.level.dev.prospectos.ai.config");
     }
 
     @Test

@@ -18,18 +18,30 @@ final class DotenvEnvironmentMappings {
         mappings.put("SPRING_AI_ANTHROPIC_API_KEY", "spring.ai.anthropic.api-key");
         mappings.put("SPRING_AI_ANTHROPIC_CLAUDE_MODEL", "spring.ai.anthropic.claude.model");
         mappings.put("SPRING_AI_ANTHROPIC_ENABLED", "spring.ai.anthropic.enabled");
+        mappings.put("PROSPECTOS_AI_ENABLED", "prospectos.ai.enabled");
         mappings.put("PROSPECTOS_AI_ACTIVE_PROVIDERS", "prospectos.ai.active-providers");
         mappings.put("PROSPECTOS_AI_GROQ_API_KEY", "prospectos.ai.groq.api-key");
         mappings.put("PROSPECTOS_AI_GROQ_BASE_URL", "prospectos.ai.groq.base-url");
         mappings.put("PROSPECTOS_AI_GROQ_MODEL", "prospectos.ai.groq.model");
+        mappings.put("SCRAPER_AI_ENABLED", "scraper.ai.enabled");
         mappings.put("OPENAI_API_KEY", "spring.ai.openai.api-key");
         mappings.put("ANTHROPIC_API_KEY", "spring.ai.anthropic.api-key");
         mappings.put("GROQ_API_KEY", "prospectos.ai.groq.api-key");
         mappings.put("SPRING_PROFILES_ACTIVE", "spring.profiles.active");
         mappings.put("SERVER_PORT", "server.port");
+        mappings.put("DEBUG", "debug");
+        mappings.put("DOTENV_DEBUG", "dotenv.debug");
         mappings.put("LOGGING_LEVEL_ROOT", "logging.level.root");
         mappings.put("LOGGING_LEVEL_DEV_PROSPECTOS", "logging.level.dev.prospectos");
         mappings.put("LOGGING_LEVEL_DEV_PROSPECTOS_AI", "logging.level.dev.prospectos.ai");
+        mappings.put("LOGGING_LEVEL_DEV_PROSPECTOS_CONFIG", "logging.level.dev.prospectos.config");
+        mappings.put("LOGGING_LEVEL_DEV_PROSPECTOS_AI_CONFIG", "logging.level.dev.prospectos.ai.config");
+        mappings.put("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_BOOT_AUTOCONFIGURE",
+            "logging.level.org.springframework.boot.autoconfigure");
+        mappings.put("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_BOOT_CONTEXT_CONFIG",
+            "logging.level.org.springframework.boot.context.config");
+        mappings.put("LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_BEANS_FACTORY_SUPPORT",
+            "logging.level.org.springframework.beans.factory.support");
         mappings.put("SPRING_DATASOURCE_URL", "spring.datasource.url");
         mappings.put("SPRING_DATASOURCE_DRIVER_CLASS_NAME", "spring.datasource.driver-class-name");
         mappings.put("SPRING_DATASOURCE_USERNAME", "spring.datasource.username");
