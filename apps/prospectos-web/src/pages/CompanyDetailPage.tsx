@@ -45,7 +45,7 @@ export default function CompanyDetailPage() {
     const company = companyQuery.data;
 
     return (
-        <section className="space-y-4">
+        <section className="space-y-4" data-testid="company-detail-page">
             <PageHeader title={t('pages.companyDetail.title')} description={t('pages.companyDetail.selectedId', { id: company.id })} />
 
             <Card className="space-y-4">
@@ -78,3 +78,4 @@ export default function CompanyDetailPage() {
         </section>
     );
 }
+

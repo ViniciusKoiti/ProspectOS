@@ -64,3 +64,9 @@ apps/prospectos-web/*.local
 .npm-cache/
 .tmp/
 .DS_Store
+
+# Playwright artifacts
+.playwright-cli/
+output/
+apps/prospectos-web/playwright-report/
+apps/prospectos-web/test-results/

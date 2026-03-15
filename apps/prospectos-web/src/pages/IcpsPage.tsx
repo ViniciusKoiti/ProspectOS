@@ -136,11 +136,11 @@ export default function IcpsPage() {
 
     return (
         <>
-            <section className="space-y-4">
+            <section className="space-y-4" data-testid="icps-page">
                 <PageHeader
                     title={t('pages.icps.title')}
                     description={t('pages.icps.description')}
-                    action={<Button onClick={openCreateModal}>{t('common.newIcp')}</Button>}
+                    action={<Button onClick={openCreateModal} data-testid="icp-new-button">{t('common.newIcp')}</Button>}
                 />
 
                 {feedback ? (
@@ -189,5 +189,6 @@ export default function IcpsPage() {
         </>
     );
 }
+
 
 
