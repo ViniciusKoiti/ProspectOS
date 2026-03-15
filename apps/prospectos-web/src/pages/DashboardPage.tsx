@@ -17,7 +17,7 @@ type StatItem = {
 
 export default function DashboardPage() {
     const { t } = useTranslation();
-    const companiesQuery = useQuery({ queryKey: ['companies'], queryFn: listCompanies });
+    const companiesQuery = useQuery({ queryKey: ['companies'], queryFn: () => listCompanies() });
     const icpsQuery = useQuery({ queryKey: ['icps'], queryFn: listIcps });
 
     const refreshDashboard = () => {
@@ -33,7 +33,7 @@ export default function DashboardPage() {
         return <ErrorState message={t('pages.dashboard.errors.load')} onRetry={refreshDashboard} />;
     }
 
-    const companyCount = companiesQuery.data?.length ?? 0;
+    const companyCount = companiesQuery.data?.totalItems ?? companiesQuery.data?.items.length ?? 0;
     const icpCount = icpsQuery.data?.length ?? 0;
     const stats: StatItem[] = [
         { label: t('pages.dashboard.stats.companies'), value: String(companyCount), trend: t('pages.dashboard.stats.trend') },

@@ -18,6 +18,7 @@ vi.mock('../../services/companyService', () => ({
 const translations: Record<string, string> = {
     'common.retry': 'Tentar novamente',
     'ui.error.title': 'Algo deu errado',
+    'ui.loading.label': 'Carregando dados',
     'pages.companies.title': 'Empresas',
     'pages.companies.description': 'Primitivos consistentes de tabela facilitam a evolucao de listados.',
     'pages.companies.table.company': 'Empresa',
@@ -46,8 +47,16 @@ vi.mock('react-i18next', () => ({
     }),
 }));
 
+type CompaniesPageData = {
+    items: Company[];
+    page: number;
+    size: number;
+    totalItems: number;
+    totalPages: number;
+};
+
 type CompaniesQueryState = {
-    data?: Company[];
+    data?: CompaniesPageData;
     isLoading: boolean;
     isError: boolean;
 };
@@ -71,43 +80,79 @@ function renderPage() {
     );
 }
 
+function createCompany(index: number): Company {
+    return {
+        id: String(index),
+        name: `Empresa ${index}`,
+        industry: 'Software',
+        website: null,
+        description: null,
+        employeeCount: 100 + index,
+        location: 'Sao Paulo',
+        score: index % 2 === 0
+            ? {
+                value: 60 + index,
+                category: 'WARM',
+                reasoning: 'Fit razoavel',
+            }
+            : null,
+        primaryContactEmail: index % 2 === 0 ? `contato${index}@empresa.example` : null,
+        contactCount: index % 2 === 0 ? 1 : 0,
+    };
+}
+
+function createPageData(items: Company[], page: number, size: number, totalItems: number, totalPages: number): CompaniesPageData {
+    return {
+        items,
+        page,
+        size,
+        totalItems,
+        totalPages,
+    };
+}
+
 describe('CompaniesPage', () => {
     beforeEach(() => {
         vi.clearAllMocks();
     });
 
-    it('renders companies table with primary contact summary', () => {
+    it('renders advanced filters and pagination indicators from backend metadata', () => {
+        const secondPageItems = Array.from({ length: 5 }, (_, index) => createCompany(index + 6));
+
         mockCompaniesQuery({
             isLoading: false,
             isError: false,
-            data: [
-                {
-                    id: '42',
-                    name: 'Alpha Systems',
-                    industry: 'Software',
-                    website: null,
-                    description: null,
-                    employeeCount: 120,
-                    location: 'Sao Paulo',
-                    score: null,
-                    primaryContactEmail: 'ceo@alpha.example',
-                    contactCount: 2,
-                },
-            ],
+            data: createPageData(secondPageItems, 1, 5, 12, 3),
         });
 
         const markup = renderPage();
 
-        expect(markup).toContain('Contato principal');
-        expect(markup).toContain('ceo@alpha.example');
-        expect(markup).toContain('2 contatos');
+        expect(markup).toContain('Filtros');
+        expect(markup).toContain('Score maximo');
+        expect(markup).toContain('Com contato');
+        expect(markup).toContain('Mostrando 6-10 de 12 empresas');
+        expect(markup).toContain('Pagina 2 de 3');
+        expect(markup).toContain('Empresa 10');
+        expect(markup).not.toContain('Empresa 11');
+    });
+
+    it('renders loading state while query is pending', () => {
+        mockCompaniesQuery({
+            isLoading: true,
+            isError: false,
+            data: undefined,
+        });
+
+        const markup = renderPage();
+
+        expect(markup).toContain('Carregando dados');
     });
 
     it('renders empty state when there are no companies', () => {
         mockCompaniesQuery({
             isLoading: false,
             isError: false,
-            data: [],
+            data: createPageData([], 0, 10, 0, 1),
         });
 
         const markup = renderPage();
