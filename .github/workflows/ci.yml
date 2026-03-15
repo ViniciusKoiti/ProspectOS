@@ -10,8 +10,8 @@ permissions:
   contents: read
 
 jobs:
-  frontend-test:
-    name: frontend-test
+  frontend-quality-gate:
+    name: frontend-quality-gate
     runs-on: ubuntu-latest
 
     steps:
@@ -34,8 +34,22 @@ jobs:
       - name: Install frontend dependencies
         run: pnpm --dir apps/prospectos-web install --frozen-lockfile
 
+      - name: Run frontend lint
+        run: pnpm --dir apps/prospectos-web lint
+
+      - name: Run frontend typecheck
+        run: pnpm --dir apps/prospectos-web typecheck
+
       - name: Run frontend tests
         run: pnpm --dir apps/prospectos-web test
+
+      - name: Build frontend
+        run: pnpm --dir apps/prospectos-web build
+
+      - name: Validate frontend bundle budget
+        run: pnpm --dir apps/prospectos-web check:bundle
+        env:
+          BUNDLE_GZIP_MAX_KB: "500"
 
   test-pg-gate:
     name: test-pg-gate

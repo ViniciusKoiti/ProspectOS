@@ -23,7 +23,7 @@ import type { AcceptLeadResponse, LeadResult } from '../types/leadContracts';
 const searchFormSchema = z.object({
     query: z.string().min(1),
     limit: z.coerce.number().int().min(1).max(100),
-    icpId: z.preprocess((value) => (value === "" ? null : String(value)), z.string().regex(/^-?\d+$/).nullable()),
+    icpId: z.preprocess((value) => (value === '' ? null : String(value)), z.string().regex(/^-?\d+$/).nullable()),
 });
 
 type SearchFormInput = z.input<typeof searchFormSchema>;
@@ -105,7 +105,11 @@ export default function SearchPage() {
 
                 if (acceptedCompany) {
                     return (
-                        <Link className="text-sm font-medium text-blue-700 hover:text-blue-800 hover:underline" to={`/companies/${acceptedCompany.id}`}>
+                        <Link
+                            className="text-sm font-medium text-blue-700 hover:text-blue-800 hover:underline"
+                            data-testid={`search-result-view-company-${acceptedCompany.id}`}
+                            to={`/companies/${acceptedCompany.id}`}
+                        >
                             {t('pages.search.actions.viewCompany')}
                         </Link>
                     );
@@ -116,6 +120,7 @@ export default function SearchPage() {
                         variant="secondary"
                         loading={acceptMutation.isPending && acceptingLeadKey === row.leadKey}
                         disabled={acceptMutation.isPending}
+                        data-testid={`accept-lead-${row.leadKey}`}
                         onClick={() => void handleAcceptLead(row)}
                     >
                         {t('pages.search.actions.accept')}
@@ -139,12 +144,12 @@ export default function SearchPage() {
     });
 
     return (
-        <section className="space-y-4">
+        <section className="space-y-4" data-testid="search-page">
             <PageHeader title={t('pages.search.title')} description={t('pages.search.description')} />
 
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr,1.2fr]">
                 <Card>
-                    <form className="space-y-4" onSubmit={onSubmit}>
+                    <form className="space-y-4" onSubmit={onSubmit} data-testid="search-form">
                         <TextArea
                             id="search-query"
                             label={t('pages.search.fields.query')}
@@ -180,9 +185,9 @@ export default function SearchPage() {
 
                 <div className="space-y-4">
                     {acceptFeedback ? (
-                        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700" data-testid="search-accept-feedback">
                             <div>{t('pages.search.feedback.acceptSuccess')}</div>
-                            <Link className="mt-2 inline-flex font-medium text-emerald-800 underline" to={`/companies/${acceptFeedback.id}`}>
+                            <Link className="mt-2 inline-flex font-medium text-emerald-800 underline" data-testid="search-view-accepted-company" to={`/companies/${acceptFeedback.id}`}>
                                 {t('pages.search.actions.viewCompany')}
                             </Link>
                         </div>
@@ -197,21 +202,22 @@ export default function SearchPage() {
                     ) : searchMutation.isError ? (
                         <ErrorState message={t('pages.search.errors.execute')} onRetry={() => void onSubmit()} />
                     ) : searchMutation.data ? (
-                        <DataTable
-                            columns={columns}
-                            rows={searchMutation.data.leads}
-                            rowKey={(row) => row.leadKey}
-                            emptyTitle={t('pages.search.empty.title')}
-                            emptyDescription={t('pages.search.empty.description')}
-                        />
+                        <div data-testid="search-results-table">
+                            <DataTable
+                                columns={columns}
+                                rows={searchMutation.data.leads}
+                                rowKey={(row) => row.leadKey}
+                                emptyTitle={t('pages.search.empty.title')}
+                                emptyDescription={t('pages.search.empty.description')}
+                            />
+                        </div>
                     ) : (
-                        <EmptyState title={t('pages.search.empty.title')} description={t('pages.search.empty.description')} />
+                        <div data-testid="search-results-empty">
+                            <EmptyState title={t('pages.search.empty.title')} description={t('pages.search.empty.description')} />
+                        </div>
                     )}
                 </div>
             </div>
         </section>
     );
 }
-
-
-

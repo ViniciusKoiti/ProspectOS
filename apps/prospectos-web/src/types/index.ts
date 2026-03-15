@@ -1,5 +1,5 @@
 export type { Company, CompanyContact, Score } from './companyContracts';
-export { companyContactsSchema, companyContactSchema, companySchema, scoreSchema } from './companyContracts';
+export { companyContactSchema, companyContactsSchema, companySchema, scoreSchema } from './companyContracts';
 export type { Icp, IcpUpsert } from './icpContracts';
 export { icpSchema, icpUpsertSchema } from './icpContracts';
 export type {

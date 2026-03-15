@@ -42,7 +42,7 @@ export default function DashboardPage() {
     ];
 
     return (
-        <section className="space-y-4">
+        <section className="space-y-4" data-testid="dashboard-page">
             <PageHeader
                 title={t('pages.dashboard.title')}
                 description={t('pages.dashboard.description')}
@@ -57,3 +57,4 @@ export default function DashboardPage() {
         </section>
     );
 }
+

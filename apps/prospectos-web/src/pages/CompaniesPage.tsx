@@ -20,7 +20,7 @@ export default function CompaniesPage() {
             key: 'name',
             header: t('pages.companies.table.company'),
             render: (row) => (
-                <Link className="font-medium text-blue-700 hover:text-blue-800 hover:underline" to={`/companies/${row.id}`}>
+                <Link className="font-medium text-blue-700 hover:text-blue-800 hover:underline" data-testid={`company-link-${row.id}`} to={`/companies/${row.id}`}>
                     {row.name}
                 </Link>
             ),
@@ -53,7 +53,7 @@ export default function CompaniesPage() {
     }
 
     return (
-        <section className="space-y-4">
+        <section className="space-y-4" data-testid="companies-page">
             <PageHeader title={t('pages.companies.title')} description={t('pages.companies.description')} />
             <DataTable
                 columns={columns}
@@ -65,3 +65,4 @@ export default function CompaniesPage() {
         </section>
     );
 }
+
