@@ -1,0 +1,26 @@
+@startuml Company Contacts - Read Flow
+
+title Company Contacts Read Flow (MVP)
+
+actor User as U
+participant "Frontend" as FE
+participant "CompanyController" as CC
+participant "CompanyDataService" as CDS
+participant "Company Repository" as CR
+
+U -> FE: Open /companies/{id}
+FE -> CC: GET /api/companies/{id}/contacts
+CC -> CDS: listCompanyContacts(companyId)
+CDS -> CR: findByExternalId(companyId)
+CR --> CDS: Company
+CDS --> CC: List<CompanyContactDTO>
+CC --> FE: 200 OK
+FE --> U: Render section "Pessoas"
+
+alt Company not found
+  CDS --> CC: null
+  CC --> FE: 404 Company not found
+  FE --> U: Error state
+end
+
+@enduml

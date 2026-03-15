@@ -1,0 +1,29 @@
+@startuml Search and Accept Flow - Current
+
+title ProspectOS Web - Search and Accept Lead Flow
+
+actor User as U
+participant "SearchPage" as SP
+participant "Lead API" as API
+
+U -> SP: Open /search
+SP -> API: GET /api/icps
+API --> SP: ICP list
+
+U -> SP: Fill query + limit + optional icpId
+U -> SP: Click "Buscar prospects"
+SP -> API: POST /api/leads/search
+API --> SP: LeadSearchResponse
+
+alt Search error
+    SP --> U: Show ErrorState + Retry
+else Search success
+    SP --> U: Show leads in DataTable
+    U -> SP: Click "Aceitar"
+    SP -> API: POST /api/leads/accept
+    API --> SP: AcceptLeadResponse (company)
+    SP -> SP: invalidateQueries(["companies"])
+    SP --> U: Show feedback + link /companies/{id}
+end
+
+@enduml

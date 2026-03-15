@@ -145,6 +145,18 @@ Diagnostics:
 - Dotenv is intentionally skipped when `test` profile is active (keeps tests deterministic).
 - `.env` is gitignored; reference is `.env.example`.
 
+### Session learnings: AI startup and profiles
+- Dotenv post-processing already runs with `Ordered.HIGHEST_PRECEDENCE`; if logs contain `[dotenv] ...`, dotenv loading order is not the root cause.
+- For startup diagnostics in local development, enable:
+  - `DEBUG=true`
+  - `DOTENV_DEBUG=true`
+  - `LOGGING_LEVEL_DEV_PROSPECTOS_CONFIG=DEBUG`
+  - `LOGGING_LEVEL_DEV_PROSPECTOS_AI_CONFIG=DEBUG`
+  - `LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_BOOT_AUTOCONFIGURE=DEBUG`
+- Avoid `@ConditionalOnBean` on component-scanned configuration methods when dependencies are defined in sibling configs; this is order-sensitive and can skip bean registration (observed with `AIChatClientConfig` and `primaryChatModel`/`groqChatModel`).
+- In `development`, do not activate both in-memory and JPA implementations for the same interface (`CompanyDataService`, `ICPDataService`, `LeadSearchService`), or startup may fail with `NoUniqueBeanDefinitionException`.
+- `scraper.ai.enabled=true` activates `AIWebSearchScraperClient`, which requires `ChatClient`; if `ChatClient` is missing, application startup fails.
+
 ### AI provider keys (never commit secrets)
 - Preferred env vars:
   - `SPRING_AI_OPENAI_API_KEY`

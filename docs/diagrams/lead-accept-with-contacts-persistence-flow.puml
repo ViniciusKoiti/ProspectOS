@@ -1,0 +1,32 @@
+@startuml Lead Accept with Contacts - Persistence Flow
+
+title Lead Accept with Contacts Persistence (MVP)
+
+actor User as U
+participant "SearchPage" as FE
+participant "LeadAcceptController" as LAC
+participant "LeadAcceptService" as LAS
+participant "CompanyDataService" as CDS
+participant "Company Domain" as CD
+participant "Database" as DB
+
+U -> FE: Click "Aceitar lead"
+FE -> LAC: POST /api/leads/accept
+LAC -> LAS: acceptLead(request)
+LAS -> CDS: findByWebsite(candidate.website)
+
+alt Company exists
+  LAS -> CDS: updateCompanyScore(...)
+  LAS -> CD: addContact(email valid + not duplicated)
+else Company does not exist
+  LAS -> CDS: createCompany(...)
+  LAS -> CD: addContact(email valid + not duplicated)
+  LAS -> CDS: updateCompanyScore(...)
+end
+
+LAS -> DB: persist company + contacts
+LAS --> LAC: AcceptLeadResponse
+LAC --> FE: 200 OK
+FE --> U: Link to company detail
+
+@enduml

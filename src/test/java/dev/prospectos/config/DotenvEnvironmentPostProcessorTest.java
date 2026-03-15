@@ -7,7 +7,9 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.StandardEnvironment;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -43,6 +45,18 @@ class DotenvEnvironmentPostProcessorTest {
 
         withTemporarySystemProperties(
             Map.of("org.gradle.test.worker", "worker-1"),
+            () -> processor.postProcessEnvironment(environment, new SpringApplication())
+        );
+
+        assertThat(environment.getPropertySources().contains("dotenv")).isFalse();
+    }
+
+    @Test
+    void shouldSkipWhenSurefirePropertyIsPresent() {
+        ConfigurableEnvironment environment = new StandardEnvironment();
+
+        withTemporarySystemProperties(
+            Map.of("surefire.test.class.path", "classpath"),
             () -> processor.postProcessEnvironment(environment, new SpringApplication())
         );
 
@@ -98,6 +112,67 @@ class DotenvEnvironmentPostProcessorTest {
         assertThat(environment.getPropertySources().iterator().next().getName()).isEqualTo("dotenv");
     }
 
+    @Test
+    void shouldNotAddDotenvSourceWhenOnlyBlankValuesAreProvided() throws IOException {
+        ConfigurableEnvironment environment = new StandardEnvironment();
+
+        Map<String, String> properties = new HashMap<>();
+        properties.put("org.gradle.test.worker", null);
+        properties.put("surefire.test.class.path", null);
+
+        withProjectDotenv(
+            String.join(
+                System.lineSeparator(),
+                "SPRING_AI_OPENAI_API_KEY=",
+                "SPRING_AI_ANTHROPIC_API_KEY=   "
+            ) + System.lineSeparator(),
+            () -> withTemporarySystemProperties(
+                properties,
+                () -> processor.postProcessEnvironment(environment, new SpringApplication())
+            )
+        );
+
+        assertThat(environment.getPropertySources().contains("dotenv")).isFalse();
+    }
+
+    @Test
+    void shouldPrintDiagnosticsWhenDotenvDebugEnabled() throws IOException {
+        ConfigurableEnvironment environment = new StandardEnvironment();
+
+        Map<String, String> properties = new HashMap<>();
+        properties.put("org.gradle.test.worker", null);
+        properties.put("surefire.test.class.path", null);
+
+        String output = withProjectDotenv(
+            String.join(
+                System.lineSeparator(),
+                "DOTENV_DEBUG=yes",
+                "SPRING_PROFILES_ACTIVE=development",
+                "PROSPECTOS_AI_ENABLED=true",
+                "PROSPECTOS_AI_ACTIVE_PROVIDERS=groq,mock",
+                "SCRAPER_AI_ENABLED=false",
+                "SPRING_AI_OPENAI_API_KEY=openai-key"
+            ) + System.lineSeparator(),
+            () -> {
+                String[] captured = new String[1];
+                withTemporarySystemProperties(
+                    properties,
+                    () -> captured[0] = captureStdOut(
+                        () -> processor.postProcessEnvironment(environment, new SpringApplication())
+                    )
+                );
+                return captured[0];
+            }
+        );
+
+        assertThat(output).contains("[dotenv] mapped properties loaded:");
+        assertThat(output).contains("[dotenv] spring.profiles.active=development");
+        assertThat(output).contains("[dotenv] prospectos.ai.active-providers=groq,mock");
+        assertThat(output).contains("[dotenv] prospectos.ai.enabled=true");
+        assertThat(output).contains("[dotenv] scraper.ai.enabled=false");
+        assertThat(output).contains("api key presence (openai/groq/anthropic)=true/false/false");
+    }
+
     private static void withTemporarySystemProperties(Map<String, String> overrides, ThrowingRunnable runnable) {
         Map<String, String> previousValues = new HashMap<>();
         for (Map.Entry<String, String> entry : overrides.entrySet()) {
@@ -123,7 +198,7 @@ class DotenvEnvironmentPostProcessorTest {
         }
     }
 
-    private static void withProjectDotenv(String content, ThrowingRunnable runnable) throws IOException {
+    private static <T> T withProjectDotenv(String content, ThrowingSupplier<T> runnable) throws IOException {
         Path dotenvPath = Path.of(".env").toAbsolutePath().normalize();
         Path backupPath = null;
 
@@ -134,7 +209,7 @@ class DotenvEnvironmentPostProcessorTest {
 
         try {
             Files.writeString(dotenvPath, content, StandardCharsets.UTF_8);
-            runnable.run();
+            return runnable.get();
         } finally {
             if (backupPath != null) {
                 Files.copy(backupPath, dotenvPath, StandardCopyOption.REPLACE_EXISTING);
@@ -145,8 +220,32 @@ class DotenvEnvironmentPostProcessorTest {
         }
     }
 
+    private static void withProjectDotenv(String content, ThrowingRunnable runnable) throws IOException {
+        withProjectDotenv(content, () -> {
+            runnable.run();
+            return null;
+        });
+    }
+
+    private static String captureStdOut(ThrowingRunnable runnable) {
+        PrintStream originalOut = System.out;
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(output, true, StandardCharsets.UTF_8));
+        try {
+            runnable.run();
+            return output.toString(StandardCharsets.UTF_8);
+        } finally {
+            System.setOut(originalOut);
+        }
+    }
+
     @FunctionalInterface
     private interface ThrowingRunnable {
         void run();
+    }
+
+    @FunctionalInterface
+    private interface ThrowingSupplier<T> {
+        T get();
     }
 }

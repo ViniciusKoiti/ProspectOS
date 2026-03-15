@@ -1,0 +1,38 @@
+@startuml App Usage Overview - Current
+
+title ProspectOS Web - Current User Flow Overview
+
+actor User as U
+participant "Frontend (React)" as FE
+participant "Backend API" as API
+
+U -> FE: Open app
+FE -> FE: MainLayout + Router
+
+alt Route /
+    FE -> API: GET /api/companies
+    FE -> API: GET /api/icps
+    API --> FE: Dashboard data
+    FE --> U: Dashboard cards
+else Route /search
+    FE -> API: GET /api/icps
+    API --> FE: ICP options
+    U -> FE: Submit search form
+    FE -> API: POST /api/leads/search
+    API --> FE: LeadSearchResponse
+    FE --> U: Leads table or error state
+else Route /icps
+    FE -> API: GET /api/icps
+    API --> FE: ICP list
+    U -> FE: Create/Update/Delete ICP
+    FE -> API: POST|PUT|DELETE /api/icps
+    API --> FE: Updated state
+else Route /companies
+    FE -> API: GET /api/companies
+    API --> FE: Company list
+    U -> FE: Open company detail
+    FE -> API: GET /api/companies/{id}
+    API --> FE: Company detail
+end
+
+@enduml

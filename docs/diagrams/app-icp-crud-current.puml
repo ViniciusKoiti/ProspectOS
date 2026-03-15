@@ -1,0 +1,37 @@
+@startuml ICP CRUD Flow - Current
+
+title ProspectOS Web - ICP CRUD Flow
+
+actor User as U
+participant "IcpsPage" as IP
+participant "ICP API" as API
+
+U -> IP: Open /icps
+IP -> API: GET /api/icps
+API --> IP: ICP list
+IP --> U: Render table
+
+== Create ==
+U -> IP: Open create modal
+U -> IP: Submit form
+IP -> API: POST /api/icps
+API --> IP: Created ICP
+IP -> IP: invalidateQueries(["icps"])
+IP --> U: Success feedback
+
+== Update ==
+U -> IP: Open edit modal
+U -> IP: Submit changes
+IP -> API: PUT /api/icps/{id}
+API --> IP: Updated ICP
+IP -> IP: invalidateQueries(["icps"])
+IP --> U: Success feedback
+
+== Delete ==
+U -> IP: Confirm delete
+IP -> API: DELETE /api/icps/{id}
+API --> IP: 204 No Content
+IP -> IP: invalidateQueries(["icps"])
+IP --> U: Success feedback
+
+@enduml

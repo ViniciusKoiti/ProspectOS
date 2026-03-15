@@ -1,0 +1,27 @@
+@startuml Companies Flow - Current
+
+title ProspectOS Web - Companies List and Detail Flow
+
+actor User as U
+participant "CompaniesPage" as CP
+participant "CompanyDetailPage" as CDP
+participant "Company API" as API
+
+U -> CP: Open /companies
+CP -> API: GET /api/companies
+API --> CP: Company list
+CP --> U: Render table
+
+U -> CP: Click company row
+CP -> CDP: Navigate /companies/{id}
+CDP -> API: GET /api/companies/{id}
+API --> CDP: Company detail
+CDP --> U: Render detail card
+
+alt Invalid id format
+    CDP --> U: Show invalid id error
+else API error
+    CDP --> U: Show load error + retry
+end
+
+@enduml
