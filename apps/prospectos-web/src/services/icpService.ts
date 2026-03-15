@@ -12,11 +12,12 @@ export async function createIcp(payload: IcpUpsert): Promise<Icp> {
     return icpSchema.parse(response.data);
 }
 
-export async function updateIcp(icpId: number, payload: IcpUpsert): Promise<Icp> {
+export async function updateIcp(icpId: string, payload: IcpUpsert): Promise<Icp> {
     const response = await api.put(`/icps/${icpId}`, icpUpsertSchema.parse(payload));
     return icpSchema.parse(response.data);
 }
 
-export async function deleteIcp(icpId: number): Promise<void> {
+export async function deleteIcp(icpId: string): Promise<void> {
     await api.delete(`/icps/${icpId}`);
 }
+

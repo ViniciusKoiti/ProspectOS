@@ -2,24 +2,35 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
 
+import CompanyContactsSection from '../components/features/CompanyContactsSection';
 import Badge from '../components/ui/Badge';
 import Card from '../components/ui/Card';
 import ErrorState from '../components/ui/ErrorState';
 import LoadingState from '../components/ui/LoadingState';
 import PageHeader from '../components/ui/PageHeader';
-import { getCompany } from '../services/companyService';
+import { getCompany, getCompanyContacts } from '../services/companyService';
+
+const COMPANY_ID_PATTERN = /^-?\d+$/;
 
 export default function CompanyDetailPage() {
     const { t } = useTranslation();
     const { id } = useParams();
-    const companyId = Number(id);
+    const companyId = id ?? '';
+    const hasValidCompanyId = COMPANY_ID_PATTERN.test(companyId);
+
     const companyQuery = useQuery({
         queryKey: ['company', companyId],
         queryFn: () => getCompany(companyId),
-        enabled: Number.isFinite(companyId),
+        enabled: hasValidCompanyId,
     });
 
-    if (!Number.isFinite(companyId)) {
+    const companyContactsQuery = useQuery({
+        queryKey: ['company-contacts', companyId],
+        queryFn: () => getCompanyContacts(companyId),
+        enabled: hasValidCompanyId,
+    });
+
+    if (!hasValidCompanyId) {
         return <ErrorState message={t('pages.companyDetail.errors.invalidId')} />;
     }
 
@@ -46,9 +57,23 @@ export default function CompanyDetailPage() {
                 </div>
                 <p className="text-sm text-slate-600">{company.description ?? t('pages.companyDetail.description')}</p>
                 <p className="text-sm text-slate-700">{company.industry ?? '-'} · {company.location ?? '-'}</p>
+                <p className="text-sm text-slate-700">
+                    {t('pages.companyDetail.contacts.primary')}: {company.primaryContactEmail ?? t('pages.companies.table.noContact')}
+                </p>
+                <p className="text-sm text-slate-700">{t('pages.companyDetail.contacts.count', { count: company.contactCount })}</p>
                 <Link className="text-sm font-medium text-blue-700 hover:text-blue-800 hover:underline" to="/companies">
                     {t('common.backToCompanies')}
                 </Link>
+            </Card>
+
+            <Card className="space-y-4">
+                <h3 className="text-base font-semibold text-slate-900">{t('pages.companyDetail.contacts.title')}</h3>
+                <CompanyContactsSection
+                    contacts={companyContactsQuery.data}
+                    isLoading={companyContactsQuery.isLoading}
+                    isError={companyContactsQuery.isError}
+                    onRetry={() => void companyContactsQuery.refetch()}
+                />
             </Card>
         </section>
     );

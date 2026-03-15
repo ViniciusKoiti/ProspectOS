@@ -1,7 +1,9 @@
 import { z } from 'zod';
 
+const entityIdSchema = z.union([z.string().regex(/^-?\d+$/), z.number().finite()]).transform((value) => String(value));
+
 export const icpSchema = z.object({
-    id: z.number().int(),
+    id: entityIdSchema,
     name: z.string(),
     description: z.string().nullable(),
     targetIndustries: z.array(z.string()),

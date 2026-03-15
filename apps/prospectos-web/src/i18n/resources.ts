@@ -128,10 +128,12 @@ export const resources = {
                 },
                 companies: {
                     title: 'Empresas',
-                    description: 'Primitivos consistentes de tabela facilitam evolucao das listas.',
-                    table: {
+                    description: 'Primitivos consistentes de tabela facilitam evolucao das listas.',                    table: {
                         company: 'Empresa',
                         industry: 'Industria',
+                        primaryContact: 'Contato principal',
+                        contactCount: '{{count}} contatos',
+                        noContact: 'Sem contato',
                         score: 'Score',
                     },
                     empty: {
@@ -146,8 +148,26 @@ export const resources = {
                     title: 'Detalhe da empresa',
                     selectedId: 'ID selecionado: {{id}}',
                     profileTitle: 'Resumo do perfil',
-                    scoreUnavailable: 'Sem score',
-                    description: 'Esta tela recebera dados reais apos finalizacao do contrato de detalhes.',
+                    scoreUnavailable: 'Sem score',                    description: 'Esta tela recebera dados reais apos finalizacao do contrato de detalhes.',
+                    contacts: {
+                        title: 'Pessoas',
+                        primary: 'Contato principal',
+                        count: '{{count}} contatos vinculados',
+                        loading: 'Carregando contatos...',
+                        table: {
+                            name: 'Nome',
+                            position: 'Cargo',
+                            email: 'Email',
+                            phoneNumber: 'Telefone',
+                        },
+                        empty: {
+                            title: 'Nenhum contato cadastrado',
+                            description: 'Ainda nao ha pessoas vinculadas para esta empresa.',
+                        },
+                        errors: {
+                            load: 'Falha ao carregar contatos da empresa.',
+                        },
+                    },
                     errors: {
                         invalidId: 'ID de empresa invalido.',
                         load: 'Falha ao carregar o detalhe da empresa.',
@@ -300,10 +320,12 @@ export const resources = {
                 },
                 companies: {
                     title: 'Companies',
-                    description: 'Consistent table primitives make list screens easier to extend.',
-                    table: {
+                    description: 'Consistent table primitives make list screens easier to extend.',                    table: {
                         company: 'Company',
                         industry: 'Industry',
+                        primaryContact: 'Primary contact',
+                        contactCount: '{{count}} contacts',
+                        noContact: 'No contact',
                         score: 'Score',
                     },
                     empty: {
@@ -318,8 +340,26 @@ export const resources = {
                     title: 'Company detail',
                     selectedId: 'Selected id: {{id}}',
                     profileTitle: 'Profile snapshot',
-                    scoreUnavailable: 'No score',
-                    description: 'This screen will receive backend data after details contract finalization.',
+                    scoreUnavailable: 'No score',                    description: 'This screen will receive backend data after details contract finalization.',
+                    contacts: {
+                        title: 'People',
+                        primary: 'Primary contact',
+                        count: '{{count}} linked contacts',
+                        loading: 'Loading contacts...',
+                        table: {
+                            name: 'Name',
+                            position: 'Role',
+                            email: 'Email',
+                            phoneNumber: 'Phone',
+                        },
+                        empty: {
+                            title: 'No contacts available',
+                            description: 'There are no linked people for this company yet.',
+                        },
+                        errors: {
+                            load: 'Failed to load company contacts.',
+                        },
+                    },
                     errors: {
                         invalidId: 'Invalid company id.',
                         load: 'Failed to load company detail.',
@@ -472,10 +512,12 @@ export const resources = {
                 },
                 companies: {
                     title: 'Empresas',
-                    description: 'Primitivos consistentes de tabla facilitan la evolucion de listados.',
-                    table: {
+                    description: 'Primitivos consistentes de tabla facilitan la evolucion de listados.',                    table: {
                         company: 'Empresa',
                         industry: 'Industria',
+                        primaryContact: 'Contacto principal',
+                        contactCount: '{{count}} contactos',
+                        noContact: 'Sin contacto',
                         score: 'Puntaje',
                     },
                     empty: {
@@ -490,8 +532,26 @@ export const resources = {
                     title: 'Detalle de empresa',
                     selectedId: 'ID seleccionado: {{id}}',
                     profileTitle: 'Resumen del perfil',
-                    scoreUnavailable: 'Sin puntaje',
-                    description: 'Esta pantalla recibira datos reales cuando se finalice el contrato de detalle.',
+                    scoreUnavailable: 'Sin puntaje',                    description: 'Esta pantalla recibira datos reales cuando se finalice el contrato de detalle.',
+                    contacts: {
+                        title: 'Personas',
+                        primary: 'Contacto principal',
+                        count: '{{count}} contactos vinculados',
+                        loading: 'Cargando contactos...',
+                        table: {
+                            name: 'Nombre',
+                            position: 'Cargo',
+                            email: 'Email',
+                            phoneNumber: 'Telefono',
+                        },
+                        empty: {
+                            title: 'No hay contactos disponibles',
+                            description: 'Aun no hay personas vinculadas para esta empresa.',
+                        },
+                        errors: {
+                            load: 'No se pudieron cargar los contactos de la empresa.',
+                        },
+                    },
                     errors: {
                         invalidId: 'ID de empresa invalido.',
                         load: 'No se pudo cargar el detalle de la empresa.',
@@ -516,5 +576,6 @@ export const resources = {
         },
     },
 } as const;
+
 
 

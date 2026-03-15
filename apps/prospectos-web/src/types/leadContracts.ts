@@ -50,7 +50,7 @@ export const leadSearchRequestSchema = z.object({
     query: z.string().min(1),
     limit: z.number().int().min(1).max(100),
     sources: z.array(z.string()).default([]),
-    icpId: z.number().int().nullable(),
+    icpId: z.union([z.string().regex(/^-?\d+$/), z.number().finite()]).nullable(),
 });
 
 export type LeadCandidate = z.infer<typeof leadCandidateSchema>;

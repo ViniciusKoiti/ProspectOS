@@ -43,7 +43,7 @@ describe('icpService contract', () => {
 
     it('rejects invalid ICP response payloads', async () => {
         vi.mocked(api.get).mockResolvedValue({
-            data: [{ id: '1', name: 'Broken contract' }],
+            data: [{ id: null, name: 'Broken contract' }],
         });
 
         await expect(listIcps()).rejects.toThrow();
@@ -78,7 +78,7 @@ describe('icpService contract', () => {
         });
 
         expect(api.post).toHaveBeenCalledWith('/icps', expect.objectContaining({ name: 'Revenue Ops' }));
-        expect(result.id).toBe(3);
+        expect(result.id).toBe('3');
     });
 
     it('parses update ICP request and response contracts', async () => {
@@ -97,7 +97,7 @@ describe('icpService contract', () => {
             },
         });
 
-        const result = await updateIcp(3, {
+        const result = await updateIcp('3', {
             name: 'Revenue Ops Updated',
             description: 'Expanded segment',
             industries: ['SaaS'],
@@ -116,8 +116,9 @@ describe('icpService contract', () => {
     it('calls delete ICP endpoint using the backend contract', async () => {
         vi.mocked(api.delete).mockResolvedValue({ data: null });
 
-        await deleteIcp(9);
+        await deleteIcp('9');
 
         expect(api.delete).toHaveBeenCalledWith('/icps/9');
     });
 });
+

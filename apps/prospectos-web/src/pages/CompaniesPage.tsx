@@ -27,6 +27,16 @@ export default function CompaniesPage() {
         },
         { key: 'industry', header: t('pages.companies.table.industry'), render: (row) => row.industry ?? '-' },
         {
+            key: 'primaryContact',
+            header: t('pages.companies.table.primaryContact'),
+            render: (row) => (
+                <div className="space-y-1">
+                    <div className="font-medium text-slate-700">{row.primaryContactEmail ?? t('pages.companies.table.noContact')}</div>
+                    <div className="text-xs text-slate-500">{t('pages.companies.table.contactCount', { count: row.contactCount })}</div>
+                </div>
+            ),
+        },
+        {
             key: 'score',
             header: t('pages.companies.table.score'),
             render: (row) =>
@@ -55,4 +65,3 @@ export default function CompaniesPage() {
         </section>
     );
 }
-

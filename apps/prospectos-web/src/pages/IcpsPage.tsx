@@ -25,7 +25,7 @@ export default function IcpsPage() {
     const icpsQuery = useQuery({ queryKey: ['icps'], queryFn: listIcps });
     const createMutation = useMutation({ mutationFn: createIcp });
     const updateMutation = useMutation({
-        mutationFn: ({ icpId, payload }: { icpId: number; payload: IcpUpsert }) => updateIcp(icpId, payload),
+        mutationFn: ({ icpId, payload }: { icpId: string; payload: IcpUpsert }) => updateIcp(icpId, payload),
     });
     const deleteMutation = useMutation({ mutationFn: deleteIcp });
 
@@ -189,4 +189,5 @@ export default function IcpsPage() {
         </>
     );
 }
+
 

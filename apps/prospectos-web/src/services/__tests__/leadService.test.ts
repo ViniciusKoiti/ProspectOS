@@ -120,6 +120,7 @@ describe('leadService contract', () => {
         });
 
         expect(api.post).toHaveBeenCalledWith('/leads/accept', expect.objectContaining({ leadKey: 'lead-key-1' }));
-        expect(result.company.id).toBe(12);
+        expect(result.company.id).toBe('12');
     });
 });
+

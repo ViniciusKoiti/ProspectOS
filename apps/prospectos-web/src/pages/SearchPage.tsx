@@ -23,7 +23,7 @@ import type { AcceptLeadResponse, LeadResult } from '../types/leadContracts';
 const searchFormSchema = z.object({
     query: z.string().min(1),
     limit: z.coerce.number().int().min(1).max(100),
-    icpId: z.preprocess((value) => (value === '' ? null : Number(value)), z.number().int().nullable()),
+    icpId: z.preprocess((value) => (value === "" ? null : String(value)), z.string().regex(/^-?\d+$/).nullable()),
 });
 
 type SearchFormInput = z.input<typeof searchFormSchema>;
@@ -212,4 +212,6 @@ export default function SearchPage() {
         </section>
     );
 }
+
+
 

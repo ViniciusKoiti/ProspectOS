@@ -32,7 +32,7 @@ describe('icpForm helpers', () => {
     it('hydrates default values from an existing ICP', () => {
         expect(
             createIcpFormDefaultValues({
-                id: 7,
+                id: '7',
                 name: 'Platform Teams',
                 description: null,
                 targetIndustries: ['Software', 'AI'],
