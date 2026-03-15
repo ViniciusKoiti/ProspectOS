@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -29,14 +30,39 @@ import java.util.List;
 public class CompanyController {
 
     private final CompanyDataService companyDataService;
+    private final CompanyListFilter companyListFilter;
 
     public CompanyController(CompanyDataService companyDataService) {
         this.companyDataService = companyDataService;
+        this.companyListFilter = new CompanyListFilter();
     }
 
     @GetMapping
-    public ResponseEntity<List<CompanyDTO>> listCompanies() {
-        return ResponseEntity.ok(companyDataService.findAllCompanies());
+    public ResponseEntity<List<CompanyDTO>> listCompanies(
+        @RequestParam(required = false) String query,
+        @RequestParam(required = false) String industry,
+        @RequestParam(required = false) String location,
+        @RequestParam(required = false) Double minScore,
+        @RequestParam(required = false) Double maxScore,
+        @RequestParam(required = false) Boolean hasContact,
+        @RequestParam(required = false) Integer page,
+        @RequestParam(required = false) Integer size
+    ) {
+        List<CompanyDTO> allCompanies = companyDataService.findAllCompanies();
+        CompanyListFilter.Result filteredCompanies = companyListFilter.apply(
+            allCompanies,
+            query,
+            industry,
+            location,
+            minScore,
+            maxScore,
+            hasContact,
+            page,
+            size
+        );
+        return ResponseEntity.ok()
+            .header("X-Total-Count", String.valueOf(filteredCompanies.totalItems()))
+            .body(filteredCompanies.items());
     }
 
     @PostMapping
