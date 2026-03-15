@@ -1,3 +1,4 @@
+import { isAxiosError } from 'axios';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -6,6 +7,9 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { z } from 'zod';
 
+import SearchMatchInsights from '../components/features/SearchMatchInsights';
+import SearchSourceSelector, { type SearchSourceOption } from '../components/features/SearchSourceSelector';
+import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import type { DataTableColumn } from '../components/ui/DataTable';
@@ -20,14 +24,147 @@ import { listIcps } from '../services/icpService';
 import { acceptLead, searchLeads } from '../services/leadService';
 import type { AcceptLeadResponse, LeadResult } from '../types/leadContracts';
 
+const SEARCH_SOURCE_VALUES = ['in-memory', 'vector-company', 'cnpj-ws'] as const;
+const searchSourceSchema = z.enum(SEARCH_SOURCE_VALUES);
+
+type SearchSourceValue = z.infer<typeof searchSourceSchema>;
+
+type ApiErrorPayload = {
+    message?: unknown;
+    error?: unknown;
+};
+
 const searchFormSchema = z.object({
     query: z.string().min(1),
     limit: z.coerce.number().int().min(1).max(100),
     icpId: z.preprocess((value) => (value === '' ? null : String(value)), z.string().regex(/^-?\d+$/).nullable()),
+    sources: z.array(searchSourceSchema).min(1, 'Select at least one source.'),
 });
 
 type SearchFormInput = z.input<typeof searchFormSchema>;
 type SearchFormValues = z.output<typeof searchFormSchema>;
+
+const CSV_HEADERS = [
+    'leadKey',
+    'companyName',
+    'website',
+    'industry',
+    'description',
+    'size',
+    'location',
+    'contacts',
+    'scoreValue',
+    'scoreCategory',
+    'scoreReasoning',
+    'sourceName',
+    'sourceUrl',
+    'collectedAt',
+] as const;
+
+function isSearchSourceValue(value: string): value is SearchSourceValue {
+    return SEARCH_SOURCE_VALUES.some((candidate) => candidate === value);
+}
+
+function getScoreBadgeVariant(category: string): 'success' | 'warning' | 'neutral' {
+    const normalized = category.trim().toUpperCase();
+
+    if (normalized === 'HOT') {
+        return 'success';
+    }
+
+    if (normalized === 'WARM') {
+        return 'warning';
+    }
+
+    return 'neutral';
+}
+
+function escapeCsvCell(value: string): string {
+    const normalized = value.replaceAll('"', '""');
+
+    if (normalized.includes(',') || normalized.includes('\n') || normalized.includes('"')) {
+        return `"${normalized}"`;
+    }
+
+    return normalized;
+}
+
+function toCsvRow(values: string[]): string {
+    return values.map(escapeCsvCell).join(',');
+}
+
+function buildSearchResultsCsv(leads: LeadResult[]): string {
+    const rows = leads.map((lead) =>
+        toCsvRow([
+            lead.leadKey,
+            lead.candidate.name,
+            lead.candidate.website ?? '',
+            lead.candidate.industry ?? '',
+            lead.candidate.description ?? '',
+            lead.candidate.size ?? '',
+            lead.candidate.location ?? '',
+            lead.candidate.contacts.join(' | '),
+            String(lead.score.value),
+            lead.score.category,
+            lead.score.reasoning,
+            lead.source.sourceName,
+            lead.source.sourceUrl ?? '',
+            lead.source.collectedAt,
+        ])
+    );
+
+    return [toCsvRow(Array.from(CSV_HEADERS)), ...rows].join('\n');
+}
+
+function parseApiErrorMessage(error: unknown): string | null {
+    if (isAxiosError(error)) {
+        const responseData = error.response?.data;
+
+        if (typeof responseData === 'string' && responseData.trim().length > 0) {
+            return responseData.trim();
+        }
+
+        if (responseData && typeof responseData === 'object') {
+            const payload = responseData as ApiErrorPayload;
+
+            if (typeof payload.message === 'string' && payload.message.trim().length > 0) {
+                return payload.message.trim();
+            }
+
+            if (typeof payload.error === 'string' && payload.error.trim().length > 0) {
+                return payload.error.trim();
+            }
+        }
+
+        if (!error.response) {
+            return 'Unable to reach the backend API. Verify local backend is running.';
+        }
+
+        if (typeof error.message === 'string' && error.message.trim().length > 0) {
+            return error.message.trim();
+        }
+
+        return `Request failed with status ${error.response.status}.`;
+    }
+
+    if (error instanceof Error && error.message.trim().length > 0) {
+        return error.message.trim();
+    }
+
+    return null;
+}
+
+function mergeWithFallbackError(fallbackMessage: string, detail: string | null): string {
+    if (!detail) {
+        return fallbackMessage;
+    }
+
+    if (detail.localeCompare(fallbackMessage, undefined, { sensitivity: 'accent' }) === 0) {
+        return fallbackMessage;
+    }
+
+    return `${fallbackMessage} ${detail}`;
+}
 
 export default function SearchPage() {
     const { t } = useTranslation();
@@ -62,8 +199,28 @@ export default function SearchPage() {
             query: '',
             limit: 20,
             icpId: null,
+            sources: ['in-memory'],
         },
     });
+
+    const selectedSources = form.watch('sources');
+    const sourceOptions: SearchSourceOption[] = [
+        {
+            value: 'in-memory',
+            label: t('pages.search.sources.inMemory', { defaultValue: 'in-memory' }),
+            description: t('pages.search.sources.inMemoryDescription', { defaultValue: 'Mock source for safe local testing.' }),
+        },
+        {
+            value: 'vector-company',
+            label: t('pages.search.sources.vectorCompany', { defaultValue: 'vector-company' }),
+            description: t('pages.search.sources.vectorCompanyDescription', { defaultValue: 'Semantic match against indexed companies.' }),
+        },
+        {
+            value: 'cnpj-ws',
+            label: t('pages.search.sources.cnpjWs', { defaultValue: 'cnpj-ws' }),
+            description: t('pages.search.sources.cnpjWsDescription', { defaultValue: 'Discovery using CNPJ web data.' }),
+        },
+    ];
 
     const handleAcceptLead = async (lead: LeadResult) => {
         setAcceptingLeadKey(lead.leadKey);
@@ -81,6 +238,27 @@ export default function SearchPage() {
         }
     };
 
+    const handleExportCsv = () => {
+        const currentLeads = searchMutation.data?.leads ?? [];
+
+        if (currentLeads.length === 0) {
+            return;
+        }
+
+        const csv = buildSearchResultsCsv(currentLeads);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const blobUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        const timestamp = new Date().toISOString().replaceAll(':', '-').replaceAll('.', '-');
+
+        link.href = blobUrl;
+        link.download = `search-results-${timestamp}.csv`;
+        document.body.append(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(blobUrl);
+    };
+
     const columns: DataTableColumn<LeadResult>[] = [
         {
             key: 'candidate',
@@ -93,9 +271,19 @@ export default function SearchPage() {
             render: (row) => row.candidate.industry ?? '-',
         },
         {
+            key: 'source',
+            header: t('pages.search.table.source', { defaultValue: 'Source' }),
+            render: (row) => row.source.sourceName,
+        },
+        {
             key: 'score',
             header: t('pages.companies.table.score'),
-            render: (row) => `${row.score.value}/100`,
+            render: (row) => (
+                <div className="flex items-center gap-2">
+                    <span>{row.score.value}/100</span>
+                    <Badge variant={getScoreBadgeVariant(row.score.category)}>{row.score.category}</Badge>
+                </div>
+            ),
         },
         {
             key: 'actions',
@@ -138,10 +326,17 @@ export default function SearchPage() {
         await searchMutation.mutateAsync({
             query: values.query,
             limit: values.limit,
-            sources: ['in-memory'],
+            sources: values.sources,
             icpId: values.icpId,
         });
     });
+
+    const searchErrorMessage = searchMutation.isError
+        ? mergeWithFallbackError(t('pages.search.errors.execute'), parseApiErrorMessage(searchMutation.error))
+        : null;
+    const acceptErrorMessage = acceptMutation.isError
+        ? mergeWithFallbackError(t('pages.search.errors.accept'), parseApiErrorMessage(acceptMutation.error))
+        : null;
 
     return (
         <section className="space-y-4" data-testid="search-page">
@@ -171,6 +366,17 @@ export default function SearchPage() {
                                 ))}
                             </Select>
                         )}
+                        <SearchSourceSelector
+                            label={t('pages.search.fields.sources', { defaultValue: 'Sources' })}
+                            hint={t('pages.search.fields.sourcesHint', { defaultValue: 'Select one or more lead sources.' })}
+                            error={form.formState.errors.sources?.message}
+                            options={sourceOptions}
+                            selectedSources={selectedSources}
+                            onChange={(sources) => {
+                                const validSources = sources.filter(isSearchSourceValue);
+                                form.setValue('sources', validSources, { shouldDirty: true, shouldValidate: true });
+                            }}
+                        />
                         <Select id="search-limit" label={t('pages.search.fields.limit')} error={form.formState.errors.limit?.message} {...form.register('limit')}>
                             <option value="10">10</option>
                             <option value="20">20</option>
@@ -193,16 +399,32 @@ export default function SearchPage() {
                         </div>
                     ) : null}
 
-                    {acceptMutation.isError ? (
-                        <ErrorState message={t('pages.search.errors.accept')} />
-                    ) : null}
+                    {acceptErrorMessage ? <ErrorState message={acceptErrorMessage} /> : null}
 
                     {searchMutation.isPending ? (
                         <LoadingState />
-                    ) : searchMutation.isError ? (
-                        <ErrorState message={t('pages.search.errors.execute')} onRetry={() => void onSubmit()} />
+                    ) : searchErrorMessage ? (
+                        <ErrorState message={searchErrorMessage} onRetry={() => void onSubmit()} />
+                    ) : searchMutation.data?.status === 'PROCESSING' ? (
+                        <LoadingState label={searchMutation.data.message ?? t('common.loading')} />
+                    ) : searchMutation.data?.status === 'FAILED' ? (
+                        <ErrorState
+                            message={searchMutation.data.message ?? t('pages.search.errors.execute')}
+                            onRetry={() => void onSubmit()}
+                        />
                     ) : searchMutation.data ? (
-                        <div data-testid="search-results-table">
+                        <div className="space-y-4" data-testid="search-results-table">
+                            <SearchMatchInsights leads={searchMutation.data.leads} />
+                            <div className="flex justify-end">
+                                <Button
+                                    variant="secondary"
+                                    data-testid="search-export-csv"
+                                    disabled={searchMutation.data.leads.length === 0}
+                                    onClick={handleExportCsv}
+                                >
+                                    {t('pages.search.actions.exportCsv', { defaultValue: 'Export CSV' })}
+                                </Button>
+                            </div>
                             <DataTable
                                 columns={columns}
                                 rows={searchMutation.data.leads}
