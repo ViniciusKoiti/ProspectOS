@@ -19,6 +19,7 @@ class CompanyTest {
         assertEquals(ProspectingStatus.NEW, company.getStatus());
         assertEquals(0.0, company.getProspectingScore().getDoubleValue());
         assertFalse(company.hasActiveSignals());
+        assertTrue(ExternalIdPolicy.isSafe(company.getExternalId()));
     }
 
     @Test
@@ -79,4 +80,3 @@ class CompanyTest {
         assertEquals("Kubernetes", company.getTechnologySignals().getFirst().getTechnology());
     }
 }
-

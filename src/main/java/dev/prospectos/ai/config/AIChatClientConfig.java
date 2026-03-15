@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 import static dev.prospectos.ai.config.AIConfigurationProperties.*;
 
@@ -16,6 +17,7 @@ import static dev.prospectos.ai.config.AIConfigurationProperties.*;
  * Responsible ONLY for creating and configuring ChatClients with appropriate prompts.
  */
 @Configuration
+@Profile("!test")
 @ConditionalOnProperty(
     name = AI_ENABLED,
     havingValue = "true",

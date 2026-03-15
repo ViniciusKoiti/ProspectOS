@@ -36,12 +36,13 @@ abstract class CompanyCoreState extends CompanyRelationshipState {
 
     protected Instant createdAt;
 
-    protected CompanyCoreState() {}
+    protected CompanyCoreState() {
+    }
 
     protected void initializeCoreState(String name, Website website, String industry) {
         Instant now = Instant.now();
         this.id = UUID.randomUUID();
-        this.externalId = toExternalId(this.id);
+        this.externalId = ExternalIdPolicy.fromUuid(this.id);
         this.name = validateName(name);
         this.website = website;
         this.industry = industry;
@@ -53,9 +54,13 @@ abstract class CompanyCoreState extends CompanyRelationshipState {
 
     @PrePersist
     void ensureExternalId() {
-        if (externalId == null && id != null) {
-            externalId = toExternalId(id);
+        if (!ExternalIdPolicy.isSafe(externalId) && id != null) {
+            externalId = ExternalIdPolicy.fromUuid(id);
         }
+    }
+
+    protected void assignExternalId(Long newExternalId) {
+        this.externalId = ExternalIdPolicy.requireSafe(newExternalId, "Company externalId");
     }
 
     public UUID getId() { return id; }
@@ -72,9 +77,5 @@ abstract class CompanyCoreState extends CompanyRelationshipState {
             throw new IllegalArgumentException("Company name cannot be null or empty");
         }
         return value.trim();
-    }
-
-    private static long toExternalId(UUID id) {
-        return id.getMostSignificantBits();
     }
 }

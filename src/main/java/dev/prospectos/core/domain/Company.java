@@ -34,6 +34,10 @@ public class Company extends CompanyCoreState {
         touch();
     }
 
+    public void normalizeExternalId(Long externalId) {
+        assignExternalId(externalId);
+    }
+
     public void updateScore(Score newScore, String reason) {
         if (newScore == null) {
             throw new IllegalArgumentException("Score cannot be null");

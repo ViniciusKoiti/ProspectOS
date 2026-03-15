@@ -44,6 +44,10 @@ public class SourceProvenance {
         return new SourceProvenance(companyExternalId, sourceName, sourceUrl, capturedAt);
     }
 
+    public void replaceCompanyExternalId(Long companyExternalId) {
+        this.companyExternalId = companyExternalId;
+    }
+
     public UUID getId() {
         return id;
     }

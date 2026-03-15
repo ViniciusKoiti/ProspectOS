@@ -22,7 +22,7 @@ class ICPTest {
         assertEquals(List.of("Tech"), icp.getIndustries());
         assertEquals(List.of("BR"), icp.getRegions());
         assertEquals(List.of("CTO"), icp.getTargetRoles());
-        assertTrue(icp.getExternalId() != null);
+        assertTrue(ExternalIdPolicy.isSafe(icp.getExternalId()));
     }
 
     @Test
@@ -35,10 +35,22 @@ class ICPTest {
     }
 
     @Test
-    void createWithExternalIdRejectsNonPositiveValues() {
+    void createWithExternalIdRejectsOutOfRangeValues() {
         assertThrows(
             IllegalArgumentException.class,
             () -> ICP.createWithExternalId(0L, "Valid", "desc", List.of(), List.of(), List.of(), "theme")
+        );
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> ICP.createWithExternalId(
+                ExternalIdPolicy.MAX_SAFE_JS_INTEGER + 1,
+                "Valid",
+                "desc",
+                List.of(),
+                List.of(),
+                List.of(),
+                "theme"
+            )
         );
     }
 
