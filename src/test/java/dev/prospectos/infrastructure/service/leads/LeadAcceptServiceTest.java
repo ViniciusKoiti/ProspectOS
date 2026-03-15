@@ -78,6 +78,7 @@ class LeadAcceptServiceTest {
         assertEquals(10L, response.company().id());
         verify(companyDataService).findByWebsite("http://www.acme.com");
         verify(companyDataService).updateCompanyScore(eq(10L), any(ScoreDTO.class));
+        verify(companyDataService).addCompanyContactEmails(10L, List.of("contact@example.com"));
         verify(companyDataService, never()).createCompany(any(CompanyCreateRequest.class));
     }
 
@@ -112,6 +113,7 @@ class LeadAcceptServiceTest {
 
         verify(companyDataService).findByWebsite("https://beta.com");
         verify(companyDataService, never()).findAllCompanies();
+        verify(companyDataService).addCompanyContactEmails(11L, List.of("contact@example.com"));
     }
 
     @Test
@@ -157,9 +159,61 @@ class LeadAcceptServiceTest {
 
         ArgumentCaptor<ScoreDTO> captor = ArgumentCaptor.forClass(ScoreDTO.class);
         verify(companyDataService).updateCompanyScore(eq(12L), captor.capture());
+        verify(companyDataService).addCompanyContactEmails(12L, List.of("contact@gamma.com"));
         assertEquals(0, captor.getValue().value());
         assertEquals("COLD", captor.getValue().category());
         assertEquals("No score provided", captor.getValue().reasoning());
+    }
+
+    @Test
+    void acceptLead_PersistsContactsForNewCompany() {
+        CompanyDTO created = new CompanyDTO(
+            99L,
+            "Delta",
+            "Software",
+            "https://delta.com",
+            "Created",
+            null,
+            "Brazil",
+            null
+        );
+        CompanyDTO persisted = new CompanyDTO(
+            99L,
+            "Delta",
+            "Software",
+            "https://delta.com",
+            "Created",
+            null,
+            "Brazil",
+            new ScoreDTO(80, "HOT", "match"),
+            "sales@delta.com",
+            1
+        );
+
+        when(companyDataService.findByWebsite("https://delta.com")).thenReturn(null);
+        when(companyDataService.createCompany(any(CompanyCreateRequest.class))).thenReturn(created);
+        when(companyDataService.findCompany(99L)).thenReturn(persisted);
+
+        CompanyCandidateDTO candidate = new CompanyCandidateDTO(
+            "Delta",
+            "https://delta.com",
+            "Software",
+            "Desc",
+            "SMALL",
+            "Brazil",
+            List.of("sales@delta.com", "invalid")
+        );
+        SourceProvenanceDTO source = new SourceProvenanceDTO("apollo", "https://delta.com", Instant.now());
+        AcceptLeadRequest request = new AcceptLeadRequest(
+            LeadKeyGenerator.generate("https://delta.com", "apollo"),
+            candidate,
+            new ScoreDTO(80, "HOT", "match"),
+            source
+        );
+
+        service.acceptLead(request);
+
+        verify(companyDataService).addCompanyContactEmails(99L, List.of("sales@delta.com", "invalid"));
     }
 
     private AcceptLeadRequest buildRequest(String website, String sourceName) {

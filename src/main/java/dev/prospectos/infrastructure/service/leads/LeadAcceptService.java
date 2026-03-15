@@ -40,11 +40,13 @@ public class LeadAcceptService {
             log.info("Lead with website {} already exists as company {}, updating score",
                 candidate.website(), existingCompany.id());
             companyDataService.updateCompanyScore(existingCompany.id(), sanitizedScore);
+            persistCandidateContacts(existingCompany.id(), candidate);
             company = companyDataService.findCompany(existingCompany.id());
             message = "Lead accepted and updated (already existed)";
         } else {
             company = companyDataService.createCompany(toCreateRequest(candidate));
             companyDataService.updateCompanyScore(company.id(), sanitizedScore);
+            persistCandidateContacts(company.id(), candidate);
             company = companyDataService.findCompany(company.id());
             log.info("Created new company {} from lead with key {}", company.id(), request.leadKey());
             message = "Lead accepted and created";
@@ -59,6 +61,10 @@ public class LeadAcceptService {
         if (!LeadKeyGenerator.isValid(leadKey)) {
             throw new IllegalArgumentException("Invalid leadKey format");
         }
+    }
+
+    private void persistCandidateContacts(Long companyId, CompanyCandidateDTO candidate) {
+        companyDataService.addCompanyContactEmails(companyId, candidate.contacts());
     }
 
     private CompanyCreateRequest toCreateRequest(CompanyCandidateDTO candidate) {

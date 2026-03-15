@@ -2,6 +2,7 @@ package dev.prospectos.infrastructure.service.inmemory;
 
 import dev.prospectos.api.CompanyDataService;
 import dev.prospectos.api.dto.CompanyDTO;
+import dev.prospectos.api.dto.CompanyContactDTO;
 import dev.prospectos.api.dto.ScoreDTO;
 import dev.prospectos.api.dto.request.CompanyCreateRequest;
 import dev.prospectos.api.dto.request.CompanyUpdateRequest;
@@ -18,27 +19,23 @@ import java.util.Objects;
 public class InMemoryCompanyDataService implements CompanyDataService {
     private final InMemoryCoreDataStore store;
     private final ApplicationEventPublisher eventPublisher;
-    private final InMemoryCompanyDtoFactory dtoFactory;
-    private final InMemoryWebsiteMatcher websiteMatcher;
+    private final InMemoryCompanyDtoFactory dtoFactory = new InMemoryCompanyDtoFactory();
+    private final InMemoryWebsiteMatcher websiteMatcher = new InMemoryWebsiteMatcher();
+    private final InMemoryCompanyContactSupport contactSupport = new InMemoryCompanyContactSupport();
+
     public InMemoryCompanyDataService(InMemoryCoreDataStore store, ApplicationEventPublisher eventPublisher) {
         this.store = store;
         this.eventPublisher = eventPublisher;
-        this.dtoFactory = new InMemoryCompanyDtoFactory();
-        this.websiteMatcher = new InMemoryWebsiteMatcher();
     }
+
     @Override
     public CompanyDTO findCompany(Long companyId) { return store.companies().get(companyId); }
     @Override
     public CompanyDTO findByWebsite(String website) {
         String targetDomain = websiteMatcher.extractDomainOrNull(website);
-        if (targetDomain == null) {
-            return null;
-        }
-        return store.companies().values().stream()
-            .filter(company -> company.website() != null)
-            .filter(company -> websiteMatcher.hasSameDomain(company.website(), targetDomain))
-            .findFirst()
-            .orElse(null);
+        if (targetDomain == null) return null;
+        return store.companies().values().stream().filter(c -> c.website() != null)
+            .filter(c -> websiteMatcher.hasSameDomain(c.website(), targetDomain)).findFirst().orElse(null);
     }
     @Override
     public List<CompanyDTO> findAllCompanies() { return List.copyOf(store.companies().values()); }
@@ -52,41 +49,44 @@ public class InMemoryCompanyDataService implements CompanyDataService {
     }
     @Override
     public CompanyDTO updateCompany(Long companyId, CompanyUpdateRequest request) {
-        if (!store.companies().containsKey(companyId)) {
-            return null;
-        }
         CompanyDTO existing = store.companies().get(companyId);
-        CompanyDTO company = dtoFactory.fromUpdateRequest(companyId, request, existing != null ? existing.score() : null);
-        store.companies().put(companyId, company);
+        if (existing == null) return null;
+        CompanyDTO updated = dtoFactory.fromUpdateRequest(companyId, request, existing);
+        store.companies().put(companyId, updated);
         publishReindex(companyId);
-        return company;
+        return updated;
     }
     @Override
     public boolean deleteCompany(Long companyId) {
         boolean deleted = store.companies().remove(companyId) != null;
-        if (deleted) {
-            publishReindex(companyId);
-        }
+        store.companyContacts().remove(companyId);
+        if (deleted) publishReindex(companyId);
         return deleted;
     }
     @Override
     public void updateCompanyScore(Long companyId, ScoreDTO score) {
-        if (!store.companies().containsKey(companyId)) {
-            throw new IllegalArgumentException("Company not found: " + companyId);
-        }
-        store.companyScores().put(companyId, score);
         CompanyDTO existing = store.companies().get(companyId);
-        if (existing != null) {
-            store.companies().put(companyId, dtoFactory.withScore(existing, score));
-        }
+        if (existing == null) throw new IllegalArgumentException("Company not found: " + companyId);
+        store.companyScores().put(companyId, score);
+        store.companies().put(companyId, dtoFactory.withScore(existing, score));
+        publishReindex(companyId);
+    }
+    @Override
+    public List<CompanyContactDTO> findCompanyContacts(Long companyId) { return contactSupport.findContacts(store, companyId); }
+    @Override
+    public void addCompanyContactEmails(Long companyId, List<String> emails) {
+        CompanyDTO company = store.companies().get(companyId);
+        if (company == null) throw new IllegalArgumentException("Company not found: " + companyId);
+        if (!contactSupport.addValidUniqueEmails(store, companyId, emails)) return;
+        store.companies().put(companyId, dtoFactory.withContacts(
+            company, contactSupport.primaryEmail(store, companyId), contactSupport.contactCount(store, companyId)
+        ));
         publishReindex(companyId);
     }
     @Override
     public List<CompanyDTO> findCompaniesByICP(Long icpId) {
-        List<Long> companyIds = store.icpCompanies().getOrDefault(icpId, List.of());
-        return companyIds.stream().map(store.companies()::get).filter(Objects::nonNull).toList();
+        return store.icpCompanies().getOrDefault(icpId, List.of()).stream()
+            .map(store.companies()::get).filter(Objects::nonNull).toList();
     }
-    private void publishReindex(Long companyId) {
-        eventPublisher.publishEvent(new CompanyVectorReindexRequested(companyId));
-    }
+    private void publishReindex(Long companyId) { eventPublisher.publishEvent(new CompanyVectorReindexRequested(companyId)); }
 }

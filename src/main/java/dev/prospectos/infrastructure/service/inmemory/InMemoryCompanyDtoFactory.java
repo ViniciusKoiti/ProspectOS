@@ -20,7 +20,7 @@ final class InMemoryCompanyDtoFactory {
         );
     }
 
-    CompanyDTO fromUpdateRequest(Long companyId, CompanyUpdateRequest request, ScoreDTO existingScore) {
+    CompanyDTO fromUpdateRequest(Long companyId, CompanyUpdateRequest request, CompanyDTO existing) {
         return new CompanyDTO(
             companyId,
             request.name(),
@@ -29,7 +29,9 @@ final class InMemoryCompanyDtoFactory {
             request.description(),
             null,
             formatLocation(request.country(), request.city()),
-            existingScore
+            existing != null ? existing.score() : null,
+            existing != null ? existing.primaryContactEmail() : null,
+            existing != null ? existing.contactCount() : 0
         );
     }
 
@@ -42,7 +44,24 @@ final class InMemoryCompanyDtoFactory {
             existing.description(),
             existing.employeeCount(),
             existing.location(),
-            score
+            score,
+            existing.primaryContactEmail(),
+            existing.contactCount()
+        );
+    }
+
+    CompanyDTO withContacts(CompanyDTO existing, String primaryContactEmail, int contactCount) {
+        return new CompanyDTO(
+            existing.id(),
+            existing.name(),
+            existing.industry(),
+            existing.website(),
+            existing.description(),
+            existing.employeeCount(),
+            existing.location(),
+            existing.score(),
+            primaryContactEmail,
+            contactCount
         );
     }
 

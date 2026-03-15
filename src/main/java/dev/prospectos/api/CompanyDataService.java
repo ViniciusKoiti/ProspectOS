@@ -1,6 +1,7 @@
 package dev.prospectos.api;
 
 import dev.prospectos.api.dto.CompanyDTO;
+import dev.prospectos.api.dto.CompanyContactDTO;
 import dev.prospectos.api.dto.ScoreDTO;
 import dev.prospectos.api.dto.request.CompanyCreateRequest;
 import dev.prospectos.api.dto.request.CompanyUpdateRequest;
@@ -31,4 +32,8 @@ public interface CompanyDataService {
     void updateCompanyScore(Long companyId, ScoreDTO score);
 
     List<CompanyDTO> findCompaniesByICP(Long icpId);
+
+    List<CompanyContactDTO> findCompanyContacts(Long companyId);
+
+    void addCompanyContactEmails(Long companyId, List<String> emails);
 }

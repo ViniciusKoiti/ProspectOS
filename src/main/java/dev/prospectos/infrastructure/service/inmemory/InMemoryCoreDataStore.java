@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import dev.prospectos.api.dto.CompanyDTO;
+import dev.prospectos.api.dto.CompanyContactDTO;
 import dev.prospectos.api.dto.ICPDto;
 import dev.prospectos.api.dto.ScoreDTO;
 
@@ -21,6 +22,7 @@ public class InMemoryCoreDataStore {
     private final Map<Long, ICPDto> icps = new ConcurrentHashMap<>();
     private final Map<Long, List<Long>> icpCompanies = new ConcurrentHashMap<>();
     private final Map<Long, ScoreDTO> companyScores = new ConcurrentHashMap<>();
+    private final Map<Long, List<CompanyContactDTO>> companyContacts = new ConcurrentHashMap<>();
     private final AtomicLong companyIdSequence = new AtomicLong();
     private final AtomicLong icpIdSequence = new AtomicLong();
 
@@ -43,6 +45,10 @@ public class InMemoryCoreDataStore {
 
     public Map<Long, ScoreDTO> companyScores() {
         return companyScores;
+    }
+
+    Map<Long, List<CompanyContactDTO>> companyContacts() {
+        return companyContacts;
     }
 
     long nextCompanyId() {

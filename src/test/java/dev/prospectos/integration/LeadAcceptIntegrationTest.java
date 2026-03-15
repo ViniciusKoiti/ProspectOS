@@ -19,6 +19,7 @@ import java.time.Instant;
 import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -178,5 +179,40 @@ class LeadAcceptIntegrationTest extends PostgresIntegrationTestBase {
             .andExpect(jsonPath("$.company.score.value").value(90))
             .andExpect(jsonPath("$.company.score.category").value("HOT"))
             .andExpect(jsonPath("$.message").value("Lead accepted and updated (already existed)"));
+    }
+
+    @Test
+    void acceptLead_PersistsOnlyValidUniqueContactsAndExposesThem() throws Exception {
+        CompanyCandidateDTO candidate = new CompanyCandidateDTO(
+            "Contact Corp",
+            "https://contactcorp.com",
+            "Software",
+            "Company with multiple contacts",
+            "SMALL",
+            "Sao Paulo, BR",
+            List.of("sales@contactcorp.com", "invalid-contact", "SALES@contactcorp.com", "ops@contactcorp.com")
+        );
+        ScoreDTO score = new ScoreDTO(70, "WARM", "reasonable fit");
+        SourceProvenanceDTO source = new SourceProvenanceDTO("apollo", "https://contactcorp.com", Instant.now());
+        String leadKey = LeadKeyGenerator.generate("https://contactcorp.com", "apollo");
+        AcceptLeadRequest request = new AcceptLeadRequest(leadKey, candidate, score, source);
+
+        String body = mockMvc.perform(post("/api/leads/accept")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.company.primaryContactEmail").value("sales@contactcorp.com"))
+            .andExpect(jsonPath("$.company.contactCount").value(2))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        long companyId = objectMapper.readTree(body).get("company").get("id").asLong();
+
+        mockMvc.perform(get("/api/companies/{companyId}/contacts", companyId))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(2))
+            .andExpect(jsonPath("$[0].email").value("sales@contactcorp.com"))
+            .andExpect(jsonPath("$[1].email").value("ops@contactcorp.com"));
     }
 }

@@ -2,6 +2,7 @@ package dev.prospectos.infrastructure.api.companies;
 
 import dev.prospectos.api.CompanyDataService;
 import dev.prospectos.api.dto.CompanyDTO;
+import dev.prospectos.api.dto.CompanyContactDTO;
 import dev.prospectos.api.dto.ScoreDTO;
 import dev.prospectos.api.dto.request.CompanyCreateRequest;
 import dev.prospectos.api.dto.request.CompanyUpdateRequest;
@@ -51,6 +52,15 @@ public class CompanyController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Company not found");
         }
         return ResponseEntity.ok(company);
+    }
+
+    @GetMapping("/{companyId}/contacts")
+    public ResponseEntity<List<CompanyContactDTO>> getCompanyContacts(@PathVariable Long companyId) {
+        CompanyDTO company = companyDataService.findCompany(companyId);
+        if (company == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Company not found");
+        }
+        return ResponseEntity.ok(companyDataService.findCompanyContacts(companyId));
     }
 
     @PutMapping("/{companyId}")

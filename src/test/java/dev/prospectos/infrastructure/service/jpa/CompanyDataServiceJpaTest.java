@@ -3,6 +3,8 @@ package dev.prospectos.infrastructure.service.jpa;
 import dev.prospectos.api.dto.CompanyDTO;
 import dev.prospectos.api.dto.request.CompanyCreateRequest;
 import dev.prospectos.core.domain.Company;
+import dev.prospectos.core.domain.Contact;
+import dev.prospectos.core.domain.Email;
 import dev.prospectos.core.domain.ICP;
 import dev.prospectos.core.domain.Website;
 import dev.prospectos.core.repository.CompanyDomainRepository;
@@ -48,6 +50,7 @@ class CompanyDataServiceJpaTest {
     @Test
     void findCompany_UsesDirectExternalIdLookup() {
         Company company = Company.create("Acme", Website.of("https://acme.com"), "Software");
+        company.addContact(new Contact("Alice", Email.of("alice@acme.com"), "CTO", null));
         long externalId = company.getExternalId();
 
         when(companyRepository.findByExternalId(externalId)).thenReturn(Optional.of(company));
@@ -57,6 +60,8 @@ class CompanyDataServiceJpaTest {
         assertNotNull(found);
         assertEquals(externalId, found.id());
         assertEquals("Acme", found.name());
+        assertEquals("alice@acme.com", found.primaryContactEmail());
+        assertEquals(1, found.contactCount());
         verify(companyRepository).findByExternalId(externalId);
         verify(companyRepository, never()).findAll();
     }
@@ -134,5 +139,26 @@ class CompanyDataServiceJpaTest {
 
         assertEquals("Invalid company size: tiny", exception.getMessage());
         verify(companyRepository, never()).save(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void addCompanyContactEmails_PersistsOnlyValidUniqueEmails() {
+        Company company = Company.create("Acme", Website.of("https://acme.com"), "Software");
+        long externalId = company.getExternalId();
+
+        when(companyRepository.findByExternalId(externalId)).thenReturn(Optional.of(company));
+
+        service.addCompanyContactEmails(externalId, List.of(
+            "first@acme.com",
+            "invalid-email",
+            "FIRST@acme.com",
+            "second@acme.com",
+            ""
+        ));
+
+        assertEquals(2, company.getContacts().size());
+        assertEquals("first@acme.com", company.getContacts().getFirst().getEmail().getAddress());
+        assertEquals("second@acme.com", company.getContacts().get(1).getEmail().getAddress());
+        verify(companyRepository).save(company);
     }
 }

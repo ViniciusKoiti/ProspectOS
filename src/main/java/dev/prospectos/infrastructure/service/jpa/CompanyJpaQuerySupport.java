@@ -55,7 +55,7 @@ final class CompanyJpaQuerySupport {
         return icp.get().getIndustries().stream()
             .flatMap(industry -> companyRepository.findByIndustry(industry).stream())
             .collect(Collectors.toMap(
-                company -> company.getId().getMostSignificantBits(),
+                company -> company.getExternalId(),
                 dtoMapper::toDTO,
                 (existing, replacement) -> existing
             ))
@@ -72,3 +72,4 @@ final class CompanyJpaQuerySupport {
         return externalId == null ? Optional.empty() : icpRepository.findByExternalId(externalId);
     }
 }
+

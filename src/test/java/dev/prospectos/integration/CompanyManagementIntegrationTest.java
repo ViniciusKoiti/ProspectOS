@@ -84,4 +84,10 @@ class CompanyManagementIntegrationTest extends PostgresIntegrationTestBase {
         mockMvc.perform(get("/api/companies/{companyId}", companyId))
             .andExpect(status().isNotFound());
     }
+
+    @Test
+    void getCompanyContacts_ReturnsNotFoundForUnknownCompany() throws Exception {
+        mockMvc.perform(get("/api/companies/{companyId}/contacts", 999999L))
+            .andExpect(status().isNotFound());
+    }
 }
