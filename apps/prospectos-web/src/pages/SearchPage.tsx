@@ -1,4 +1,3 @@
-import { isAxiosError } from 'axios';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -20,19 +19,20 @@ import LoadingState from '../components/ui/LoadingState';
 import PageHeader from '../components/ui/PageHeader';
 import Select from '../components/ui/Select';
 import TextArea from '../components/ui/TextArea';
+import {
+    buildSearchResultsCsv,
+    getScoreBadgeVariant,
+    isSearchSourceValue,
+    mergeWithFallbackError,
+    parseApiErrorMessage,
+    SEARCH_SOURCE_VALUES,
+} from './search/searchUtils';
 import { listIcps } from '../services/icpService';
 import { acceptLead, searchLeads } from '../services/leadService';
 import type { AcceptLeadResponse, LeadResult } from '../types/leadContracts';
 
-const SEARCH_SOURCE_VALUES = ['in-memory', 'vector-company', 'cnpj-ws'] as const;
 const searchSourceSchema = z.enum(SEARCH_SOURCE_VALUES);
 
-type SearchSourceValue = z.infer<typeof searchSourceSchema>;
-
-type ApiErrorPayload = {
-    message?: unknown;
-    error?: unknown;
-};
 
 const searchFormSchema = z.object({
     query: z.string().min(1),
@@ -43,128 +43,6 @@ const searchFormSchema = z.object({
 
 type SearchFormInput = z.input<typeof searchFormSchema>;
 type SearchFormValues = z.output<typeof searchFormSchema>;
-
-const CSV_HEADERS = [
-    'leadKey',
-    'companyName',
-    'website',
-    'industry',
-    'description',
-    'size',
-    'location',
-    'contacts',
-    'scoreValue',
-    'scoreCategory',
-    'scoreReasoning',
-    'sourceName',
-    'sourceUrl',
-    'collectedAt',
-] as const;
-
-function isSearchSourceValue(value: string): value is SearchSourceValue {
-    return SEARCH_SOURCE_VALUES.some((candidate) => candidate === value);
-}
-
-function getScoreBadgeVariant(category: string): 'success' | 'warning' | 'neutral' {
-    const normalized = category.trim().toUpperCase();
-
-    if (normalized === 'HOT') {
-        return 'success';
-    }
-
-    if (normalized === 'WARM') {
-        return 'warning';
-    }
-
-    return 'neutral';
-}
-
-function escapeCsvCell(value: string): string {
-    const normalized = value.replaceAll('"', '""');
-
-    if (normalized.includes(',') || normalized.includes('\n') || normalized.includes('"')) {
-        return `"${normalized}"`;
-    }
-
-    return normalized;
-}
-
-function toCsvRow(values: string[]): string {
-    return values.map(escapeCsvCell).join(',');
-}
-
-function buildSearchResultsCsv(leads: LeadResult[]): string {
-    const rows = leads.map((lead) =>
-        toCsvRow([
-            lead.leadKey,
-            lead.candidate.name,
-            lead.candidate.website ?? '',
-            lead.candidate.industry ?? '',
-            lead.candidate.description ?? '',
-            lead.candidate.size ?? '',
-            lead.candidate.location ?? '',
-            lead.candidate.contacts.join(' | '),
-            String(lead.score.value),
-            lead.score.category,
-            lead.score.reasoning,
-            lead.source.sourceName,
-            lead.source.sourceUrl ?? '',
-            lead.source.collectedAt,
-        ])
-    );
-
-    return [toCsvRow(Array.from(CSV_HEADERS)), ...rows].join('\n');
-}
-
-function parseApiErrorMessage(error: unknown): string | null {
-    if (isAxiosError(error)) {
-        const responseData = error.response?.data;
-
-        if (typeof responseData === 'string' && responseData.trim().length > 0) {
-            return responseData.trim();
-        }
-
-        if (responseData && typeof responseData === 'object') {
-            const payload = responseData as ApiErrorPayload;
-
-            if (typeof payload.message === 'string' && payload.message.trim().length > 0) {
-                return payload.message.trim();
-            }
-
-            if (typeof payload.error === 'string' && payload.error.trim().length > 0) {
-                return payload.error.trim();
-            }
-        }
-
-        if (!error.response) {
-            return 'Unable to reach the backend API. Verify local backend is running.';
-        }
-
-        if (typeof error.message === 'string' && error.message.trim().length > 0) {
-            return error.message.trim();
-        }
-
-        return `Request failed with status ${error.response.status}.`;
-    }
-
-    if (error instanceof Error && error.message.trim().length > 0) {
-        return error.message.trim();
-    }
-
-    return null;
-}
-
-function mergeWithFallbackError(fallbackMessage: string, detail: string | null): string {
-    if (!detail) {
-        return fallbackMessage;
-    }
-
-    if (detail.localeCompare(fallbackMessage, undefined, { sensitivity: 'accent' }) === 0) {
-        return fallbackMessage;
-    }
-
-    return `${fallbackMessage} ${detail}`;
-}
 
 export default function SearchPage() {
     const { t } = useTranslation();
@@ -443,3 +321,4 @@ export default function SearchPage() {
         </section>
     );
 }
+
