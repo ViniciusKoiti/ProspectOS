@@ -27,12 +27,12 @@ final class ScraperLeadResponseFactory {
         );
     }
 
-    LeadSearchResponse completed(LeadResultDTO lead) {
+    LeadSearchResponse completed(List<LeadResultDTO> leads, String message) {
         return new LeadSearchResponse(
             LeadSearchStatus.COMPLETED,
-            List.of(lead),
+            leads == null ? List.of() : leads,
             UUID.randomUUID(),
-            "Scraper search completed"
+            message == null ? "Search completed" : message
         );
     }
 }

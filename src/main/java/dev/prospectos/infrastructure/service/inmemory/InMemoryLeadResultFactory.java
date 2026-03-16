@@ -14,15 +14,15 @@ import dev.prospectos.core.domain.ICP;
 import dev.prospectos.core.util.LeadKeyGenerator;
 import dev.prospectos.infrastructure.service.scoring.CompanyScoringService;
 
-final class InMemoryLeadResultFactory {
+public final class InMemoryLeadResultFactory {
 
     private final CompanyScoringService scoringService;
 
-    InMemoryLeadResultFactory(CompanyScoringService scoringService) {
+    public InMemoryLeadResultFactory(CompanyScoringService scoringService) {
         this.scoringService = scoringService;
     }
 
-    LeadResultDTO toLeadResult(CompanyDTO companyDto, String sourceName, ICP icp) {
+    public LeadResultDTO toLeadResult(CompanyDTO companyDto, String sourceName, ICP icp) {
         Company company = CompanyMapper.toDomain(companyDto);
         ScoreDTO score = scoringService.scoreCandidate(company, icp);
 

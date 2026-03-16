@@ -2,7 +2,9 @@ package dev.prospectos.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.prospectos.ai.client.ScraperClientInterface;
+import dev.prospectos.api.CompanyDataService;
 import dev.prospectos.api.ICPDataService;
+import dev.prospectos.api.LeadDiscoveryService;
 import dev.prospectos.api.LeadSearchService;
 import dev.prospectos.api.dto.LeadSearchRequest;
 import dev.prospectos.core.enrichment.CompanyEnrichmentService;
@@ -80,6 +82,8 @@ class LeadSearchScraperIntegrationTest extends PostgresIntegrationTestBase {
         LeadSearchService scraperLeadSearchService(
             ScraperClientInterface scraperClient,
             CompanyEnrichmentService enrichmentService,
+            CompanyDataService companyDataService,
+            LeadDiscoveryService leadDiscoveryService,
             ICPDataService icpDataService,
             CompanyScoringService scoringService,
             AllowedSourcesComplianceService complianceService,
@@ -88,6 +92,8 @@ class LeadSearchScraperIntegrationTest extends PostgresIntegrationTestBase {
             return new ScraperLeadSearchService(
                 scraperClient,
                 enrichmentService,
+                companyDataService,
+                leadDiscoveryService,
                 icpDataService,
                 scoringService,
                 complianceService,

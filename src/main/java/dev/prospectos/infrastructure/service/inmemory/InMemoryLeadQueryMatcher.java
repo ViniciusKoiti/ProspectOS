@@ -5,16 +5,16 @@ import java.util.Locale;
 
 import dev.prospectos.api.dto.CompanyDTO;
 
-final class InMemoryLeadQueryMatcher {
+public final class InMemoryLeadQueryMatcher {
 
     private InMemoryLeadQueryMatcher() {
     }
 
-    static List<String> tokens(String query) {
+    public static List<String> tokens(String query) {
         return List.of(query.toLowerCase(Locale.ROOT).split("\\s+"));
     }
 
-    static boolean matches(CompanyDTO company, List<String> tokens) {
+    public static boolean matches(CompanyDTO company, List<String> tokens) {
         String haystack = String.join(
             " ",
             safe(company.name()),

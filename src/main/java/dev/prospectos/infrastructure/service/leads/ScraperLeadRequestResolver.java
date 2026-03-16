@@ -26,10 +26,10 @@ final class ScraperLeadRequestResolver {
             throw new IllegalArgumentException("Query cannot be null or blank");
         }
         int limit = request.limit() == null ? DEFAULT_LIMIT : request.limit();
-        List<String> requestedSources = complianceService.validateSources(request.sources());
-        String sourceName = resolveSourceName(requestedSources);
-        String query = normalizeWebsiteOrQuery(request.query());
-        return new ScraperLeadRequestContext(limit, sourceName, query);
+        List<String> requestedSources = resolveSources(complianceService.validateSources(request.sources()));
+        String query = request.query().trim();
+        String scraperQuery = normalizeWebsiteOrQuery(query);
+        return new ScraperLeadRequestContext(limit, requestedSources, query, scraperQuery);
     }
 
     Long resolveIcpId(Long requestIcpId) {
@@ -44,11 +44,11 @@ final class ScraperLeadRequestResolver {
         return properties.defaultIcpId();
     }
 
-    private String resolveSourceName(List<String> sources) {
+    private List<String> resolveSources(List<String> sources) {
         if (sources == null || sources.isEmpty()) {
-            return "scraper";
+            return List.of("scraper");
         }
-        return sources.get(0);
+        return sources;
     }
 
     private String normalizeWebsiteOrQuery(String value) {
