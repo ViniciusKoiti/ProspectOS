@@ -42,16 +42,19 @@ function createLead(params: {
 }
 
 describe('SearchMatchInsights', () => {
-    it('renders aggregated metrics and source breakdown', () => {
+    it('renders aggregated metrics, selected ICP context and source breakdown', () => {
         const leads: LeadResult[] = [
             createLead({ leadKey: 'a', sourceName: 'in-memory', scoreValue: 90, scoreCategory: 'HOT' }),
             createLead({ leadKey: 'b', sourceName: 'in-memory', scoreValue: 80, scoreCategory: 'WARM' }),
             createLead({ leadKey: 'c', sourceName: 'vector-company', scoreValue: 60, scoreCategory: 'COLD' }),
         ];
 
-        const markup = renderToStaticMarkup(createElement(SearchMatchInsights, { leads }));
+        const markup = renderToStaticMarkup(createElement(SearchMatchInsights, { leads, selectedIcpName: 'SaaS Growth' }));
 
         expect(markup).toContain('Match insights');
+        expect(markup).toContain('ICP profile');
+        expect(markup).toContain('SaaS Growth');
+        expect(markup).toContain('Match distribution');
         expect(markup).toContain('Leads');
         expect(markup).toContain('Average score');
         expect(markup).toContain('76.7');

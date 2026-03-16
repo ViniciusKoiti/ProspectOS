@@ -1055,7 +1055,7 @@ cd scraper-service
 - [x] Advanced filters
 - [x] Pagination for large result sets
 - [x] Company detail page
-- [ ] ICP matching visualization
+- [x] ICP matching visualization
 
 ---
 
