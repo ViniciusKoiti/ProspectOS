@@ -7,6 +7,7 @@ import Card from '../ui/Card';
 
 type SearchMatchInsightsProps = {
     leads: LeadResult[];
+    selectedIcpName?: string | null;
 };
 
 type ScoreCategory = 'HOT' | 'WARM' | 'COLD' | 'OTHER';
@@ -44,7 +45,23 @@ function getBadgeVariant(category: ScoreCategory): 'success' | 'warning' | 'neut
     return 'neutral';
 }
 
-export default function SearchMatchInsights({ leads }: SearchMatchInsightsProps) {
+function getDistributionBarColor(category: ScoreCategory): string {
+    if (category === 'HOT') {
+        return 'bg-emerald-500';
+    }
+
+    if (category === 'WARM') {
+        return 'bg-amber-500';
+    }
+
+    if (category === 'COLD') {
+        return 'bg-slate-500';
+    }
+
+    return 'bg-indigo-500';
+}
+
+export default function SearchMatchInsights({ leads, selectedIcpName }: SearchMatchInsightsProps) {
     const { t } = useTranslation();
 
     const insights = useMemo(() => {
@@ -106,6 +123,10 @@ export default function SearchMatchInsights({ leads }: SearchMatchInsightsProps)
         return null;
     }
 
+    const selectedIcpLabel = selectedIcpName && selectedIcpName.trim().length > 0
+        ? selectedIcpName.trim()
+        : t('pages.search.insights.noIcpSelected', { defaultValue: 'No ICP selected' });
+
     return (
         <Card className="space-y-4" data-testid="search-match-insights">
             <div className="space-y-1">
@@ -113,6 +134,11 @@ export default function SearchMatchInsights({ leads }: SearchMatchInsightsProps)
                 <p className="text-sm text-slate-600">
                     {t('pages.search.insights.subtitle', { defaultValue: 'Quick quality view of the current search result set.' })}
                 </p>
+            </div>
+
+            <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                <div className="text-xs font-medium uppercase tracking-wide text-slate-500">{t('pages.search.insights.icpProfile', { defaultValue: 'ICP profile' })}</div>
+                <div className="mt-1 text-base font-semibold text-slate-900">{selectedIcpLabel}</div>
             </div>
 
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
@@ -130,21 +156,26 @@ export default function SearchMatchInsights({ leads }: SearchMatchInsightsProps)
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                {SCORE_CATEGORY_ORDER.map((category) => {
-                    const count = insights.categoryCounts.get(category) ?? 0;
-                    const percentage = insights.totalLeads === 0 ? 0 : (count / insights.totalLeads) * 100;
+            <div className="space-y-2">
+                <h4 className="text-sm font-semibold text-slate-800">{t('pages.search.insights.distributionTitle', { defaultValue: 'Match distribution' })}</h4>
+                <div className="space-y-2">
+                    {SCORE_CATEGORY_ORDER.map((category) => {
+                        const count = insights.categoryCounts.get(category) ?? 0;
+                        const percentage = insights.totalLeads === 0 ? 0 : (count / insights.totalLeads) * 100;
 
-                    return (
-                        <div key={category} className="rounded-lg border border-slate-200 bg-white px-3 py-2">
-                            <div className="flex items-center justify-between">
-                                <Badge variant={getBadgeVariant(category)}>{category}</Badge>
-                                <span className="text-xs text-slate-500">{percentage.toFixed(0)}%</span>
+                        return (
+                            <div key={category} className="space-y-1">
+                                <div className="flex items-center justify-between">
+                                    <Badge variant={getBadgeVariant(category)}>{category}</Badge>
+                                    <span className="text-xs font-medium text-slate-600">{count} ({percentage.toFixed(0)}%)</span>
+                                </div>
+                                <div className="h-2 overflow-hidden rounded bg-slate-200">
+                                    <div className={`h-full rounded ${getDistributionBarColor(category)}`} style={{ width: `${percentage}%` }} />
+                                </div>
                             </div>
-                            <div className="mt-2 text-lg font-semibold text-slate-900">{count}</div>
-                        </div>
-                    );
-                })}
+                        );
+                    })}
+                </div>
             </div>
 
             <div className="space-y-2">

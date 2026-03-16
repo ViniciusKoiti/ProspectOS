@@ -82,6 +82,10 @@ export default function SearchPage() {
     });
 
     const selectedSources = form.watch('sources');
+    const selectedIcpId = form.watch('icpId');
+    const selectedIcpName = selectedIcpId
+        ? (icpsQuery.data ?? []).find((icp) => icp.id === selectedIcpId)?.name ?? null
+        : null;
     const sourceOptions: SearchSourceOption[] = [
         {
             value: 'in-memory',
@@ -292,7 +296,7 @@ export default function SearchPage() {
                         />
                     ) : searchMutation.data ? (
                         <div className="space-y-4" data-testid="search-results-table">
-                            <SearchMatchInsights leads={searchMutation.data.leads} />
+                            <SearchMatchInsights leads={searchMutation.data.leads} selectedIcpName={selectedIcpName} />
                             <div className="flex justify-end">
                                 <Button
                                     variant="secondary"
