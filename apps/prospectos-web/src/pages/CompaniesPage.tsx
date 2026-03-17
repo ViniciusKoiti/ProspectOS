@@ -103,7 +103,13 @@ export default function CompaniesPage() {
     const companiesQuery = useQuery({
         queryKey: ['companies', queryParams],
         queryFn: () => listCompanies(queryParams),
+        placeholderData: (previousData) => previousData,
     });
+
+    const hasCompaniesData = companiesQuery.data !== undefined;
+    const isInitialLoading = companiesQuery.isLoading && !hasCompaniesData;
+    const isTableRefreshing = companiesQuery.isFetching && hasCompaniesData;
+    const hasBlockingError = companiesQuery.isError && !hasCompaniesData;
 
     const companiesPage = companiesQuery.data ?? emptyCompanyPage(currentPage, pageSize);
     const tableRows = companiesPage.items;
@@ -237,11 +243,11 @@ export default function CompaniesPage() {
         setCurrentPage(0);
     };
 
-    if (companiesQuery.isLoading) {
+    if (isInitialLoading) {
         return <LoadingState />;
     }
 
-    if (companiesQuery.isError) {
+    if (hasBlockingError) {
         return <ErrorState message={t('pages.companies.errors.load')} onRetry={() => void companiesQuery.refetch()} />;
     }
 
@@ -275,13 +281,22 @@ export default function CompaniesPage() {
                 </div>
             </div>
 
-            <DataTable
-                columns={columns}
-                rows={tableRows}
-                rowKey={(row) => String(row.id)}
-                emptyTitle={t('pages.companies.empty.title')}
-                emptyDescription={t('pages.companies.empty.description')}
-            />
+            <div className="relative" data-testid="companies-table-container">
+                <DataTable
+                    columns={columns}
+                    rows={tableRows}
+                    rowKey={(row) => String(row.id)}
+                    emptyTitle={t('pages.companies.empty.title')}
+                    emptyDescription={t('pages.companies.empty.description')}
+                />
+                {isTableRefreshing ? (
+                    <div className="absolute inset-0 flex items-start justify-end p-3" data-testid="companies-table-refreshing">
+                        <div className="rounded-full bg-white/90 px-3 py-1 text-xs font-medium text-slate-600 shadow-sm ring-1 ring-slate-200">
+                            {t('common.loading')}
+                        </div>
+                    </div>
+                ) : null}
+            </div>
 
             {companiesPage.totalItems > 0 ? (
                 <div className="flex flex-wrap items-center justify-end gap-2" data-testid="companies-pagination-controls">

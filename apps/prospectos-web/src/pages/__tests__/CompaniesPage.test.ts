@@ -17,6 +17,7 @@ vi.mock('../../services/companyService', () => ({
 
 const translations: Record<string, string> = {
     'common.retry': 'Tentar novamente',
+    'common.loading': 'Carregando',
     'ui.error.title': 'Algo deu errado',
     'ui.loading.label': 'Carregando dados',
     'pages.companies.title': 'Empresas',
@@ -59,6 +60,7 @@ type CompaniesQueryState = {
     data?: CompaniesPageData;
     isLoading: boolean;
     isError: boolean;
+    isFetching?: boolean;
 };
 
 function mockCompaniesQuery(state: CompaniesQueryState) {
@@ -66,6 +68,7 @@ function mockCompaniesQuery(state: CompaniesQueryState) {
         data: state.data,
         isLoading: state.isLoading,
         isError: state.isError,
+        isFetching: state.isFetching ?? false,
         refetch: () => Promise.resolve(),
     } as unknown as ReturnType<typeof useQuery>);
 }
@@ -146,6 +149,20 @@ describe('CompaniesPage', () => {
         const markup = renderPage();
 
         expect(markup).toContain('Carregando dados');
+    });
+    it('keeps page visible and shows table-level loading while refreshing filtered results', () => {
+        mockCompaniesQuery({
+            isLoading: true,
+            isError: false,
+            isFetching: true,
+            data: createPageData([createCompany(1)], 0, 10, 1, 1),
+        });
+
+        const markup = renderPage();
+
+        expect(markup).toContain('data-testid="companies-page"');
+        expect(markup).toContain('data-testid="companies-table-refreshing"');
+        expect(markup).toContain('Empresa 1');
     });
 
     it('renders empty state when there are no companies', () => {
