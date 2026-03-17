@@ -957,11 +957,22 @@ VITE_ENABLE_DEBUG=true
 - [x] Build de produção funcionando
 
 ### **📋 Checklist Final (End of Week 2):**
-- [ ] **Demo Ready:** Interface completa e funcional
-- [ ] **Performance:** <3s load time, <1s interações
+- [x] **Demo Ready:** Interface completa e funcional
+- [x] **Performance:** <3s load time, <1s interações
 - [x] **Responsive:** Funciona em mobile e desktop
 - [x] **Error Handling:** Graceful degradation para API failures
 - [x] **Production Build:** `npm run build` sem erros
+
+#### **🔎 Evidências de validação (2026-03-16)**
+- Lighthouse (produção local): FCP `261ms`, LCP `1260ms`, TTI `261ms`, TBT `0ms`
+- Bundle gzip total: `166,982B` (limite `500KB`)
+- Smoke funcional:
+  - API: `/api/icps`, `/api/companies`, `/api/leads/search` (status `COMPLETED` com leads)
+  - Frontend preview: `/`, `/search`, `/icps`, `/companies` respondendo `200`
+- Relatórios locais:
+  - `.tmp/lighthouse-week2-prod-provided-backend-on.json`
+  - `.tmp/lighthouse-week2-prod-default-backend-on.json`
+  - `.tmp/week2-demo-smoke-report.txt`
 
 ---
 
