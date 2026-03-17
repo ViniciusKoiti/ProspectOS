@@ -110,6 +110,24 @@ Diagnostics:
 - Avoid coupling reusable UI components to endpoint-specific response shapes.
 - Avoid shipping a screen that only handles success state and ignores error/loading behavior.
 
+### Week 2 Performance Gate (must pass before final checklist)
+- Before marking `Performance: <3s load time, <1s interações` as complete, capture a fresh production baseline.
+- Required sequence:
+  - Verify backend endpoints are reachable (`/api/icps`, `/api/companies`) from the same machine.
+  - Run `pnpm run build` and then `pnpm run check:bundle` in `apps/prospectos-web`.
+  - Run production preview with explicit host/port: `pnpm exec vite preview --host 127.0.0.1 --port 4321 --strictPort`.
+  - Run Lighthouse desktop twice:
+    - default settings
+    - `--throttling-method=provided --screenEmulation.disabled`
+  - Save JSON reports under `.tmp/` for traceability.
+- Acceptance criteria for Week 2:
+  - Bundle gzip total under `500KB`.
+  - Load time under `3s` (use LCP as primary signal).
+  - Interactions under `1s` (use TTI/INP when available).
+- Audit hygiene:
+  - If Lighthouse shows `status=-1` for backend requests, treat the run as environment-invalid (usually host/CORS mismatch) and fix environment before deciding product performance.
+  - Keep frontend and API host aligned during audits (`127.0.0.1` with `127.0.0.1`, or `localhost` with `localhost`) to avoid false negatives.
+
 ## Architecture & Modulith Boundaries (Critical)
 - `core` = domain model + business rules. Must not depend on `ai` or `infrastructure`.
 - `api` = cross-module service contracts + DTOs (keep stable; avoid Spring/JPA leakage here).
