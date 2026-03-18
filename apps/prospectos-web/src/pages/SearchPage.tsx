@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
@@ -21,28 +21,41 @@ import Select from '../components/ui/Select';
 import TextArea from '../components/ui/TextArea';
 import {
     buildSearchResultsCsv,
+    filterLeadsByWebsitePresence,
     getScoreBadgeVariant,
+    getWebsitePresenceBadgeVariant,
+    getWebsitePresenceLabel,
     isSearchSourceValue,
     mergeWithFallbackError,
     parseApiErrorMessage,
     SEARCH_SOURCE_VALUES,
+    WEBSITE_PRESENCE_FILTER_VALUES,
 } from './search/searchUtils';
 import { listIcps } from '../services/icpService';
 import { acceptLead, searchLeads } from '../services/leadService';
-import type { AcceptLeadResponse, LeadResult } from '../types/leadContracts';
+import type { AcceptLeadResponse, LeadResult, WebsitePresence } from '../types/leadContracts';
 
 const searchSourceSchema = z.enum(SEARCH_SOURCE_VALUES);
-
+const websitePresenceFilterSchema = z.enum(WEBSITE_PRESENCE_FILTER_VALUES);
 
 const searchFormSchema = z.object({
     query: z.string().min(1),
     limit: z.coerce.number().int().min(1).max(100),
     icpId: z.preprocess((value) => (value === '' ? null : String(value)), z.string().regex(/^-?\d+$/).nullable()),
     sources: z.array(searchSourceSchema).min(1, 'Select at least one source.'),
+    websitePresence: websitePresenceFilterSchema.default('all'),
 });
 
 type SearchFormInput = z.input<typeof searchFormSchema>;
 type SearchFormValues = z.output<typeof searchFormSchema>;
+
+function formatWebsitePresenceLabel(websitePresence: WebsitePresence, t: (key: string, options?: { defaultValue?: string }) => string): string {
+    return getWebsitePresenceLabel(websitePresence, {
+        hasWebsite: t('pages.search.websitePresence.hasWebsite', { defaultValue: 'Com site' }),
+        noWebsite: t('pages.search.websitePresence.noWebsite', { defaultValue: 'Sem site' }),
+        unknown: t('pages.search.websitePresence.unknown', { defaultValue: 'Desconhecido' }),
+    });
+}
 
 export default function SearchPage() {
     const { t } = useTranslation();
@@ -78,11 +91,13 @@ export default function SearchPage() {
             limit: 20,
             icpId: null,
             sources: ['in-memory'],
+            websitePresence: 'all',
         },
     });
 
     const selectedSources = form.watch('sources');
     const selectedIcpId = form.watch('icpId');
+    const selectedWebsitePresence = form.watch('websitePresence') ?? 'all';
     const selectedIcpName = selectedIcpId
         ? (icpsQuery.data ?? []).find((icp) => icp.id === selectedIcpId)?.name ?? null
         : null;
@@ -104,6 +119,11 @@ export default function SearchPage() {
         },
     ];
 
+    const filteredLeads = useMemo(
+        () => filterLeadsByWebsitePresence(searchMutation.data?.leads ?? [], selectedWebsitePresence),
+        [searchMutation.data?.leads, selectedWebsitePresence]
+    );
+
     const handleAcceptLead = async (lead: LeadResult) => {
         setAcceptingLeadKey(lead.leadKey);
         setAcceptFeedback(null);
@@ -121,13 +141,11 @@ export default function SearchPage() {
     };
 
     const handleExportCsv = () => {
-        const currentLeads = searchMutation.data?.leads ?? [];
-
-        if (currentLeads.length === 0) {
+        if (filteredLeads.length === 0) {
             return;
         }
 
-        const csv = buildSearchResultsCsv(currentLeads);
+        const csv = buildSearchResultsCsv(filteredLeads);
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const blobUrl = URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -151,6 +169,15 @@ export default function SearchPage() {
             key: 'industry',
             header: t('pages.companies.table.industry'),
             render: (row) => row.candidate.industry ?? '-',
+        },
+        {
+            key: 'websitePresence',
+            header: t('pages.search.table.websitePresence', { defaultValue: 'Website presence' }),
+            render: (row) => (
+                <Badge variant={getWebsitePresenceBadgeVariant(row.candidate.websitePresence)}>
+                    {formatWebsitePresenceLabel(row.candidate.websitePresence, t)}
+                </Badge>
+            ),
         },
         {
             key: 'source',
@@ -296,12 +323,21 @@ export default function SearchPage() {
                         />
                     ) : searchMutation.data ? (
                         <div className="space-y-4" data-testid="search-results-table">
-                            <SearchMatchInsights leads={searchMutation.data.leads} selectedIcpName={selectedIcpName} />
-                            <div className="flex justify-end">
+                            <SearchMatchInsights leads={filteredLeads} selectedIcpName={selectedIcpName} />
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                                <Select
+                                    id="search-website-presence"
+                                    label={t('pages.search.fields.websitePresence', { defaultValue: 'Website presence' })}
+                                    {...form.register('websitePresence')}
+                                >
+                                    <option value="all">{t('pages.search.websitePresence.all', { defaultValue: 'Todos' })}</option>
+                                    <option value="HAS_WEBSITE">{t('pages.search.websitePresence.hasWebsite', { defaultValue: 'Com site' })}</option>
+                                    <option value="NO_WEBSITE">{t('pages.search.websitePresence.noWebsite', { defaultValue: 'Sem site' })}</option>
+                                </Select>
                                 <Button
                                     variant="secondary"
                                     data-testid="search-export-csv"
-                                    disabled={searchMutation.data.leads.length === 0}
+                                    disabled={filteredLeads.length === 0}
                                     onClick={handleExportCsv}
                                 >
                                     {t('pages.search.actions.exportCsv', { defaultValue: 'Export CSV' })}
@@ -309,7 +345,7 @@ export default function SearchPage() {
                             </div>
                             <DataTable
                                 columns={columns}
-                                rows={searchMutation.data.leads}
+                                rows={filteredLeads}
                                 rowKey={(row) => row.leadKey}
                                 emptyTitle={t('pages.search.empty.title')}
                                 emptyDescription={t('pages.search.empty.description')}
@@ -325,4 +361,3 @@ export default function SearchPage() {
         </section>
     );
 }
-

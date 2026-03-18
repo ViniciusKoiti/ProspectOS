@@ -27,6 +27,7 @@ function createLead(params: {
             size: 'SMALL',
             location: 'Sao Paulo',
             contacts: [],
+            websitePresence: 'NO_WEBSITE',
         },
         score: {
             value: params.scoreValue,

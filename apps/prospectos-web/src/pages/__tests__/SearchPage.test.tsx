@@ -26,8 +26,13 @@ const translations: Record<string, string> = {
     'pages.search.fields.limit': 'Limite',
     'pages.search.fields.sources': 'Sources',
     'pages.search.fields.sourcesHint': 'Selecione uma ou mais fontes.',
+    'pages.search.fields.websitePresence': 'Website presence',
     'pages.search.placeholders.query': 'Digite o prompt',
     'pages.search.placeholders.selectIcp': 'Selecione ICP',
+    'pages.search.websitePresence.all': 'Todos',
+    'pages.search.websitePresence.hasWebsite': 'Com site',
+    'pages.search.websitePresence.noWebsite': 'Sem site',
+    'pages.search.websitePresence.unknown': 'Desconhecido',
     'pages.search.errors.loadIcps': 'Falha ao carregar ICPs',
     'pages.search.errors.execute': 'Falha ao executar busca.',
     'pages.search.errors.accept': 'Falha ao aceitar lead.',
@@ -62,12 +67,13 @@ type MutationState = {
     data: unknown;
 };
 
-function createLead(): LeadResult {
+function createLead(params: { leadKey: string; websitePresence: LeadResult['candidate']['websitePresence']; website: string | null }): LeadResult {
     return {
-        leadKey: 'lead-key-1',
+        leadKey: params.leadKey,
         candidate: {
-            name: 'Alpha Systems',
-            website: null,
+            name: `Company ${params.leadKey}`,
+            website: params.website,
+            websitePresence: params.websitePresence,
             industry: 'Software',
             description: null,
             size: 'MEDIUM',
@@ -87,16 +93,31 @@ function createLead(): LeadResult {
     };
 }
 
-function mockForm() {
+function mockForm(websitePresence: 'all' | 'HAS_WEBSITE' | 'NO_WEBSITE' = 'all') {
     vi.mocked(useForm).mockReturnValue({
         register: vi.fn(() => ({})),
-        watch: vi.fn(() => ['in-memory']),
+        watch: vi.fn((field: string) => {
+            if (field === 'sources') {
+                return ['in-memory'];
+            }
+
+            if (field === 'icpId') {
+                return null;
+            }
+
+            if (field === 'websitePresence') {
+                return websitePresence;
+            }
+
+            return undefined;
+        }),
         setValue: vi.fn(),
         handleSubmit: vi.fn((callback) => () => callback({
             query: 'empresas de software',
             limit: 20,
             icpId: null,
             sources: ['in-memory'],
+            websitePresence,
         })),
         formState: {
             errors: {},
@@ -109,6 +130,7 @@ function mockPageState(params: {
     icpsError?: boolean;
     search: MutationState;
     accept?: Partial<MutationState>;
+    websitePresence?: 'all' | 'HAS_WEBSITE' | 'NO_WEBSITE';
 }) {
     vi.mocked(useQueryClient).mockReturnValue({
         invalidateQueries: vi.fn().mockResolvedValue(undefined),
@@ -141,7 +163,7 @@ function mockPageState(params: {
         .mockReturnValueOnce(searchMutation as unknown as ReturnType<typeof useMutation>)
         .mockReturnValueOnce(acceptMutation as unknown as ReturnType<typeof useMutation>);
 
-    mockForm();
+    mockForm(params.websitePresence);
 }
 
 function renderPage() {
@@ -225,7 +247,7 @@ describe('SearchPage', () => {
         expect(markup).toContain('Falha ao executar busca. Backend indisponível temporariamente');
     });
 
-    it('renders result table, source column and export action when completed', () => {
+    it('renders result table, website presence badges and export action when completed', () => {
         mockPageState({
             search: {
                 isPending: false,
@@ -233,7 +255,10 @@ describe('SearchPage', () => {
                 error: null,
                 data: {
                     status: 'COMPLETED',
-                    leads: [createLead()],
+                    leads: [
+                        createLead({ leadKey: 'lead-1', websitePresence: 'HAS_WEBSITE', website: 'https://alpha.example' }),
+                        createLead({ leadKey: 'lead-2', websitePresence: 'NO_WEBSITE', website: null }),
+                    ],
                     requestId: '9fc98753-f486-42f7-b6eb-354ed4f4f0cc',
                     message: 'Busca concluída',
                 },
@@ -243,8 +268,34 @@ describe('SearchPage', () => {
         const markup = renderPage();
 
         expect(markup).toContain('search-results-table');
-        expect(markup).toContain('Source');
-        expect(markup).toContain('in-memory');
+        expect(markup).toContain('Website presence');
+        expect(markup).toContain('Com site');
+        expect(markup).toContain('Sem site');
         expect(markup).toContain('Export CSV');
+    });
+
+    it('filters displayed leads by website presence selection', () => {
+        mockPageState({
+            websitePresence: 'NO_WEBSITE',
+            search: {
+                isPending: false,
+                isError: false,
+                error: null,
+                data: {
+                    status: 'COMPLETED',
+                    leads: [
+                        createLead({ leadKey: 'lead-1', websitePresence: 'HAS_WEBSITE', website: 'https://alpha.example' }),
+                        createLead({ leadKey: 'lead-2', websitePresence: 'NO_WEBSITE', website: null }),
+                    ],
+                    requestId: '33ab1cc6-3a1d-4be0-9aa9-f0d7a6d9f7f6',
+                    message: 'Busca concluída',
+                },
+            },
+        });
+
+        const markup = renderPage();
+
+        expect(markup).not.toContain('Company lead-1');
+        expect(markup).toContain('Company lead-2');
     });
 });

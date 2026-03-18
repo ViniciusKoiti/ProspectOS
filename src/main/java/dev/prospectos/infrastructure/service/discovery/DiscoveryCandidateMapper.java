@@ -2,6 +2,8 @@ package dev.prospectos.infrastructure.service.discovery;
 
 import java.util.List;
 
+import dev.prospectos.api.dto.CompanyCandidateDTO;
+
 final class DiscoveryCandidateMapper {
 
     DiscoveredLeadCandidate toCandidate(
@@ -14,33 +16,34 @@ final class DiscoveryCandidateMapper {
         List<String> contacts
     ) {
         String normalizedName = asText(name);
-        String normalizedWebsite = normalizeWebsite(asText(website));
-        if (normalizedName == null || normalizedWebsite == null) {
+        WebsiteNormalization websiteNormalization = normalizeWebsite(asText(website));
+        if (normalizedName == null) {
             return null;
         }
         return new DiscoveredLeadCandidate(
             normalizedName,
-            normalizedWebsite,
+            websiteNormalization.website(),
             defaultIfBlank(asText(industry), "Other"),
             defaultIfBlank(asText(description), ""),
             asText(location),
             asStringList(contacts),
-            sourceName
+            sourceName,
+            websiteNormalization.presence()
         );
     }
 
-    private String normalizeWebsite(String website) {
+    private WebsiteNormalization normalizeWebsite(String website) {
         if (website == null || website.isBlank()) {
-            return null;
+            return new WebsiteNormalization(null, CompanyCandidateDTO.WebsitePresence.NO_WEBSITE);
         }
         String trimmed = website.trim();
         if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-            return trimmed;
+            return new WebsiteNormalization(trimmed, CompanyCandidateDTO.WebsitePresence.HAS_WEBSITE);
         }
         if (trimmed.contains(" ")) {
-            return null;
+            return new WebsiteNormalization(null, CompanyCandidateDTO.WebsitePresence.UNKNOWN);
         }
-        return "https://" + trimmed;
+        return new WebsiteNormalization("https://" + trimmed, CompanyCandidateDTO.WebsitePresence.HAS_WEBSITE);
     }
 
     private String asText(Object value) {
@@ -63,5 +66,8 @@ final class DiscoveryCandidateMapper {
             .map(this::asText)
             .filter(v -> v != null && !v.isBlank())
             .toList();
+    }
+
+    private record WebsiteNormalization(String website, CompanyCandidateDTO.WebsitePresence presence) {
     }
 }

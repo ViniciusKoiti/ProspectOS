@@ -79,6 +79,18 @@ class LeadKeyGeneratorTest {
     }
 
     @Test
+    void generate_shouldUseFallbackIdentityWhenWebsiteIsMissing() {
+        String key1 = LeadKeyGenerator.generate(null, "llm-discovery", "Acme");
+        String key2 = LeadKeyGenerator.generate(null, "llm-discovery", "Acme");
+        String key3 = LeadKeyGenerator.generate(null, "llm-discovery", "Beta");
+        String websiteKey = LeadKeyGenerator.generate("https://acme.com", "llm-discovery");
+
+        assertThat(key1).isEqualTo(key2);
+        assertThat(key1).isNotEqualTo(key3);
+        assertThat(key1).isNotEqualTo(websiteKey);
+    }
+
+    @Test
     void isValid_shouldAcceptValidKey() {
         String validKey = LeadKeyGenerator.generate("https://example.com", "in-memory");
         assertThat(LeadKeyGenerator.isValid(validKey)).isTrue();

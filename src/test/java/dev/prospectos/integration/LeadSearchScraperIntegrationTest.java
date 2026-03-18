@@ -10,6 +10,7 @@ import dev.prospectos.api.dto.LeadSearchRequest;
 import dev.prospectos.core.enrichment.CompanyEnrichmentService;
 import dev.prospectos.infrastructure.config.LeadSearchProperties;
 import dev.prospectos.infrastructure.service.compliance.AllowedSourcesComplianceService;
+import dev.prospectos.infrastructure.service.compliance.AllowedSourcesProperties;
 import dev.prospectos.infrastructure.service.leads.ScraperLeadSearchService;
 import dev.prospectos.infrastructure.service.scoring.CompanyScoringService;
 import dev.prospectos.support.PostgresIntegrationTestBase;
@@ -87,6 +88,7 @@ class LeadSearchScraperIntegrationTest extends PostgresIntegrationTestBase {
             ICPDataService icpDataService,
             CompanyScoringService scoringService,
             AllowedSourcesComplianceService complianceService,
+            AllowedSourcesProperties allowedSourcesProperties,
             LeadSearchProperties properties
         ) {
             return new ScraperLeadSearchService(
@@ -97,6 +99,7 @@ class LeadSearchScraperIntegrationTest extends PostgresIntegrationTestBase {
                 icpDataService,
                 scoringService,
                 complianceService,
+                allowedSourcesProperties,
                 properties
             );
         }

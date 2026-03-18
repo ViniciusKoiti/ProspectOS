@@ -36,19 +36,20 @@ final class DiscoveryLeadResultFactory {
                 continue;
             }
             String sourceName = candidate.sourceName() == null ? defaultSource : candidate.sourceName();
-            String leadKey = LeadKeyGenerator.generate(candidate.website(), sourceName);
+            String leadKey = LeadKeyGenerator.generate(candidate.website(), sourceName, candidate.name());
             if (deduplicated.containsKey(leadKey)) {
                 continue;
             }
             ScoreDTO score = scoringService.scoreCandidate(company, icp);
             CompanyCandidateDTO dto = new CompanyCandidateDTO(
                 company.getName(),
-                company.getWebsite().getUrl(),
+                candidate.website(),
                 company.getIndustry(),
                 company.getDescription(),
                 company.getSize() != null ? company.getSize().name() : null,
                 candidate.location(),
-                candidate.contacts() == null ? List.of() : candidate.contacts()
+                candidate.contacts() == null ? List.of() : candidate.contacts(),
+                candidate.websitePresence()
             );
             SourceProvenanceDTO provenance = new SourceProvenanceDTO(sourceName, candidate.website(), Instant.now());
             deduplicated.put(leadKey, new LeadResultDTO(dto, score, provenance, leadKey));
@@ -57,11 +58,13 @@ final class DiscoveryLeadResultFactory {
     }
 
     private Company toDomainCompany(DiscoveredLeadCandidate candidate) {
-        if (candidate == null || candidate.name() == null || candidate.website() == null) {
+        if (candidate == null || candidate.name() == null) {
             return null;
         }
         try {
-            Website website = Website.of(candidate.website());
+            Website website = candidate.website() == null
+                ? fallbackWebsite(candidate)
+                : Website.of(candidate.website());
             Company company = Company.create(candidate.name(), website, normalizeIndustry(candidate.industry()));
             if (candidate.description() != null && !candidate.description().isBlank()) {
                 company.setDescription(candidate.description());
@@ -77,5 +80,14 @@ final class DiscoveryLeadResultFactory {
             return "Other";
         }
         return industry.trim();
+    }
+
+    private Website fallbackWebsite(DiscoveredLeadCandidate candidate) {
+        String sourcePart = candidate.sourceName() == null || candidate.sourceName().isBlank()
+            ? defaultSource
+            : candidate.sourceName().trim().toLowerCase().replaceAll("[^a-z0-9]+", "-");
+        String namePart = candidate.name().trim().toLowerCase().replaceAll("[^a-z0-9]+", "-");
+        String path = sourcePart + "/" + namePart;
+        return Website.of("https://no-website.preview.local/" + path);
     }
 }

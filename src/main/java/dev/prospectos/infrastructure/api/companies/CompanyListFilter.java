@@ -7,9 +7,6 @@ import dev.prospectos.api.dto.CompanyDTO;
 
 final class CompanyListFilter {
 
-    private static final int DEFAULT_PAGE = 0;
-    private static final int DEFAULT_SIZE = 20;
-
     record Result(List<CompanyDTO> items, int totalItems) {
     }
 
@@ -25,8 +22,7 @@ final class CompanyListFilter {
         Integer size
     ) {
         validateScoreRange(minScore, maxScore);
-        int resolvedPage = resolvePage(page, size);
-        int resolvedSize = resolveSize(page, size);
+        CompanyPageWindow pageWindow = CompanyPageWindow.resolve(page, size);
 
         List<CompanyDTO> filtered = source.stream()
             .filter(company -> matchesQuery(company, query))
@@ -36,45 +32,13 @@ final class CompanyListFilter {
             .filter(company -> matchesHasContact(company, hasContact))
             .toList();
 
-        if (page == null && size == null) {
-            return new Result(filtered, filtered.size());
-        }
-
-        int startIndex = resolvedPage * resolvedSize;
-        if (startIndex >= filtered.size()) {
-            return new Result(List.of(), filtered.size());
-        }
-
-        int endIndex = Math.min(startIndex + resolvedSize, filtered.size());
-        return new Result(filtered.subList(startIndex, endIndex), filtered.size());
+        return new Result(pageWindow.apply(filtered), filtered.size());
     }
 
     private void validateScoreRange(Double minScore, Double maxScore) {
         if (minScore != null && maxScore != null && minScore > maxScore) {
             throw new IllegalArgumentException("minScore cannot be greater than maxScore");
         }
-    }
-
-    private int resolvePage(Integer page, Integer size) {
-        int resolved = page == null ? DEFAULT_PAGE : page;
-        if (resolved < 0) {
-            throw new IllegalArgumentException("page must be greater than or equal to 0");
-        }
-        if (page != null || size != null) {
-            return resolved;
-        }
-        return DEFAULT_PAGE;
-    }
-
-    private int resolveSize(Integer page, Integer size) {
-        int resolved = size == null ? DEFAULT_SIZE : size;
-        if ((page != null || size != null) && resolved <= 0) {
-            throw new IllegalArgumentException("size must be greater than 0");
-        }
-        if (page != null || size != null) {
-            return resolved;
-        }
-        return DEFAULT_SIZE;
     }
 
     private boolean matchesQuery(CompanyDTO company, String query) {

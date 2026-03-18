@@ -1,10 +1,12 @@
 import { isAxiosError } from 'axios';
 
-import type { LeadResult } from '../../types/leadContracts';
+import type { LeadResult, WebsitePresence } from '../../types/leadContracts';
 
 export const SEARCH_SOURCE_VALUES = ['in-memory', 'vector-company', 'cnpj-ws'] as const;
+export const WEBSITE_PRESENCE_FILTER_VALUES = ['all', 'HAS_WEBSITE', 'NO_WEBSITE'] as const;
 
 export type SearchSourceValue = typeof SEARCH_SOURCE_VALUES[number];
+export type WebsitePresenceFilterValue = typeof WEBSITE_PRESENCE_FILTER_VALUES[number];
 
 type ApiErrorPayload = {
     message?: unknown;
@@ -30,6 +32,45 @@ const CSV_HEADERS = [
 
 export function isSearchSourceValue(value: string): value is SearchSourceValue {
     return SEARCH_SOURCE_VALUES.some((candidate) => candidate === value);
+}
+
+export function isWebsitePresenceFilterValue(value: string): value is WebsitePresenceFilterValue {
+    return WEBSITE_PRESENCE_FILTER_VALUES.some((candidate) => candidate === value);
+}
+
+export function filterLeadsByWebsitePresence(leads: LeadResult[], filter: WebsitePresenceFilterValue): LeadResult[] {
+    if (filter === 'all') {
+        return leads;
+    }
+
+    return leads.filter((lead) => lead.candidate.websitePresence === filter);
+}
+
+export function getWebsitePresenceBadgeVariant(websitePresence: WebsitePresence): 'success' | 'warning' | 'neutral' {
+    if (websitePresence === 'HAS_WEBSITE') {
+        return 'success';
+    }
+
+    if (websitePresence === 'NO_WEBSITE') {
+        return 'warning';
+    }
+
+    return 'neutral';
+}
+
+export function getWebsitePresenceLabel(
+    websitePresence: WebsitePresence,
+    labels: { hasWebsite: string; noWebsite: string; unknown: string }
+): string {
+    if (websitePresence === 'HAS_WEBSITE') {
+        return labels.hasWebsite;
+    }
+
+    if (websitePresence === 'NO_WEBSITE') {
+        return labels.noWebsite;
+    }
+
+    return labels.unknown;
 }
 
 export function getScoreBadgeVariant(category: string): 'success' | 'warning' | 'neutral' {

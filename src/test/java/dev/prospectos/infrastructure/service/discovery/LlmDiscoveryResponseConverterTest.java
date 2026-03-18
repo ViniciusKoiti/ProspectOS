@@ -1,6 +1,7 @@
 package dev.prospectos.infrastructure.service.discovery;
 
 import dev.prospectos.ai.client.LlmStructuredResponseSanitizer;
+import dev.prospectos.api.dto.CompanyCandidateDTO;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -79,5 +80,29 @@ class LlmDiscoveryResponseConverterTest {
 
         assertTrue(result.isEmpty());
         assertEquals(0, converter.parseFailureCount("llm-discovery"));
+    }
+
+    @Test
+    void convert_PreservesCandidatesWithoutWebsite() {
+        String raw = """
+            {
+              "candidates": [
+                {
+                  "name": "Acme Foods",
+                  "industry": "Food Distribution",
+                  "description": "Regional supplier",
+                  "location": "Maringa, PR",
+                  "contacts": ["contact@acmefoods.com"]
+                }
+              ]
+            }
+            """;
+
+        List<DiscoveredLeadCandidate> result = converter.convert(raw, "llm-discovery");
+
+        assertEquals(1, result.size());
+        assertEquals("Acme Foods", result.getFirst().name());
+        assertEquals(null, result.getFirst().website());
+        assertEquals(CompanyCandidateDTO.WebsitePresence.NO_WEBSITE, result.getFirst().websitePresence());
     }
 }

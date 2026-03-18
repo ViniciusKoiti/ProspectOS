@@ -21,22 +21,15 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-
-/**
- * Company management endpoints for the MVP.
- */
 @RestController
 @RequestMapping("/api/companies")
 public class CompanyController {
-
     private final CompanyDataService companyDataService;
     private final CompanyListFilter companyListFilter;
-
     public CompanyController(CompanyDataService companyDataService) {
         this.companyDataService = companyDataService;
         this.companyListFilter = new CompanyListFilter();
     }
-
     @GetMapping
     public ResponseEntity<List<CompanyDTO>> listCompanies(
         @RequestParam(required = false) String query,
@@ -48,9 +41,8 @@ public class CompanyController {
         @RequestParam(required = false) Integer page,
         @RequestParam(required = false) Integer size
     ) {
-        List<CompanyDTO> allCompanies = companyDataService.findAllCompanies();
         CompanyListFilter.Result filteredCompanies = companyListFilter.apply(
-            allCompanies,
+            companyDataService.findAllCompanies(),
             query,
             industry,
             location,
@@ -67,40 +59,25 @@ public class CompanyController {
 
     @PostMapping
     public ResponseEntity<CompanyDTO> createCompany(@Valid @RequestBody CompanyCreateRequest request) {
-        CompanyDTO company = companyDataService.createCompany(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(company);
+        return ResponseEntity.status(HttpStatus.CREATED).body(companyDataService.createCompany(request));
     }
-
     @GetMapping("/{companyId}")
     public ResponseEntity<CompanyDTO> getCompany(@PathVariable Long companyId) {
-        CompanyDTO company = companyDataService.findCompany(companyId);
-        if (company == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Company not found");
-        }
-        return ResponseEntity.ok(company);
+        return ResponseEntity.ok(requireCompany(companyId));
     }
-
     @GetMapping("/{companyId}/contacts")
     public ResponseEntity<List<CompanyContactDTO>> getCompanyContacts(@PathVariable Long companyId) {
-        CompanyDTO company = companyDataService.findCompany(companyId);
-        if (company == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Company not found");
-        }
+        requireCompany(companyId);
         return ResponseEntity.ok(companyDataService.findCompanyContacts(companyId));
     }
-
     @PutMapping("/{companyId}")
-    public ResponseEntity<CompanyDTO> updateCompany(
-        @PathVariable Long companyId,
-        @Valid @RequestBody CompanyUpdateRequest request
-    ) {
+    public ResponseEntity<CompanyDTO> updateCompany(@PathVariable Long companyId, @Valid @RequestBody CompanyUpdateRequest request) {
         CompanyDTO company = companyDataService.updateCompany(companyId, request);
         if (company == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Company not found");
         }
         return ResponseEntity.ok(company);
     }
-
     @DeleteMapping("/{companyId}")
     public ResponseEntity<Void> deleteCompany(@PathVariable Long companyId) {
         if (!companyDataService.deleteCompany(companyId)) {
@@ -108,13 +85,16 @@ public class CompanyController {
         }
         return ResponseEntity.noContent().build();
     }
-
     @PutMapping("/{companyId}/score")
-    public ResponseEntity<Void> updateScore(
-        @PathVariable Long companyId,
-        @Valid @RequestBody ScoreDTO score
-    ) {
+    public ResponseEntity<Void> updateScore(@PathVariable Long companyId, @Valid @RequestBody ScoreDTO score) {
         companyDataService.updateCompanyScore(companyId, score);
         return ResponseEntity.noContent().build();
+    }
+    private CompanyDTO requireCompany(Long companyId) {
+        CompanyDTO company = companyDataService.findCompany(companyId);
+        if (company == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Company not found");
+        }
+        return company;
     }
 }

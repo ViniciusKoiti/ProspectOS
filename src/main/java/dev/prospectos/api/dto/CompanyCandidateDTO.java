@@ -13,8 +13,33 @@ public record CompanyCandidateDTO(
     String description,
     String size,
     String location,
-    List<String> contacts
+    List<String> contacts,
+    WebsitePresence websitePresence
 ) {
+
+    public enum WebsitePresence {
+        HAS_WEBSITE,
+        NO_WEBSITE,
+        UNKNOWN
+    }
+
+    public CompanyCandidateDTO(
+        String name,
+        String website,
+        String industry,
+        String description,
+        String size,
+        String location,
+        List<String> contacts
+    ) {
+        this(name, website, industry, description, size, location, contacts, defaultWebsitePresence(website));
+    }
+
+    private static WebsitePresence defaultWebsitePresence(String website) {
+        return website == null || website.isBlank()
+            ? WebsitePresence.NO_WEBSITE
+            : WebsitePresence.HAS_WEBSITE;
+    }
     
     /**
      * Creates a candidate with minimal data for tests.
@@ -27,7 +52,8 @@ public record CompanyCandidateDTO(
             "Leading software company",
             "MEDIUM",
             "San Francisco, CA",
-            List.of("contact@techcorp.com", "info@techcorp.com")
+            List.of("contact@techcorp.com", "info@techcorp.com"),
+            WebsitePresence.HAS_WEBSITE
         );
     }
 }
