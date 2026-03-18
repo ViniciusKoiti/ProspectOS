@@ -10,6 +10,7 @@ export type {
     LeadSearchRequest,
     LeadSearchResponse,
     SourceProvenance,
+    WebsitePresence,
 } from './leadContracts';
 export {
     acceptLeadRequestSchema,
@@ -20,4 +21,6 @@ export {
     leadSearchResponseSchema,
     leadSearchStatusSchema,
     sourceProvenanceSchema,
+    websitePresenceSchema,
+    websitePresenceValues,
 } from './leadContracts';

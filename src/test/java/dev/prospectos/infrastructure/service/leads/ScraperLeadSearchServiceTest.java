@@ -17,6 +17,7 @@ import dev.prospectos.api.CompanyDataService;
 import dev.prospectos.api.ICPDataService;
 import dev.prospectos.api.LeadDiscoveryService;
 import dev.prospectos.api.dto.CompanyCandidateDTO;
+import dev.prospectos.api.dto.CompanyCandidateDTO.WebsitePresence;
 import dev.prospectos.api.dto.CompanyDTO;
 import dev.prospectos.api.dto.ICPDto;
 import dev.prospectos.api.dto.LeadDiscoveryRequest;
@@ -37,6 +38,7 @@ import dev.prospectos.core.enrichment.EnrichmentResult;
 import dev.prospectos.core.enrichment.ValidatedContact;
 import dev.prospectos.infrastructure.config.LeadSearchProperties;
 import dev.prospectos.infrastructure.service.compliance.AllowedSourcesComplianceService;
+import dev.prospectos.infrastructure.service.compliance.AllowedSourcesProperties;
 import dev.prospectos.infrastructure.service.scoring.CompanyScoringService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -84,6 +86,10 @@ class ScraperLeadSearchServiceTest {
             icpDataService,
             scoringService,
             complianceService,
+            new AllowedSourcesProperties(
+                List.of("in-memory", "scraper", "llm-discovery", "vector-company", "cnpj-ws"),
+                List.of("scraper")
+            ),
             new LeadSearchProperties(1L)
         );
     }
@@ -156,6 +162,10 @@ class ScraperLeadSearchServiceTest {
             icpDataService,
             scoringService,
             complianceService,
+            new AllowedSourcesProperties(
+                List.of("in-memory", "scraper", "llm-discovery", "vector-company", "cnpj-ws"),
+                List.of("scraper")
+            ),
             new LeadSearchProperties(null)
         );
 
@@ -217,6 +227,33 @@ class ScraperLeadSearchServiceTest {
         verify(scraperClient, never()).scrapeWebsiteSync(any(), eq(false));
     }
 
+    @Test
+    void searchLeads_PrioritizesNoWebsiteAndContactRichLeadsBeforeLimit() {
+        when(complianceService.validateSources(List.of("vector-company"))).thenReturn(List.of("vector-company"));
+        when(icpDataService.findICP(1L)).thenReturn(ICPDto.createMock());
+        when(leadDiscoveryService.discoverLeads(any(LeadDiscoveryRequest.class))).thenReturn(new LeadSearchResponse(
+            LeadSearchStatus.COMPLETED,
+            List.of(
+                lead("Website Contact", "https://website-contact.example", List.of("sales@website-contact.example"), 95, "key-1", WebsitePresence.HAS_WEBSITE),
+                lead("No Website Contact", null, List.of("sales@nowebsite-contact.example"), 40, "key-2", WebsitePresence.NO_WEBSITE),
+                lead("No Website No Contact", null, List.of(), 90, "key-3", WebsitePresence.NO_WEBSITE),
+                lead("Website No Contact", "https://website-nocontact.example", List.of(), 80, "key-4", WebsitePresence.HAS_WEBSITE)
+            ),
+            UUID.randomUUID(),
+            "Lead discovery completed"
+        ));
+
+        LeadSearchResponse response = service.searchLeads(
+            new LeadSearchRequest("software", 4, List.of("vector-company"), 1L)
+        );
+
+        assertEquals(4, response.leads().size());
+        assertEquals("No Website Contact", response.leads().get(0).candidate().name());
+        assertEquals("No Website No Contact", response.leads().get(1).candidate().name());
+        assertEquals("Website Contact", response.leads().get(2).candidate().name());
+        assertEquals("Website No Contact", response.leads().get(3).candidate().name());
+    }
+
     private EnrichmentResult successfulEnrichment() {
         return new EnrichmentResult(
             "Acme",
@@ -244,6 +281,22 @@ class ScraperLeadSearchServiceTest {
             List.of(),
             null,
             EnrichmentQuality.calculate(0, 0, 0, 0, 0, 0, 2, 6)
+        );
+    }
+
+    private LeadResultDTO lead(
+        String name,
+        String website,
+        List<String> contacts,
+        int scoreValue,
+        String leadKey,
+        WebsitePresence websitePresence
+    ) {
+        return new LeadResultDTO(
+            new CompanyCandidateDTO(name, website, "Software", "desc", "SMALL", "Curitiba", contacts, websitePresence),
+            new ScoreDTO(scoreValue, scoreValue >= 80 ? "HOT" : "WARM", "fit"),
+            new SourceProvenanceDTO("vector-company", website, Instant.now()),
+            leadKey
         );
     }
 }

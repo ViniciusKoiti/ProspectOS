@@ -26,7 +26,12 @@ final class ScraperLeadRequestResolver {
             throw new IllegalArgumentException("Query cannot be null or blank");
         }
         int limit = request.limit() == null ? DEFAULT_LIMIT : request.limit();
-        List<String> requestedSources = resolveSources(complianceService.validateSources(request.sources()));
+        List<String> requestedSources = complianceService.validateSources(request.sources());
+        if (requestedSources == null || requestedSources.isEmpty()) {
+            throw new IllegalArgumentException(
+                "No lead sources configured. Configure prospectos.leads.default-sources or provide sources in request"
+            );
+        }
         String query = request.query().trim();
         String scraperQuery = normalizeWebsiteOrQuery(query);
         return new ScraperLeadRequestContext(limit, requestedSources, query, scraperQuery);
@@ -42,13 +47,6 @@ final class ScraperLeadRequestResolver {
             );
         }
         return properties.defaultIcpId();
-    }
-
-    private List<String> resolveSources(List<String> sources) {
-        if (sources == null || sources.isEmpty()) {
-            return List.of("scraper");
-        }
-        return sources;
     }
 
     private String normalizeWebsiteOrQuery(String value) {

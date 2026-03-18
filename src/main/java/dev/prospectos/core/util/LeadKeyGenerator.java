@@ -1,7 +1,6 @@
 package dev.prospectos.core.util;
 
 import dev.prospectos.core.domain.Website;
-
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -28,8 +27,28 @@ public final class LeadKeyGenerator {
      * @throws IllegalArgumentException if websiteUrl is null or invalid
      */
     public static String generate(String websiteUrl, String sourceName) {
+        return generate(websiteUrl, sourceName, null);
+    }
+
+    /**
+     * Generates a lead key from a website URL when available, or a deterministic fallback
+     * identity when the candidate has no website.
+     *
+     * @param websiteUrl the company website URL, or null/blank when unavailable
+     * @param sourceName the source that provided this lead (e.g., "in-memory", "apollo")
+     * @param fallbackIdentity deterministic identity used when websiteUrl is unavailable
+     * @return a URL-safe base64-encoded SHA-256 hash
+     * @throws IllegalArgumentException if sourceName is null/blank or fallbackIdentity is missing when needed
+     */
+    public static String generate(String websiteUrl, String sourceName, String fallbackIdentity) {
         if (websiteUrl == null || websiteUrl.isBlank()) {
-            throw new IllegalArgumentException("Website URL cannot be null or blank");
+            if (fallbackIdentity == null || fallbackIdentity.isBlank()) {
+                throw new IllegalArgumentException("Website URL cannot be null or blank");
+            }
+            if (sourceName == null || sourceName.isBlank()) {
+                throw new IllegalArgumentException("Source name cannot be null or blank");
+            }
+            return generateFallback(fallbackIdentity, sourceName);
         }
         if (sourceName == null || sourceName.isBlank()) {
             throw new IllegalArgumentException("Source name cannot be null or blank");
@@ -47,6 +66,20 @@ public final class LeadKeyGenerator {
             return Base64.getUrlEncoder().withoutPadding().encodeToString(hash);
         } catch (NoSuchAlgorithmException e) {
             // SHA-256 is always available in Java 21
+            throw new IllegalStateException("SHA-256 algorithm not available", e);
+        }
+    }
+
+    private static String generateFallback(String fallbackIdentity, String sourceName) {
+        String normalizedIdentity = fallbackIdentity.toLowerCase().trim();
+        String normalizedSource = sourceName.toLowerCase().trim();
+        String input = "no-website|" + normalizedIdentity + "|" + normalizedSource;
+
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+            return Base64.getUrlEncoder().withoutPadding().encodeToString(hash);
+        } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException("SHA-256 algorithm not available", e);
         }
     }

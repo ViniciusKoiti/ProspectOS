@@ -2,7 +2,10 @@ import { z } from 'zod';
 
 import { companySchema, scoreSchema } from './companyContracts';
 
-export const leadCandidateSchema = z.object({
+export const websitePresenceValues = ['HAS_WEBSITE', 'NO_WEBSITE', 'UNKNOWN'] as const;
+export const websitePresenceSchema = z.enum(websitePresenceValues);
+
+const leadCandidateBaseSchema = z.object({
     name: z.string(),
     website: z.string().nullable(),
     industry: z.string().nullable(),
@@ -11,6 +14,15 @@ export const leadCandidateSchema = z.object({
     location: z.string().nullable(),
     contacts: z.array(z.string()),
 });
+
+export const leadCandidateSchema = leadCandidateBaseSchema.extend({
+    websitePresence: websitePresenceSchema.optional(),
+}).transform((candidate) => ({
+    ...candidate,
+    websitePresence: candidate.websitePresence ?? (candidate.website && candidate.website.trim().length > 0 ? 'HAS_WEBSITE' : 'NO_WEBSITE'),
+}));
+
+export const acceptLeadCandidateSchema = leadCandidateBaseSchema;
 
 export const sourceProvenanceSchema = z.object({
     sourceName: z.string(),
@@ -27,7 +39,7 @@ export const leadResultSchema = z.object({
 
 export const acceptLeadRequestSchema = z.object({
     leadKey: z.string().min(1),
-    candidate: leadCandidateSchema,
+    candidate: acceptLeadCandidateSchema,
     score: scoreSchema.nullable(),
     source: sourceProvenanceSchema,
 });
@@ -54,6 +66,7 @@ export const leadSearchRequestSchema = z.object({
 });
 
 export type LeadCandidate = z.infer<typeof leadCandidateSchema>;
+export type WebsitePresence = z.infer<typeof websitePresenceSchema>;
 export type SourceProvenance = z.infer<typeof sourceProvenanceSchema>;
 export type LeadResult = z.infer<typeof leadResultSchema>;
 export type AcceptLeadRequest = z.infer<typeof acceptLeadRequestSchema>;

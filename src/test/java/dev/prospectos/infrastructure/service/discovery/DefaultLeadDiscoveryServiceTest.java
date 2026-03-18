@@ -1,6 +1,7 @@
 package dev.prospectos.infrastructure.service.discovery;
 
 import dev.prospectos.api.ICPDataService;
+import dev.prospectos.api.dto.CompanyCandidateDTO;
 import dev.prospectos.api.dto.ICPDto;
 import dev.prospectos.api.dto.LeadDiscoveryRequest;
 import dev.prospectos.api.dto.ScoreDTO;
@@ -103,7 +104,7 @@ class DefaultLeadDiscoveryServiceTest {
     }
 
     @Test
-    void discoverLeads_IgnoresInvalidCandidateAndNormalizesBlankIndustry() {
+    void discoverLeads_PreservesNoWebsiteCandidateAndNormalizesBlankIndustry() {
         LeadDiscoverySource source = new StubLeadDiscoverySource(
             "llm-discovery",
             List.of(
@@ -127,9 +128,11 @@ class DefaultLeadDiscoveryServiceTest {
 
         var response = service.discoverLeads(request);
 
-        assertEquals(1, response.leads().size());
-        assertEquals("Other", response.leads().getFirst().candidate().industry());
-        verify(scoringService, times(1)).scoreCandidate(any(), any());
+        assertEquals(2, response.leads().size());
+        assertEquals("Software", response.leads().get(0).candidate().industry());
+        assertEquals(CompanyCandidateDTO.WebsitePresence.NO_WEBSITE, response.leads().get(0).candidate().websitePresence());
+        assertEquals("Other", response.leads().get(1).candidate().industry());
+        verify(scoringService, times(2)).scoreCandidate(any(), any());
     }
 
     @Test

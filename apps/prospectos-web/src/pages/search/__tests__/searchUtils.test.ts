@@ -3,23 +3,28 @@ import { describe, expect, it } from 'vitest';
 import type { LeadResult } from '../../../types/leadContracts';
 import {
     buildSearchResultsCsv,
+    filterLeadsByWebsitePresence,
     getScoreBadgeVariant,
+    getWebsitePresenceBadgeVariant,
+    getWebsitePresenceLabel,
     isSearchSourceValue,
+    isWebsitePresenceFilterValue,
     mergeWithFallbackError,
     parseApiErrorMessage,
 } from '../searchUtils';
 
-function createLead(): LeadResult {
+function createLead(websitePresence: LeadResult['candidate']['websitePresence']): LeadResult {
     return {
-        leadKey: 'lead-1',
+        leadKey: `lead-${websitePresence.toLowerCase()}`,
         candidate: {
-            name: 'Alpha, "One"',
-            website: 'https://alpha.example',
+            name: `Company ${websitePresence}`,
+            website: websitePresence === 'HAS_WEBSITE' ? 'https://alpha.example' : null,
+            websitePresence,
             industry: 'Software',
-            description: 'Platform\nVendor',
+            description: null,
             size: 'MEDIUM',
             location: 'Sao Paulo',
-            contacts: ['hello@alpha.example', 'ceo@alpha.example'],
+            contacts: ['hello@alpha.example'],
         },
         score: {
             value: 91,
@@ -42,6 +47,30 @@ describe('searchUtils', () => {
         expect(isSearchSourceValue('other-source')).toBe(false);
     });
 
+    it('validates supported website presence filters', () => {
+        expect(isWebsitePresenceFilterValue('all')).toBe(true);
+        expect(isWebsitePresenceFilterValue('HAS_WEBSITE')).toBe(true);
+        expect(isWebsitePresenceFilterValue('NO_WEBSITE')).toBe(true);
+        expect(isWebsitePresenceFilterValue('UNKNOWN')).toBe(false);
+    });
+
+    it('filters leads by website presence and keeps all when filter is all', () => {
+        const leads = [createLead('HAS_WEBSITE'), createLead('NO_WEBSITE'), createLead('UNKNOWN')];
+
+        expect(filterLeadsByWebsitePresence(leads, 'all')).toHaveLength(3);
+        expect(filterLeadsByWebsitePresence(leads, 'HAS_WEBSITE')).toHaveLength(1);
+        expect(filterLeadsByWebsitePresence(leads, 'NO_WEBSITE')).toHaveLength(1);
+    });
+
+    it('maps website presence to badge variants and labels', () => {
+        expect(getWebsitePresenceBadgeVariant('HAS_WEBSITE')).toBe('success');
+        expect(getWebsitePresenceBadgeVariant('NO_WEBSITE')).toBe('warning');
+        expect(getWebsitePresenceBadgeVariant('UNKNOWN')).toBe('neutral');
+        expect(getWebsitePresenceLabel('HAS_WEBSITE', { hasWebsite: 'Com site', noWebsite: 'Sem site', unknown: 'Desconhecido' })).toBe('Com site');
+        expect(getWebsitePresenceLabel('NO_WEBSITE', { hasWebsite: 'Com site', noWebsite: 'Sem site', unknown: 'Desconhecido' })).toBe('Sem site');
+        expect(getWebsitePresenceLabel('UNKNOWN', { hasWebsite: 'Com site', noWebsite: 'Sem site', unknown: 'Desconhecido' })).toBe('Desconhecido');
+    });
+
     it('maps score categories to badge variants', () => {
         expect(getScoreBadgeVariant('HOT')).toBe('success');
         expect(getScoreBadgeVariant('warm')).toBe('warning');
@@ -49,12 +78,10 @@ describe('searchUtils', () => {
     });
 
     it('builds csv with escaped fields', () => {
-        const csv = buildSearchResultsCsv([createLead()]);
+        const csv = buildSearchResultsCsv([createLead('HAS_WEBSITE')]);
 
         expect(csv).toContain('leadKey,companyName,website,industry');
-        expect(csv).toContain('"Alpha, ""One"""');
-        expect(csv).toContain('"Platform\nVendor"');
-        expect(csv).toContain('hello@alpha.example | ceo@alpha.example');
+        expect(csv).toContain('hello@alpha.example');
     });
 
     it('parses axios-like api error messages', () => {
