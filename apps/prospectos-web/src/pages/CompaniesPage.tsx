@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
@@ -14,7 +14,8 @@ import ErrorState from '../components/ui/ErrorState';
 import LoadingState from '../components/ui/LoadingState';
 import PageHeader from '../components/ui/PageHeader';
 import Select from '../components/ui/Select';
-import { listCompanies, type CompanyListParams, type CompanyListResponse } from '../services/companyService';
+import type { CompanyListParams, CompanyListResponse } from '../services/companyService';
+import { listCompanies } from '../services/companyService';
 import type { Company } from '../types/companyContracts';
 
 const EMPTY_FILTERS: CompanyFiltersState = {
@@ -116,16 +117,6 @@ export default function CompaniesPage() {
     const totalPages = Math.max(1, companiesPage.totalPages);
     const backendPage = clampToNonNegative(companiesPage.page);
     const backendPageSize = resolvePageSize(companiesPage.size, pageSize);
-
-    useEffect(() => {
-        const maxPageIndex = Math.max(0, totalPages - 1);
-        const normalizedPage = Math.min(backendPage, maxPageIndex);
-
-        if (currentPage !== normalizedPage) {
-            setCurrentPage(normalizedPage);
-        }
-    }, [backendPage, currentPage, totalPages]);
-
     const activeFilterChips = useMemo<ActiveFilterChip[]>(() => {
         const chips: ActiveFilterChip[] = [];
 
@@ -316,3 +307,4 @@ export default function CompaniesPage() {
         </section>
     );
 }
+
