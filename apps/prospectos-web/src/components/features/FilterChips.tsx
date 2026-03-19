@@ -1,5 +1,4 @@
 ﻿import Button from '../ui/Button';
-
 import type { CompanyFiltersState } from './CompanyFilters';
 
 export type CompanyFilterField = keyof CompanyFiltersState;
