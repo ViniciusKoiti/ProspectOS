@@ -24,13 +24,14 @@ import dev.prospectos.infrastructure.service.scoring.CompanyScoringService;
 public class DefaultLeadDiscoveryService implements LeadDiscoveryService {
 
     private static final int DEFAULT_LIMIT = 10;
-    private static final String DEFAULT_SOURCE = "llm-discovery";
+    private static final String NO_SOURCE_CONFIGURED_MESSAGE =
+        "No lead sources configured. Configure prospectos.leads.default-sources or provide sources in request";
 
     private final DiscoverySourceRegistry sourceRegistry;
     private final ICPDataService icpDataService;
+    private final CompanyScoringService scoringService;
     private final AllowedSourcesComplianceService complianceService;
     private final LeadSearchProperties properties;
-    private final DiscoveryLeadResultFactory leadResultFactory;
 
     public DefaultLeadDiscoveryService(
         List<LeadDiscoverySource> sources,
@@ -41,9 +42,9 @@ public class DefaultLeadDiscoveryService implements LeadDiscoveryService {
     ) {
         this.sourceRegistry = new DiscoverySourceRegistry(sources);
         this.icpDataService = icpDataService;
+        this.scoringService = scoringService;
         this.complianceService = complianceService;
         this.properties = properties;
-        this.leadResultFactory = new DiscoveryLeadResultFactory(scoringService, DEFAULT_SOURCE);
     }
 
     @Override
@@ -60,6 +61,7 @@ public class DefaultLeadDiscoveryService implements LeadDiscoveryService {
 
         DiscoveryContext context = new DiscoveryContext(request.query().trim(), request.role(), limit, icpDto);
         List<DiscoveredLeadCandidate> discovered = sourceRegistry.discover(validatedSources, context);
+        DiscoveryLeadResultFactory leadResultFactory = new DiscoveryLeadResultFactory(scoringService, validatedSources.getFirst());
         List<LeadResultDTO> leads = leadResultFactory.toLeadResults(discovered, icp, limit);
 
         return new LeadSearchResponse(
@@ -77,10 +79,10 @@ public class DefaultLeadDiscoveryService implements LeadDiscoveryService {
     }
 
     private List<String> validateDiscoverySources(List<String> requestedSources) {
-        List<String> effectiveSources = (requestedSources == null || requestedSources.isEmpty())
-            ? List.of(DEFAULT_SOURCE)
-            : requestedSources;
-        List<String> validatedSources = complianceService.validateSources(effectiveSources);
-        return validatedSources.isEmpty() ? List.of(DEFAULT_SOURCE) : validatedSources;
+        List<String> validatedSources = complianceService.validateSources(requestedSources);
+        if (validatedSources == null || validatedSources.isEmpty()) {
+            throw new IllegalArgumentException(NO_SOURCE_CONFIGURED_MESSAGE);
+        }
+        return validatedSources;
     }
 }

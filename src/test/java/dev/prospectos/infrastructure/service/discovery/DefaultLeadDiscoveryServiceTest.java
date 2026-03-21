@@ -159,6 +159,54 @@ class DefaultLeadDiscoveryServiceTest {
         verify(icpDataService).findICP(99L);
     }
 
+    @Test
+    void discoverLeads_UsesConfiguredDefaultSourcesWhenRequestSourcesAreMissing() {
+        LeadDiscoverySource source = new StubLeadDiscoverySource(
+            "vector-company",
+            List.of(candidate("Config Source", "https://config-source.com", "Software"))
+        );
+        service = createService(List.of(source), 1L);
+
+        when(complianceService.validateSources(null)).thenReturn(List.of("vector-company"));
+        when(icpDataService.findICP(1L)).thenReturn(ICPDto.createMock());
+        when(scoringService.scoreCandidate(any(), any())).thenReturn(new ScoreDTO(72, "WARM", "Config default"));
+
+        LeadDiscoveryRequest request = new LeadDiscoveryRequest(
+            "config",
+            "CTO",
+            1,
+            null,
+            1L
+        );
+
+        service.discoverLeads(request);
+
+        verify(complianceService).validateSources(null);
+    }
+
+    @Test
+    void discoverLeads_ThrowsWhenNoSourceConfigured() {
+        when(complianceService.validateSources(any())).thenReturn(List.of());
+
+        LeadDiscoveryRequest request = new LeadDiscoveryRequest(
+            "fornecedores",
+            "SUPPLIER",
+            3,
+            null,
+            1L
+        );
+
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> service.discoverLeads(request)
+        );
+
+        assertEquals(
+            "No lead sources configured. Configure prospectos.leads.default-sources or provide sources in request",
+            exception.getMessage()
+        );
+    }
+
     private DefaultLeadDiscoveryService createService(List<LeadDiscoverySource> sources, Long defaultIcpId) {
         return new DefaultLeadDiscoveryService(
             sources,

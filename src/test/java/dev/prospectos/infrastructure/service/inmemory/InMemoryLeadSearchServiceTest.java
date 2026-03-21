@@ -77,7 +77,7 @@ class InMemoryLeadSearchServiceTest {
     }
 
     @Test
-    void searchLeadsFallsBackToInMemoryWhenValidatedSourcesAreBlank() {
+    void searchLeadsThrowsWhenValidatedSourcesAreBlank() {
         InMemoryLeadSearchService service = new InMemoryLeadSearchService(
             companyDataService,
             icpDataService,
@@ -86,18 +86,17 @@ class InMemoryLeadSearchServiceTest {
             new LeadSearchProperties(1L)
         );
 
-        when(companyDataService.findAllCompanies()).thenReturn(List.of(
-            new CompanyDTO(10L, "Local Restaurant", "Food", "https://local.restaurant", "Small local business", 8, "Curitiba", null)
-        ));
         when(complianceService.validateSources(null)).thenReturn(Arrays.asList(" ", null));
-        when(icpDataService.findICP(1L)).thenReturn(ICPDto.createMock());
-        when(scoringService.scoreCandidate(any(Company.class), any(ICP.class))).thenReturn(new ScoreDTO(70, "WARM", "Baseline"));
 
-        LeadSearchResponse response = service.searchLeads(new LeadSearchRequest("curitiba", 10, null, 1L));
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> service.searchLeads(new LeadSearchRequest("curitiba", 10, null, 1L))
+        );
 
-        assertEquals(1, response.leads().size());
-        assertEquals("Local Restaurant", response.leads().getFirst().candidate().name());
-        assertEquals("in-memory", response.leads().getFirst().source().sourceName());
+        assertEquals(
+            "No lead sources configured. Configure prospectos.leads.default-sources or provide sources in request",
+            exception.getMessage()
+        );
     }
 
     @Test
