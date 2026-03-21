@@ -102,3 +102,6 @@
 3. Risco de regressao em fluxo critico de lead.
 4. Dependencia de terceiros (API/limites/custos).
 5. Cobertura de testes e capacidade de rollback.
+
+## Documento complementar
+- Levantamento de planos gratuitos para fontes de leads: `docs/milestones/semana-3/levantamento-integracoes-gratuitas-leads-2026-03-21.md`
