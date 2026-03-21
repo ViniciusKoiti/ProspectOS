@@ -274,6 +274,30 @@ describe('SearchPage', () => {
         expect(markup).toContain('Export CSV');
     });
 
+    it('renders specific empty state when Sem site filter has no matches', () => {
+        mockPageState({
+            websitePresence: 'NO_WEBSITE',
+            search: {
+                isPending: false,
+                isError: false,
+                error: null,
+                data: {
+                    status: 'COMPLETED',
+                    leads: [
+                        createLead({ leadKey: 'lead-1', websitePresence: 'HAS_WEBSITE', website: 'https://alpha.example' }),
+                    ],
+                    requestId: '617825f9-a0ca-4f0b-b764-fad0f5b77638',
+                    message: 'Busca concluida',
+                },
+            },
+        });
+
+        const markup = renderPage();
+
+        expect(markup).toContain('Nenhum lead sem site encontrado');
+        expect(markup).toContain('Ajuste os filtros ou execute uma nova busca para encontrar empresas sem site.');
+    });
+
     it('filters displayed leads by website presence selection', () => {
         mockPageState({
             websitePresence: 'NO_WEBSITE',

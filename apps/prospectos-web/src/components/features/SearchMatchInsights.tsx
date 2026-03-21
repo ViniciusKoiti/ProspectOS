@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import type { LeadResult } from '../../types/leadContracts';
+import type { LeadResult, WebsitePresence } from '../../types/leadContracts';
 import Badge from '../ui/Badge';
 import Card from '../ui/Card';
 
@@ -22,6 +22,7 @@ type SourceInsight = {
 };
 
 const SCORE_CATEGORY_ORDER: ScoreCategory[] = ['HOT', 'WARM', 'COLD', 'OTHER'];
+const WEBSITE_PRESENCE_ORDER: WebsitePresence[] = ['HAS_WEBSITE', 'NO_WEBSITE', 'UNKNOWN'];
 
 function parseScoreCategory(rawCategory: string): ScoreCategory {
     const normalized = rawCategory.trim().toUpperCase();
@@ -61,6 +62,42 @@ function getDistributionBarColor(category: ScoreCategory): string {
     return 'bg-indigo-500';
 }
 
+function getWebsitePresenceBadgeVariant(websitePresence: WebsitePresence): 'success' | 'warning' | 'neutral' {
+    if (websitePresence === 'HAS_WEBSITE') {
+        return 'success';
+    }
+
+    if (websitePresence === 'NO_WEBSITE') {
+        return 'warning';
+    }
+
+    return 'neutral';
+}
+
+function getWebsitePresenceDistributionColor(websitePresence: WebsitePresence): string {
+    if (websitePresence === 'HAS_WEBSITE') {
+        return 'bg-emerald-500';
+    }
+
+    if (websitePresence === 'NO_WEBSITE') {
+        return 'bg-amber-500';
+    }
+
+    return 'bg-slate-500';
+}
+
+function getWebsitePresenceLabel(websitePresence: WebsitePresence, t: (key: string, options?: { defaultValue?: string }) => string): string {
+    if (websitePresence === 'HAS_WEBSITE') {
+        return t('pages.search.websitePresence.hasWebsite', { defaultValue: 'Com site' });
+    }
+
+    if (websitePresence === 'NO_WEBSITE') {
+        return t('pages.search.websitePresence.noWebsite', { defaultValue: 'Sem site' });
+    }
+
+    return t('pages.search.websitePresence.unknown', { defaultValue: 'Desconhecido' });
+}
+
 export default function SearchMatchInsights({ leads, selectedIcpName }: SearchMatchInsightsProps) {
     const { t } = useTranslation();
 
@@ -68,11 +105,15 @@ export default function SearchMatchInsights({ leads, selectedIcpName }: SearchMa
         const categoryCounts = new Map<ScoreCategory, number>(
             SCORE_CATEGORY_ORDER.map((category) => [category, 0])
         );
+        const websitePresenceCounts = new Map<WebsitePresence, number>(
+            WEBSITE_PRESENCE_ORDER.map((websitePresence) => [websitePresence, 0])
+        );
         const sources = new Map<string, { total: number; sum: number; hot: number; warm: number; cold: number }>();
         let scoreSum = 0;
 
         for (const lead of leads) {
             const category = parseScoreCategory(lead.score.category);
+            const websitePresence = lead.candidate.websitePresence;
             const sourceName = lead.source.sourceName;
             const sourceCurrent = sources.get(sourceName) ?? {
                 total: 0,
@@ -84,6 +125,7 @@ export default function SearchMatchInsights({ leads, selectedIcpName }: SearchMa
 
             scoreSum += lead.score.value;
             categoryCounts.set(category, (categoryCounts.get(category) ?? 0) + 1);
+            websitePresenceCounts.set(websitePresence, (websitePresenceCounts.get(websitePresence) ?? 0) + 1);
 
             sourceCurrent.total += 1;
             sourceCurrent.sum += lead.score.value;
@@ -116,6 +158,7 @@ export default function SearchMatchInsights({ leads, selectedIcpName }: SearchMa
             sourceRows,
             totalLeads: leads.length,
             totalSources: sources.size,
+            websitePresenceCounts,
         };
     }, [leads]);
 
@@ -171,6 +214,30 @@ export default function SearchMatchInsights({ leads, selectedIcpName }: SearchMa
                                 </div>
                                 <div className="h-2 overflow-hidden rounded bg-slate-200">
                                     <div className={`h-full rounded ${getDistributionBarColor(category)}`} style={{ width: `${percentage}%` }} />
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+
+            <div className="space-y-2">
+                <h4 className="text-sm font-semibold text-slate-800">{t('pages.search.insights.websitePresenceTitle', { defaultValue: 'Website presence' })}</h4>
+                <div className="space-y-2">
+                    {WEBSITE_PRESENCE_ORDER.map((websitePresence) => {
+                        const count = insights.websitePresenceCounts.get(websitePresence) ?? 0;
+                        const percentage = insights.totalLeads === 0 ? 0 : (count / insights.totalLeads) * 100;
+
+                        return (
+                            <div key={websitePresence} className="space-y-1">
+                                <div className="flex items-center justify-between">
+                                    <Badge variant={getWebsitePresenceBadgeVariant(websitePresence)}>
+                                        {getWebsitePresenceLabel(websitePresence, t)}
+                                    </Badge>
+                                    <span className="text-xs font-medium text-slate-600">{count} ({percentage.toFixed(0)}%)</span>
+                                </div>
+                                <div className="h-2 overflow-hidden rounded bg-slate-200">
+                                    <div className={`h-full rounded ${getWebsitePresenceDistributionColor(websitePresence)}`} style={{ width: `${percentage}%` }} />
                                 </div>
                             </div>
                         );
