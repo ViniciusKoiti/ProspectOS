@@ -1,7 +1,7 @@
 # AGENTE OUTREACH - EMAIL AUTOMATION (FASE 2)
 
 **Missao:** transformar leads priorizados em rotina comercial automatizada por email.
-**Status geral:** nao iniciado (em preparacao)
+**Status geral:** em andamento (MVP operacional inicial entregue)
 
 **Ownership sugerido:**
 - Backend campanhas: `src/main/java/dev/prospectos/**`
@@ -11,10 +11,10 @@
 
 ## CONFORMIDADE COM AGENTS.MD
 
-- [ ] TDD obrigatorio para motor de cadencia e regras de parada.
-- [ ] Respeitar ownership por pasta (backend e frontend separados).
-- [ ] Contratos de API tipados e validados (DTO + schema frontend).
-- [ ] Frontend sem `any`, com estados `loading/error/empty`.
+- [x] TDD obrigatorio para comportamento inicial de campanha (frontend e backend).
+- [x] Respeitar ownership por pasta (backend e frontend separados).
+- [x] Contratos de API tipados e validados (DTO + schema frontend).
+- [x] Frontend sem `any`, com estados `loading/error/empty`.
 - [ ] Commits seguindo Conventional Commits.
 
 ---
@@ -38,36 +38,37 @@
 ## ESCOPO (V1)
 
 ### Backend
-- [ ] Entidade de campanha e passos de cadencia (`D0`, `D+3`, `D+7`).
-- [ ] Endpoint para iniciar campanha por filtro.
+- [ ] Entidade persistente de campanha e passos de cadencia (`D0`, `D+3`, `D+7`).
+- [x] Endpoint para iniciar campanha por filtro.
 - [ ] Logs de eventos: `SENT`, `FAILED`, `BOUNCE`, `REPLIED`.
 - [ ] Regra de parada automatica ao detectar resposta.
+- [x] Aplicacao de limite de leads por request (`limit` com validacao 1..500).
 
 ### Frontend
-- [ ] Tela simples para iniciar campanha por segmento.
-- [ ] Tabela de execucao com status por lead.
-- [ ] Indicadores: enviados, falhas, respostas.
+- [x] Tela simples para iniciar campanha por segmento.
+- [x] Tabela de execucao com status por lead.
+- [x] Indicadores: enviados, falhas, respostas.
 
 ---
 
 ## TDD (OBRIGATORIO)
 
 ### Backend
-- [ ] Teste de criacao de campanha.
+- [x] Teste de criacao de campanha.
 - [ ] Teste de transicao de estado da cadencia.
 - [ ] Teste de parada por resposta.
 
 ### Frontend
-- [ ] Teste de renderizacao de status.
-- [ ] Teste de acao "iniciar campanha".
+- [x] Teste de renderizacao de status.
+- [x] Teste de acao "iniciar campanha".
 
 ---
 
 ## CHECKLIST DE ENTREGA
 
-- [ ] Campanha pode ser disparada para segmento "Sem site".
+- [x] Campanha pode ser disparada para segmento "Sem site".
 - [ ] Historico completo por lead disponivel para auditoria.
-- [ ] Taxas basicas visiveis no frontend.
+- [x] Taxas basicas visiveis no frontend.
 - [ ] Sem reenvio para lead que ja respondeu.
 
 ---
@@ -85,9 +86,23 @@
 ### Realizado
 - Segmentacao por `websitePresence` pronta para uso como entrada de campanha.
 - Priorizacao de leads voltada para oportunidade comercial de criacao/ajuste de site.
+- Contrato backend criado para outreach:
+  - `POST /api/outreach/campaigns` com `segment` e `limit`.
+  - Resposta com `campaignId`, `leads`, `sent`, `failures`, `responses`.
+- Implementacao inicial em memoria para operacao e demo da campanha.
+- Tela de outreach adicionada no frontend com:
+  - formulario de segmento e limite,
+  - tabela de status por lead,
+  - indicadores agregados,
+  - estados de `loading/error/empty`.
+- Testes adicionados:
+  - Backend: controller + service (`OutreachCampaignControllerTest`, `InMemoryOutreachCampaignServiceTest`).
+  - Frontend: service contract + page flow (`outreachService.test.ts`, `OutreachPage.test.tsx`).
 
 ### Pendente
 - Escolha e configuracao do provider de envio.
-- Implementacao de entidades/endpoints de campanha e cadencia no backend.
-- Implementacao de tela operacional e metricas no frontend.
-- Cobertura de testes de campanha (backend e frontend).
+- Persistencia de campanha/cadencia (hoje execucao e in-memory, sem historico auditavel).
+- Logs de evento de entrega e resposta (`SENT`, `FAILED`, `BOUNCE`, `REPLIED`).
+- Regra de parada/reenvio baseada em historico real de resposta.
+- Integracao com provider (Resend/SendGrid/SES) e controle de retries.
+- Cobertura de testes para transicao de cadencia e regra de parada.
