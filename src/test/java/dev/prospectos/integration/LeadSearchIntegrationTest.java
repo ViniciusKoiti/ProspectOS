@@ -15,6 +15,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 
 import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -57,6 +59,26 @@ class LeadSearchIntegrationTest extends PostgresIntegrationTestBase {
             .andExpect(jsonPath("$.leads[0].leadKey").isNotEmpty())
             .andExpect(jsonPath("$.leads[0].score").exists())
             .andExpect(jsonPath("$.leads[0].source.sourceName").value("in-memory"));
+    }
+
+    @Test
+    void leadSearch_SerializesWebsitePresenceInPayload() throws Exception {
+        LeadSearchRequest request = new LeadSearchRequest(
+            "software",
+            2,
+            List.of("in-memory"),
+            existingIcpId()
+        );
+
+        mockMvc.perform(post("/api/leads/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.status").value("COMPLETED"))
+            .andExpect(jsonPath("$.leads.length()", greaterThan(0)))
+            .andExpect(jsonPath("$.leads[0].candidate.websitePresence").exists())
+            .andExpect(jsonPath("$.leads[0].candidate.websitePresence")
+                .value(anyOf(is("HAS_WEBSITE"), is("NO_WEBSITE"), is("UNKNOWN"))));
     }
 
     @Test
