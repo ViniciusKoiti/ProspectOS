@@ -1,4 +1,4 @@
-﻿import { BuildingOffice2Icon, HomeIcon, MagnifyingGlassIcon, UserGroupIcon } from '@heroicons/react/24/outline';
+import { BuildingOffice2Icon, HomeIcon, MagnifyingGlassIcon, PaperAirplaneIcon, UserGroupIcon } from '@heroicons/react/24/outline';
 import type { ComponentType, SVGProps } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, NavLink, Outlet } from 'react-router-dom';
@@ -17,6 +17,7 @@ export default function MainLayout() {
     const navigation: NavigationItem[] = [
         { label: t('nav.dashboard'), to: '/', icon: HomeIcon },
         { label: t('nav.search'), to: '/search', icon: MagnifyingGlassIcon },
+        { label: t('nav.outreach', { defaultValue: 'Outreach' }), to: '/outreach', icon: PaperAirplaneIcon },
         { label: t('nav.icps'), to: '/icps', icon: UserGroupIcon },
         { label: t('nav.companies'), to: '/companies', icon: BuildingOffice2Icon },
     ];

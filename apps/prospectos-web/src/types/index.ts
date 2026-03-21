@@ -24,3 +24,18 @@ export {
     websitePresenceSchema,
     websitePresenceValues,
 } from './leadContracts';
+export type {
+    OutreachCampaignLead,
+    OutreachCampaignRequest,
+    OutreachCampaignResponse,
+    OutreachCampaignSummary,
+    OutreachLeadStatus,
+} from './outreachContracts';
+export {
+    outreachCampaignLeadSchema,
+    outreachCampaignRequestSchema,
+    outreachCampaignResponseSchema,
+    outreachCampaignSummarySchema,
+    outreachLeadStatusSchema,
+} from './outreachContracts';
+
