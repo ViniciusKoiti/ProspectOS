@@ -1,10 +1,41 @@
 # AGENTE FRONTEND - WEBSITE PRESENCE (SEMANA 3)
 
 **Missao:** tornar visivel e operavel no frontend a oportunidade "empresa sem site".
-**Status geral:** em andamento (alto progresso)
+**Status geral:** concluido (P0/P1 implementados e validados)
 
 **Ownership exclusivo:**
 - `apps/prospectos-web/src/**`
+
+---
+
+## Quadro de Status Rapido
+
+- Status atual: concluido (implementacao e validacao executadas)
+- Proximo passo: acompanhar integracao com mudancas paralelas sem regressao de UX.
+- Bloqueios: nenhum bloqueio tecnico ativo no momento.
+- Ultima atualizacao: 2026-03-20 (agente frontend website presence).
+
+---
+
+## Protocolo de Atualizacao
+
+Checklist para atualizar este documento apos cada avanco do agente frontend:
+- [ ] Atualizar `Quadro de Status Rapido` (status, proximo passo, bloqueios, data).
+- [ ] Refletir mudancas no `ESCOPO (V1)` com `[x]` ou `[ ]` sem apagar historico relevante.
+- [ ] Manter `Pendente` coerente com o estado atual (nao remover pendencias sem evidencia).
+- [ ] Registrar uma nova linha em `Log de Atualizacoes` com data, agente, mudanca e evidencia.
+- [ ] Confirmar que nenhum outro arquivo foi alterado por engano antes de finalizar.
+
+---
+
+## Log de Atualizacoes
+
+| Data       | Agente                         | Mudanca                                                                 | Evidencia                                                   |
+|------------|--------------------------------|-------------------------------------------------------------------------|-------------------------------------------------------------|
+| 2026-03-20 | FRONTEND documentacao          | Inclusao de quadro rapido, protocolo continuo e log de atualizacoes.   | Atualizacao deste arquivo com novas secoes operacionais.   |
+| 2026-03-20 | FRONTEND website presence      | Implementado empty state para filtro Sem site, revisado insights por websitePresence e adicionados testes. | SearchPage, SearchMatchInsights e suites de teste atualizadas. |
+| 2026-03-20 | FRONTEND website presence      | Validacao frontend concluida com execucao da suite completa de testes. | pnpm run test: 11 arquivos e 47 testes aprovados. |
+| 2026-03-20 | FRONTEND website presence      | Build de producao executado para validar compilacao do frontend. | pnpm run build: sucesso; alerta de chunk JS principal acima de 500 kB. |
 
 ---
 
@@ -37,11 +68,12 @@
 ### UI
 - [x] Badge visual por status na tabela de resultados.
 - [x] Filtro na pagina de busca para presenca de website.
-- [ ] Estado vazio especifico para "nenhum lead sem site encontrado".
+- [x] Estado vazio especifico para "nenhum lead sem site encontrado".
 
 ### Comportamento
 - [x] Manter experiencia atual para outros filtros.
 - [x] Evitar loading global desnecessario em alteracoes simples de filtro local.
+- [x] Insights atualizados com distribuicao por websitePresence (HAS/NO/UNKNOWN) coerente com leads exibidos.
 
 ---
 
@@ -97,4 +129,4 @@ pnpm run build
 - Cobertura de testes em tipos, utilitarios e pagina de busca.
 
 ### Pendente
-- Estado vazio especifico para o caso de filtro `Sem site` sem resultados.
+- Nenhum pendente funcional no escopo P0/P1 deste agente.

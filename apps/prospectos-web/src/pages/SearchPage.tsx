@@ -123,6 +123,13 @@ export default function SearchPage() {
         () => filterLeadsByWebsitePresence(searchMutation.data?.leads ?? [], selectedWebsitePresence),
         [searchMutation.data?.leads, selectedWebsitePresence]
     );
+    const isNoWebsiteEmptyState = selectedWebsitePresence === 'NO_WEBSITE' && filteredLeads.length === 0;
+    const resultsEmptyTitle = isNoWebsiteEmptyState
+        ? t('pages.search.empty.noWebsiteTitle', { defaultValue: 'Nenhum lead sem site encontrado' })
+        : t('pages.search.empty.title');
+    const resultsEmptyDescription = isNoWebsiteEmptyState
+        ? t('pages.search.empty.noWebsiteDescription', { defaultValue: 'Ajuste os filtros ou execute uma nova busca para encontrar empresas sem site.' })
+        : t('pages.search.empty.description');
 
     const handleAcceptLead = async (lead: LeadResult) => {
         setAcceptingLeadKey(lead.leadKey);
@@ -347,8 +354,8 @@ export default function SearchPage() {
                                 columns={columns}
                                 rows={filteredLeads}
                                 rowKey={(row) => row.leadKey}
-                                emptyTitle={t('pages.search.empty.title')}
-                                emptyDescription={t('pages.search.empty.description')}
+                                emptyTitle={resultsEmptyTitle}
+                                emptyDescription={resultsEmptyDescription}
                             />
                         </div>
                     ) : (
