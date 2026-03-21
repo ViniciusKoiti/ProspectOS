@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
@@ -20,8 +20,8 @@ import PageHeader from '../components/ui/PageHeader';
 import Select from '../components/ui/Select';
 import TextArea from '../components/ui/TextArea';
 import { listIcps } from '../services/icpService';
-import { acceptLead, searchLeads } from '../services/leadService';
-import type { AcceptLeadResponse, LeadResult, WebsitePresence } from '../types/leadContracts';
+import { acceptLead, openLeadSearchEvents, startLeadSearchAsync } from '../services/leadService';
+import type { AcceptLeadResponse, LeadResult, LeadSearchAsyncSnapshot, WebsitePresence } from '../types/leadContracts';
 import {
     buildSearchResultsCsv,
     filterLeadsByWebsitePresence,
@@ -49,6 +49,12 @@ const searchFormSchema = z.object({
 type SearchFormInput = z.input<typeof searchFormSchema>;
 type SearchFormValues = z.output<typeof searchFormSchema>;
 
+type SearchDisplayState = {
+    status: 'PROCESSING' | 'COMPLETED' | 'FAILED';
+    message: string | null;
+    leads: LeadResult[];
+};
+
 function formatWebsitePresenceLabel(websitePresence: WebsitePresence, t: (key: string, options?: { defaultValue?: string }) => string): string {
     return getWebsitePresenceLabel(websitePresence, {
         hasWebsite: t('pages.search.websitePresence.hasWebsite', { defaultValue: 'Com site' }),
@@ -57,16 +63,66 @@ function formatWebsitePresenceLabel(websitePresence: WebsitePresence, t: (key: s
     });
 }
 
+function toSearchDisplayState(searchSnapshot: LeadSearchAsyncSnapshot | null, startResponse: unknown): SearchDisplayState | null {
+    if (searchSnapshot) {
+        return {
+            status: searchSnapshot.status,
+            message: searchSnapshot.message,
+            leads: searchSnapshot.leads,
+        };
+    }
+
+    if (!startResponse || typeof startResponse !== 'object') {
+        return null;
+    }
+
+    const candidate = startResponse as Partial<{
+        status: string;
+        message: string | null;
+        leads: LeadResult[];
+    }>;
+
+    if (candidate.status !== 'PROCESSING' && candidate.status !== 'COMPLETED' && candidate.status !== 'FAILED') {
+        return null;
+    }
+
+    return {
+        status: candidate.status,
+        message: candidate.message ?? null,
+        leads: Array.isArray(candidate.leads) ? candidate.leads : [],
+    };
+}
+
 export default function SearchPage() {
     const { t } = useTranslation();
     const queryClient = useQueryClient();
+    const streamRef = useRef<EventSource | null>(null);
+    const [searchSnapshot, setSearchSnapshot] = useState<LeadSearchAsyncSnapshot | null>(null);
+    const [searchStreamError, setSearchStreamError] = useState<string | null>(null);
     const [acceptingLeadKey, setAcceptingLeadKey] = useState<string | null>(null);
     const [acceptedCompaniesByLeadKey, setAcceptedCompaniesByLeadKey] = useState<Record<string, AcceptLeadResponse['company']>>({});
     const [acceptFeedback, setAcceptFeedback] = useState<AcceptLeadResponse['company'] | null>(null);
 
+    useEffect(() => {
+        return () => {
+            if (streamRef.current) {
+                streamRef.current.close();
+                streamRef.current = null;
+            }
+        };
+    }, []);
+
+    const closeActiveStream = () => {
+        if (!streamRef.current) {
+            return;
+        }
+        streamRef.current.close();
+        streamRef.current = null;
+    };
+
     const icpsQuery = useQuery({ queryKey: ['icps'], queryFn: listIcps });
-    const searchMutation = useMutation({
-        mutationFn: searchLeads,
+    const startSearchMutation = useMutation({
+        mutationFn: startLeadSearchAsync,
         onSuccess: () => {
             setAcceptedCompaniesByLeadKey({});
             setAcceptFeedback(null);
@@ -101,6 +157,7 @@ export default function SearchPage() {
     const selectedIcpName = selectedIcpId
         ? (icpsQuery.data ?? []).find((icp) => icp.id === selectedIcpId)?.name ?? null
         : null;
+
     const sourceOptions: SearchSourceOption[] = [
         {
             value: 'in-memory',
@@ -119,10 +176,16 @@ export default function SearchPage() {
         },
     ];
 
-    const filteredLeads = useMemo(
-        () => filterLeadsByWebsitePresence(searchMutation.data?.leads ?? [], selectedWebsitePresence),
-        [searchMutation.data?.leads, selectedWebsitePresence]
+    const searchDisplayState = useMemo(
+        () => toSearchDisplayState(searchSnapshot, startSearchMutation.data),
+        [searchSnapshot, startSearchMutation.data]
     );
+
+    const filteredLeads = useMemo(
+        () => filterLeadsByWebsitePresence(searchDisplayState?.leads ?? [], selectedWebsitePresence),
+        [searchDisplayState?.leads, selectedWebsitePresence]
+    );
+
     const isNoWebsiteEmptyState = selectedWebsitePresence === 'NO_WEBSITE' && filteredLeads.length === 0;
     const resultsEmptyTitle = isNoWebsiteEmptyState
         ? t('pages.search.empty.noWebsiteTitle', { defaultValue: 'Nenhum lead sem site encontrado' })
@@ -235,24 +298,48 @@ export default function SearchPage() {
     ];
 
     const onSubmit = form.handleSubmit(async (values) => {
+        closeActiveStream();
+        setSearchSnapshot(null);
+        setSearchStreamError(null);
         setAcceptedCompaniesByLeadKey({});
         setAcceptFeedback(null);
         acceptMutation.reset();
 
-        await searchMutation.mutateAsync({
+        const startResponse = await startSearchMutation.mutateAsync({
             query: values.query,
             limit: values.limit,
             sources: values.sources,
             icpId: values.icpId,
         });
+
+        const eventStream = openLeadSearchEvents(startResponse.requestId, {
+            onSnapshot: (snapshot) => {
+                setSearchSnapshot(snapshot);
+                if (snapshot.status !== 'PROCESSING') {
+                    eventStream.close();
+                    if (streamRef.current === eventStream) {
+                        streamRef.current = null;
+                    }
+                }
+            },
+            onError: () => {
+                setSearchStreamError(
+                    t('pages.search.errors.sseConnection', { defaultValue: 'Falha na conexao de atualizacao em tempo real.' })
+                );
+            },
+        });
+        streamRef.current = eventStream;
     });
 
-    const searchErrorMessage = searchMutation.isError
-        ? mergeWithFallbackError(t('pages.search.errors.execute'), parseApiErrorMessage(searchMutation.error))
+    const searchErrorMessage = startSearchMutation.isError
+        ? mergeWithFallbackError(t('pages.search.errors.execute'), parseApiErrorMessage(startSearchMutation.error))
         : null;
     const acceptErrorMessage = acceptMutation.isError
         ? mergeWithFallbackError(t('pages.search.errors.accept'), parseApiErrorMessage(acceptMutation.error))
         : null;
+    const processingMessage = searchSnapshot?.progress.totalSources && searchSnapshot.progress.totalSources > 0
+        ? `${searchDisplayState?.message ?? t('common.loading')} (${searchSnapshot.progress.doneSources}/${searchSnapshot.progress.totalSources})`
+        : searchDisplayState?.message ?? t('common.loading');
 
     return (
         <section className="space-y-4" data-testid="search-page">
@@ -300,7 +387,7 @@ export default function SearchPage() {
                             <option value="100">100</option>
                         </Select>
                         <div className="flex justify-end">
-                            <Button type="submit" loading={searchMutation.isPending}>{t('common.searchProspects')}</Button>
+                            <Button type="submit" loading={startSearchMutation.isPending}>{t('common.searchProspects')}</Button>
                         </div>
                     </form>
                 </Card>
@@ -317,18 +404,20 @@ export default function SearchPage() {
 
                     {acceptErrorMessage ? <ErrorState message={acceptErrorMessage} /> : null}
 
-                    {searchMutation.isPending ? (
-                        <LoadingState />
+                    {startSearchMutation.isPending ? (
+                        <LoadingState label={t('pages.search.loading.starting', { defaultValue: 'Iniciando busca...' })} />
                     ) : searchErrorMessage ? (
                         <ErrorState message={searchErrorMessage} onRetry={() => void onSubmit()} />
-                    ) : searchMutation.data?.status === 'PROCESSING' ? (
-                        <LoadingState label={searchMutation.data.message ?? t('common.loading')} />
-                    ) : searchMutation.data?.status === 'FAILED' ? (
+                    ) : searchStreamError && searchDisplayState?.status === 'PROCESSING' ? (
+                        <ErrorState message={searchStreamError} onRetry={() => void onSubmit()} />
+                    ) : searchDisplayState?.status === 'PROCESSING' ? (
+                        <LoadingState label={processingMessage} />
+                    ) : searchDisplayState?.status === 'FAILED' ? (
                         <ErrorState
-                            message={searchMutation.data.message ?? t('pages.search.errors.execute')}
+                            message={searchDisplayState.message ?? t('pages.search.errors.execute')}
                             onRetry={() => void onSubmit()}
                         />
-                    ) : searchMutation.data ? (
+                    ) : searchDisplayState?.status === 'COMPLETED' ? (
                         <div className="space-y-4" data-testid="search-results-table">
                             <SearchMatchInsights leads={filteredLeads} selectedIcpName={selectedIcpName} />
                             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">

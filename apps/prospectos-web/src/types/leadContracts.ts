@@ -65,6 +65,40 @@ export const leadSearchRequestSchema = z.object({
     icpId: z.union([z.string().regex(/^-?\d+$/), z.number().finite()]).nullable(),
 });
 
+export const leadSearchSourceRunStatusSchema = z.enum(['PENDING', 'RUNNING', 'COMPLETED', 'FAILED', 'TIMEOUT']);
+
+export const leadSearchSourceRunSchema = z.object({
+    sourceName: z.string(),
+    status: leadSearchSourceRunStatusSchema,
+    durationMs: z.number().int().min(0).nullable(),
+    message: z.string().nullable(),
+});
+
+export const leadSearchProgressSchema = z.object({
+    doneSources: z.number().int().min(0),
+    totalSources: z.number().int().min(0),
+    failedSources: z.number().int().min(0),
+});
+
+export const leadSearchAsyncStartResponseSchema = z.object({
+    requestId: z.string().uuid(),
+    status: z.literal('PROCESSING'),
+    message: z.string().nullable(),
+    createdAt: z.string().datetime({ offset: true }),
+});
+
+export const leadSearchAsyncSnapshotSchema = z.object({
+    requestId: z.string().uuid(),
+    status: leadSearchStatusSchema,
+    message: z.string().nullable(),
+    progress: leadSearchProgressSchema,
+    sourceRuns: z.array(leadSearchSourceRunSchema),
+    leads: z.array(leadResultSchema),
+    createdAt: z.string().datetime({ offset: true }),
+    updatedAt: z.string().datetime({ offset: true }),
+    completedAt: z.string().datetime({ offset: true }).nullable(),
+});
+
 export type LeadCandidate = z.infer<typeof leadCandidateSchema>;
 export type WebsitePresence = z.infer<typeof websitePresenceSchema>;
 export type SourceProvenance = z.infer<typeof sourceProvenanceSchema>;
@@ -73,3 +107,8 @@ export type AcceptLeadRequest = z.infer<typeof acceptLeadRequestSchema>;
 export type AcceptLeadResponse = z.infer<typeof acceptLeadResponseSchema>;
 export type LeadSearchRequest = z.infer<typeof leadSearchRequestSchema>;
 export type LeadSearchResponse = z.infer<typeof leadSearchResponseSchema>;
+export type LeadSearchSourceRunStatus = z.infer<typeof leadSearchSourceRunStatusSchema>;
+export type LeadSearchSourceRun = z.infer<typeof leadSearchSourceRunSchema>;
+export type LeadSearchProgress = z.infer<typeof leadSearchProgressSchema>;
+export type LeadSearchAsyncStartResponse = z.infer<typeof leadSearchAsyncStartResponseSchema>;
+export type LeadSearchAsyncSnapshot = z.infer<typeof leadSearchAsyncSnapshotSchema>;

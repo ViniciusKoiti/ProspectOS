@@ -1,11 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { api } from '../api';
-import { acceptLead, searchLeads } from '../leadService';
+import { acceptLead, getLeadSearchAsyncStatus, searchLeads, startLeadSearchAsync } from '../leadService';
 
 vi.mock('../api', () => ({
     api: {
         post: vi.fn(),
+        get: vi.fn(),
     },
 }));
 
@@ -62,6 +63,71 @@ describe('leadService contract', () => {
             sources: ['in-memory'],
             icpId: 1,
         });
+    });
+
+    it('starts async lead search and parses accepted response', async () => {
+        vi.mocked(api.post).mockResolvedValue({
+            data: {
+                requestId: '7e17bb6b-ec6a-47c6-b4a8-f6da4be2ebed',
+                status: 'PROCESSING',
+                message: 'Search started',
+                createdAt: '2026-03-21T12:00:00Z',
+            },
+        });
+
+        const result = await startLeadSearchAsync({
+            query: 'agencias de marketing',
+            limit: 10,
+            sources: ['in-memory', 'cnpj-ws'],
+            icpId: 1,
+        });
+
+        expect(result.status).toBe('PROCESSING');
+        expect(api.post).toHaveBeenCalledWith('/leads/search/async', {
+            query: 'agencias de marketing',
+            limit: 10,
+            sources: ['in-memory', 'cnpj-ws'],
+            icpId: 1,
+        });
+    });
+
+    it('parses async lead search snapshot response', async () => {
+        vi.mocked(api.get).mockResolvedValue({
+            data: {
+                requestId: '7e17bb6b-ec6a-47c6-b4a8-f6da4be2ebed',
+                status: 'PROCESSING',
+                message: 'Running',
+                progress: {
+                    doneSources: 1,
+                    totalSources: 2,
+                    failedSources: 0,
+                },
+                sourceRuns: [
+                    {
+                        sourceName: 'in-memory',
+                        status: 'COMPLETED',
+                        durationMs: 125,
+                        message: 'ok',
+                    },
+                    {
+                        sourceName: 'cnpj-ws',
+                        status: 'RUNNING',
+                        durationMs: null,
+                        message: null,
+                    },
+                ],
+                leads: [],
+                createdAt: '2026-03-21T12:00:00Z',
+                updatedAt: '2026-03-21T12:00:05Z',
+                completedAt: null,
+            },
+        });
+
+        const result = await getLeadSearchAsyncStatus('7e17bb6b-ec6a-47c6-b4a8-f6da4be2ebed');
+
+        expect(result.progress.doneSources).toBe(1);
+        expect(result.sourceRuns[0].status).toBe('COMPLETED');
+        expect(api.get).toHaveBeenCalledWith('/leads/search/7e17bb6b-ec6a-47c6-b4a8-f6da4be2ebed');
     });
 
     it('rejects invalid lead search request payloads before request', async () => {
@@ -123,4 +189,3 @@ describe('leadService contract', () => {
         expect(result.company.id).toBe('12');
     });
 });
-
