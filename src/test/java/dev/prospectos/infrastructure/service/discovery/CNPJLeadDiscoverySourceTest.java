@@ -8,9 +8,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,6 +36,38 @@ class CNPJLeadDiscoverySourceTest {
     @Test
     void shouldReturnCorrectSourceName() {
         assertThat(cnpjSource.sourceName()).isEqualTo("cnpj-ws");
+    }
+
+    @Test
+    void validateCnpjReturnsInvalidWhenResponseStatusIsNot2xx() {
+        when(restTemplate.getForEntity("https://cnpj.ws/v1/12345678000190", CnpjWsResponse.class))
+            .thenReturn(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+
+        CnpjValidationResult result = cnpjSource.validateCNPJ("12.345.678/0001-90");
+
+        assertThat(result.isValid()).isFalse();
+        assertThat(result.getErrorMessage()).isEqualTo("CNPJ validation service unavailable");
+    }
+
+    @Test
+    void validateCnpjReturnsInvalidWhenBodyIsNull() {
+        when(restTemplate.getForEntity("https://cnpj.ws/v1/12345678000190", CnpjWsResponse.class))
+            .thenReturn(ResponseEntity.ok().build());
+
+        CnpjValidationResult result = cnpjSource.validateCNPJ("12.345.678/0001-90");
+
+        assertThat(result.isValid()).isFalse();
+        assertThat(result.getErrorMessage()).isEqualTo("CNPJ validation service unavailable");
+    }
+
+    @Test
+    void validateCnpjSanitizesCnpjBeforeCallingApi() {
+        when(restTemplate.getForEntity("https://cnpj.ws/v1/12345678000190", CnpjWsResponse.class))
+            .thenReturn(ResponseEntity.ok(new CnpjWsResponse()));
+
+        cnpjSource.validateCNPJ("12.345.678/0001-90");
+
+        verify(restTemplate).getForEntity("https://cnpj.ws/v1/12345678000190", CnpjWsResponse.class);
     }
 
     @Test

@@ -43,9 +43,10 @@ public class CNPJLeadDiscoverySource implements LeadDiscoverySource {
             String url = "https://cnpj.ws/v1/" + cleanCnpj;
             log.info("Validating CNPJ {} via CNPJ.ws API", cleanCnpj);
             ResponseEntity<CnpjWsResponse> response = restTemplate.getForEntity(url, CnpjWsResponse.class);
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                return mapToCnpjValidation(response.getBody());
+            if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
+                return CnpjValidationResult.invalid("CNPJ validation service unavailable");
             }
+            return mapToCnpjValidation(response.getBody());
         } catch (Exception e) {
             log.warn("CNPJ validation failed for {}: {}", cnpj, e.getMessage());
         }
