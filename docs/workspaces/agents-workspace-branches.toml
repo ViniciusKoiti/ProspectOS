@@ -1,0 +1,121 @@
+schema_version = 1
+generated_at = "2026-03-22"
+default_remote = "origin"
+default_base_branch = "feature/semana-2-demo-ready"
+
+[standards]
+tdd_required = true
+commit_convention = "conventional-commits"
+max_class_lines = 100
+
+[workflow]
+step_1 = "checkout workspace branch and validate clean status"
+step_2 = "write or update failing test first (red)"
+step_3 = "implement smallest change to pass tests (green)"
+step_4 = "refactor with tests still green"
+step_5 = "commit and push only workspace-owned scope"
+
+[commands]
+preflight = "git status --short"
+backend_full_test = "$env:GRADLE_USER_HOME='D:/Cursos/prospectos/.gradle-user-home'; ./gradlew test"
+frontend_test = "pnpm run test"
+push = "git push -u origin <branch>"
+
+[[agent]]
+name = "ws-cnpj-ws"
+role = "backend"
+workspace = "D:/Cursos/prospectos/output/workspaces/integracao-cnpj-ws"
+branch = "feature/integracao-cnpj-ws"
+focus = "cnpj ws integration and validation flow"
+commit_scope = "discovery-cnpj-ws"
+tests = [
+  "./gradlew test --tests 'dev.prospectos.infrastructure.service.discovery.CNPJLeadDiscoverySourceTest'"
+]
+
+[[agent]]
+name = "ws-open-cnpj"
+role = "backend"
+workspace = "D:/Cursos/prospectos/output/workspaces/integracao-opencnpj"
+branch = "feature/integracao-opencnpj"
+focus = "open cnpj integration and response mapping"
+commit_scope = "discovery-open-cnpj"
+tests = [
+  "./gradlew test --tests 'dev.prospectos.infrastructure.service.discovery.OpenCnpjLeadDiscoverySourceTest'"
+]
+
+[[agent]]
+name = "ws-tomtom"
+role = "backend"
+workspace = "D:/Cursos/prospectos/output/workspaces/integracao-tomtom"
+branch = "feature/integracao-tomtom"
+focus = "tomtom integration, api key handling and mapping"
+commit_scope = "discovery-tomtom"
+tests = [
+  "./gradlew test --tests 'dev.prospectos.infrastructure.service.discovery.TomTomLeadDiscoverySourceTest'"
+]
+
+[[agent]]
+name = "ws-google-places"
+role = "backend"
+workspace = "D:/Cursos/prospectos/output/workspaces/integracao-google-places"
+branch = "feature/integracao-google-places"
+focus = "google places provider abstraction and ingestion"
+commit_scope = "discovery-google-places"
+tests = [
+  "./gradlew test --tests 'dev.prospectos.infrastructure.service.discovery.GooglePlaces*Test'"
+]
+
+[[agent]]
+name = "ws-foursquare"
+role = "backend"
+workspace = "D:/Cursos/prospectos/output/workspaces/integracao-foursquare"
+branch = "feature/integracao-foursquare"
+focus = "foursquare provider abstraction and ingestion"
+commit_scope = "discovery-foursquare"
+tests = [
+  "./gradlew test --tests 'dev.prospectos.infrastructure.service.discovery.Foursquare*Test'"
+]
+
+[[agent]]
+name = "ws-geoapify"
+role = "backend"
+workspace = "D:/Cursos/prospectos/output/workspaces/integracao-geoapify"
+branch = "feature/integracao-geoapify"
+focus = "geoapify provider abstraction and ingestion"
+commit_scope = "discovery-geoapify"
+tests = [
+  "./gradlew test --tests 'dev.prospectos.infrastructure.service.discovery.Geoapify*Test'"
+]
+
+[[agent]]
+name = "ws-nominatim-publico"
+role = "backend"
+workspace = "D:/Cursos/prospectos/output/workspaces/integracao-nominatim-publico"
+branch = "feature/integracao-nominatim-publico"
+focus = "nominatim public provider integration and normalization"
+commit_scope = "discovery-nominatim"
+tests = [
+  "./gradlew test --tests 'dev.prospectos.infrastructure.service.discovery.Nominatim*Test'"
+]
+
+[[agent]]
+name = "ws-amazon-location"
+role = "backend"
+workspace = "D:/Cursos/prospectos/output/workspaces/integracao-amazon-location"
+branch = "feature/integracao-amazon-location"
+focus = "amazon location integration and response mapping"
+commit_scope = "discovery-amazon-location"
+tests = [
+  "./gradlew test --tests 'dev.prospectos.infrastructure.service.discovery.AmazonLocation*Test'"
+]
+
+[[agent]]
+name = "ws-opencage"
+role = "backend"
+workspace = "D:/Cursos/prospectos/output/workspaces/integracao-opencage"
+branch = "feature/integracao-opencage"
+focus = "opencage integration and location parsing"
+commit_scope = "discovery-opencage"
+tests = [
+  "./gradlew test --tests 'dev.prospectos.infrastructure.service.discovery.OpenCage*Test'"
+]
