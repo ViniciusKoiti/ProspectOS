@@ -34,3 +34,14 @@
 
 ## Proxima acao recomendada
 Considerar apenas se houver estrategia cloud centrada em AWS no produto.
+
+## Status de implementacao (backend)
+- Fonte `amazon-location` implementada como `LeadDiscoverySource`.
+- Integracao usando `SearchText` (Places API v2) com autenticacao por `key`.
+- Configuracao via `prospectos.leads.amazon-location.*`.
+
+### Como habilitar em desenvolvimento
+1. Adicionar `amazon-location` em `prospectos.leads.allowed-sources`.
+2. Definir `PROSPECTOS_LEADS_AMAZON_LOCATION_ENABLED=true`.
+3. Definir `PROSPECTOS_LEADS_AMAZON_LOCATION_API_KEY`.
+4. Opcional: ajustar `region`, `language`, `include-countries` e `max-results`.
