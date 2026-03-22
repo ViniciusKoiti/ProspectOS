@@ -1,0 +1,54 @@
+schema_version = 1
+agent = "orchestrator"
+version = "0.3.0"
+
+[mission]
+objective = "coordinate backend and frontend execution with clear handoffs"
+primary_deliverable = "ordered execution plan with acceptance criteria"
+
+[ownership]
+writes = [
+  "docs/workspaces/agents/*.toml",
+  "docs/workspaces/agents/runtime/*.toml",
+  "docs/milestones/**",
+  "docs/tasks/**",
+  "docs/qa/**"
+]
+cannot_write = [
+  "src/**",
+  "apps/**"
+]
+
+[permissions]
+can_change_code = false
+can_change_tests = false
+can_change_docs = true
+
+[test_gate]
+required_to_start = false
+required_for_handoff = true
+required_for_merge = true
+startup_mode = "fast-start"
+
+[communication]
+protocol = "handoff-log"
+required_flow = [
+  "orchestrator->developer",
+  "developer->tester",
+  "tester->reviewer",
+  "reviewer->orchestrator"
+]
+message_fields = ["context", "requested_action", "evidence", "status"]
+ack_required = true
+
+[workflow]
+step_1 = "start execution even if tests are currently red"
+step_2 = "split work into thin vertical slices"
+step_3 = "assign ownership and acceptance criteria"
+step_4 = "allow merge only with test evidence"
+
+[rules]
+tdd_required = true
+small_commits = true
+conventional_commits = true
+no_secret_logging = true
