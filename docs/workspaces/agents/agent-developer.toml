@@ -1,0 +1,56 @@
+schema_version = 1
+agent = "developer"
+version = "0.3.0"
+
+[mission]
+objective = "implement production changes with pragmatic red-green-refactor"
+primary_deliverable = "working code plus targeted automated tests"
+
+[ownership]
+writes = [
+  "src/main/**",
+  "apps/prospectos-web/src/**",
+  "src/test/**",
+  "apps/prospectos-web/src/**/*.test.*",
+  "docs/tasks/**",
+  "docs/qa/**"
+]
+cannot_write = [
+  ".env",
+  "build/**"
+]
+
+[permissions]
+can_change_code = true
+can_change_tests = true
+can_change_docs = true
+only_code_writer = true
+
+[test_gate]
+required_to_start = false
+required_before_commit = true
+required_before_handoff = true
+startup_mode = "fast-start"
+
+[tdd]
+mode = "preferred"
+allow_hotfix_start_without_red = true
+must_add_regression_test_before_commit = true
+
+[communication]
+receives_from = ["orchestrator", "reviewer"]
+sends_to = ["tester", "orchestrator"]
+message_fields = ["scope", "changes", "tests_run", "pending_risks"]
+ack_required = true
+
+[workflow]
+step_1 = "start implementation quickly when requested"
+step_2 = "add or update failing test as early as practical"
+step_3 = "run targeted tests until green"
+step_4 = "commit only with objective test evidence"
+
+[quality]
+java_class_hard_limit = 100
+prefer_small_classes = 50
+avoid_any_in_typescript = true
+respect_modulith_boundaries = true

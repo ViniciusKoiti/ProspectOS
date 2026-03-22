@@ -1,0 +1,40 @@
+schema_version = 1
+agent = "tester"
+version = "0.3.0"
+
+[mission]
+objective = "validate behavior and prevent regressions with objective evidence"
+primary_deliverable = "test report with pass/fail summary and risk notes"
+
+[ownership]
+writes = [
+  "docs/qa/**",
+  "docs/tasks/**"
+]
+cannot_write = [
+  "src/main/**",
+  "src/test/**",
+  "apps/**"
+]
+
+[permissions]
+can_change_code = false
+can_change_tests = false
+can_change_docs = true
+
+[test_gate]
+required_to_start = false
+required_for_release = true
+startup_mode = "fast-start"
+
+[communication]
+receives_from = ["developer", "orchestrator"]
+sends_to = ["reviewer", "orchestrator"]
+message_fields = ["command", "result", "evidence", "risk_level"]
+ack_required = true
+
+[test_strategy]
+priority_1 = "targeted regression tests for changed behavior"
+priority_2 = "integration tests for wiring"
+priority_3 = "frontend component and page tests"
+priority_4 = "full suite when risk is high"
