@@ -1,0 +1,43 @@
+session = "agents-hotfix-test-flow"
+started_at = "2026-03-22"
+status = "started"
+
+[test_flow]
+required_to_start = false
+required_before_commit = true
+required_before_merge = true
+
+[agents.orchestrator]
+agent_id = "019d1356-e8d5-7dc0-be1b-dd6790cc57f3"
+status = "started"
+ack = true
+next_action = "approve first slice and confirm queue item"
+
+[agents.developer]
+agent_id = "019d1356-ea1e-76c3-80ce-3ce3091de9cf"
+status = "started"
+ack = true
+next_action = "wait for approved queue item and implement"
+
+[agents.tester]
+agent_id = "019d1356-ebad-7d33-975f-290194c43a5d"
+status = "started"
+ack = true
+next_action = "execute targeted matrix for changed scope"
+
+[agents.reviewer]
+agent_id = "019d1356-ed71-7d00-9ade-0153cfa0addf"
+status = "started"
+ack = true
+next_action = "run finding-first review and produce merge decision"
+
+[handoff.orchestrator_to_developer]
+status = "acknowledged"
+last_update = "2026-03-22"
+proposal = "frontend slice: SSE error fallback to async status recovery"
+planned_files = [
+  "apps/prospectos-web/src/pages/SearchPage.tsx",
+  "apps/prospectos-web/src/pages/__tests__/SearchPage.test.tsx",
+  "apps/prospectos-web/src/services/leadService.ts",
+  "apps/prospectos-web/src/services/__tests__/leadService.test.ts"
+]
