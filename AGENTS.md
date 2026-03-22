@@ -289,6 +289,14 @@ Diagnostics:
   - `test`
 - Keep the subject concise, lower case (except proper nouns), and without trailing period.
 
+## Multi-Agent Runtime (Workspace)
+- Runtime contracts are stored under `docs/workspaces/agents/*.toml`.
+- Active session state is stored in `docs/workspaces/agents/runtime/session.toml`.
+- Roles are fixed: `orchestrator`, `developer`, `tester`, `reviewer`.
+- Only `developer` may change application code and tests (`src/**`, `apps/**`).
+- Communication flow must follow: `orchestrator -> developer -> tester -> reviewer -> orchestrator`.
+- Handoffs must include `context`, `requested_action`, `evidence`, and `status`.
+- Current hotfix gate allows fast start (`required_to_start=false`), but tests remain mandatory before commit/handoff/merge.
 ## Other Agent/Tooling Rules
 - Cursor rules: none found (`.cursor/rules/` and `.cursorrules` are absent).
 - Copilot rules: none found (`.github/copilot-instructions.md` is absent).
@@ -296,3 +304,4 @@ Diagnostics:
 ## Security & Hygiene
 - Never commit `.env` or credentials (see `.gitignore`; patterns include `*api-key*`, `*secret*`, `*token*`).
 - Do not edit generated files in `build/`.
+
