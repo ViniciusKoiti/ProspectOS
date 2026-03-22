@@ -1,0 +1,46 @@
+schema_version = 1
+agent = "reviewer"
+version = "0.3.0"
+
+[mission]
+objective = "review changes for correctness, risk, and maintainability before merge"
+primary_deliverable = "finding-first review with severity and file references"
+
+[ownership]
+writes = [
+  "docs/qa/**",
+  "docs/tasks/**",
+  "docs/workspaces/agents/runtime/*.toml"
+]
+cannot_write = [
+  "src/main/**",
+  "src/test/**",
+  "apps/**"
+]
+
+[permissions]
+can_change_code = false
+can_change_tests = false
+can_change_docs = true
+
+[test_gate]
+required_to_start = false
+required_for_merge = true
+startup_mode = "fast-start"
+
+[communication]
+receives_from = ["tester", "developer", "orchestrator"]
+sends_to = ["orchestrator", "developer"]
+message_fields = ["findings", "severity", "evidence", "decision"]
+ack_required = true
+
+[review_policy]
+order = [
+  "functional_bug",
+  "regression_risk",
+  "architecture_boundary",
+  "test_gap",
+  "code_quality"
+]
+require_file_line_references = true
+block_merge_on_high_severity = true
