@@ -52,6 +52,14 @@ final class DotenvEnvironmentMappings {
         mappings.put("SPRING_JPA_SHOW_SQL", "spring.jpa.show-sql");
         mappings.put("SCRAPER_SERVICE_URL", "scraper.service.url");
         mappings.put("SCRAPER_SERVICE_TIMEOUT", "scraper.service.timeout");
+        mappings.put("TOMTOM_API_KEY", "prospectos.integrations.tomtom.api-key");
+        mappings.put("TOMTOM_BASE_URL", "prospectos.integrations.tomtom.base-url");
+        mappings.put("TOMTOM_LANGUAGE", "prospectos.integrations.tomtom.language");
+        mappings.put("TOMTOM_MAX_RESULTS_PER_REQUEST", "prospectos.integrations.tomtom.max-results-per-request");
+        mappings.put("TOMTOM_RADIUS_METERS", "prospectos.integrations.tomtom.radius-meters");
+        mappings.put("TOMTOM_LATITUDE", "prospectos.integrations.tomtom.latitude");
+        mappings.put("TOMTOM_LONGITUDE", "prospectos.integrations.tomtom.longitude");
+        mappings.put("TOMTOM_COUNTRY_SET", "prospectos.integrations.tomtom.country-set");
         mappings.put("NEWS_API_KEY", "news.api.key");
         mappings.put("NEWS_API_URL", "news.api.url");
         mappings.put("JWT_SECRET", "jwt.secret");
@@ -76,3 +84,4 @@ final class DotenvEnvironmentMappings {
         return mappings;
     }
 }
+
