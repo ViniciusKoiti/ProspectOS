@@ -237,6 +237,8 @@ Diagnostics:
 - Increasing test coverage is an active priority.
 - When touching backend production code, prefer adding or updating tests in the same change when practical.
 - Prefer targeted unit/integration tests that improve behavior confidence and JaCoCo coverage on changed code.
+- JaCoCo class gate is enforced: keep each new/changed production class at or above 70% instruction coverage in the test suite that runs in CI.
+- For new records/payload/helper classes, add at least one direct unit test that instantiates the type and exercises its accessors/logic; do not rely only on indirect coverage.
 - When Flutter is added, require widget tests for reusable components and unit tests for presentation/domain logic where applicable.
 
 ## TDD Expectations
@@ -289,6 +291,14 @@ Diagnostics:
   - `test`
 - Keep the subject concise, lower case (except proper nouns), and without trailing period.
 
+## Multi-Agent Runtime (Workspace)
+- Runtime contracts are stored under `docs/workspaces/agents/*.toml`.
+- Active session state is stored in `docs/workspaces/agents/runtime/session.toml`.
+- Roles are fixed: `orchestrator`, `developer`, `tester`, `reviewer`.
+- Only `developer` may change application code and tests (`src/**`, `apps/**`).
+- Communication flow must follow: `orchestrator -> developer -> tester -> reviewer -> orchestrator`.
+- Handoffs must include `context`, `requested_action`, `evidence`, and `status`.
+- Current hotfix gate allows fast start (`required_to_start=false`), but tests remain mandatory before commit/handoff/merge.
 ## Other Agent/Tooling Rules
 - Cursor rules: none found (`.cursor/rules/` and `.cursorrules` are absent).
 - Copilot rules: none found (`.github/copilot-instructions.md` is absent).
@@ -296,3 +306,4 @@ Diagnostics:
 ## Security & Hygiene
 - Never commit `.env` or credentials (see `.gitignore`; patterns include `*api-key*`, `*secret*`, `*token*`).
 - Do not edit generated files in `build/`.
+
