@@ -237,6 +237,8 @@ Diagnostics:
 - Increasing test coverage is an active priority.
 - When touching backend production code, prefer adding or updating tests in the same change when practical.
 - Prefer targeted unit/integration tests that improve behavior confidence and JaCoCo coverage on changed code.
+- JaCoCo class gate is enforced: keep each new/changed production class at or above 70% instruction coverage in the test suite that runs in CI.
+- For new records/payload/helper classes, add at least one direct unit test that instantiates the type and exercises its accessors/logic; do not rely only on indirect coverage.
 - When Flutter is added, require widget tests for reusable components and unit tests for presentation/domain logic where applicable.
 
 ## TDD Expectations
