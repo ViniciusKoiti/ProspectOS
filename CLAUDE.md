@@ -12,8 +12,26 @@ ProspectOS is a **Spring Boot + Spring Modulith** B2B prospecting application wi
 ```bash
 ./gradlew build                # Build the project
 ./gradlew bootRun             # Run the application (default: mock profile)
+./gradlew bootRun --args="--spring.profiles.active=development,mcp"  # Run with MCP enabled
 ./gradlew test                # Run all tests
 ./gradlew clean               # Clean build artifacts
+```
+
+### MCP Commands
+```bash
+# Start MCP server (STDIO + HTTP)
+./gradlew bootRun --args="--spring.profiles.active=mcp"
+
+# Test MCP tools discovery
+curl http://localhost:8082/mcp/tools/list | jq .
+
+# Test MCP tool execution
+curl -X POST http://localhost:8082/mcp/tools/call \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":"1","method":"tools/call","params":{"name":"get_query_metrics","arguments":{"timeWindow":"1h"}}}'
+
+# MCP health check
+curl http://localhost:8082/actuator/health/mcp
 ```
 
 ### Testing
@@ -23,6 +41,8 @@ ProspectOS is a **Spring Boot + Spring Modulith** B2B prospecting application wi
 ./gradlew test --tests "*ApplicationTests"   # Run basic Spring Boot tests
 ./gradlew test --tests "dev.prospectos.core.domain.CompanyTest"  # Single test class
 ./gradlew test --tests "*IntegrationTest"    # All integration tests
+./gradlew test --tests "*McpTest"            # Run MCP-specific tests
+./gradlew test --tests "*Mcp*Tools*Test"     # Run MCP tools tests
 ```
 
 ### Coverage Reports
@@ -47,7 +67,8 @@ The application uses Spring Modulith to enforce modular boundaries:
 - **Java 21** with language toolchain
 - **Spring Boot 3.5.10-SNAPSHOT**
 - **Spring Modulith 1.4.4** for modular architecture
-- **Spring AI 1.0.0-M4** with OpenAI and Anthropic providers
+- **Spring AI 1.1.2** with OpenAI and Anthropic providers
+- **Spring AI MCP Server 1.1.2** for Model Context Protocol integration
 - **PGVector** support for semantic search capabilities
 - **H2 Database** for development/testing, PostgreSQL for production
 - **Gradle** for build management
@@ -57,6 +78,7 @@ The application uses Spring Modulith to enforce modular boundaries:
 
 - **`mock`**: Default profile for local development without real AI provider dependencies
 - **`development`**: Local development with extended discovery setup and real AI providers
+- **`mcp`**: MCP (Model Context Protocol) server enabled for autonomous AI optimization
 - **`test`**: Deterministic integration tests with in-memory database
 
 Environment configuration is loaded via `DotenvEnvironmentPostProcessor` from `.env` file (excluded in test profile).
@@ -111,6 +133,95 @@ LLMs can automatically call Java functions:
 - `searchNews()`: News and signal search
 - `analyzeSignals()`: Signal pattern analysis
 
+## MCP (Model Context Protocol) Integration
+
+### Overview
+ProspectOS implements MCP Server capabilities using Spring AI native annotations, enabling autonomous AI systems to monitor, analyze, and optimize the prospecting pipeline in real-time.
+
+### MCP Server Features
+- **Autonomous Optimization**: AI agents can analyze metrics and automatically adjust provider routing strategies
+- **Real-time Monitoring**: Continuous performance tracking with automatic alerting
+- **Cost Management**: Intelligent API usage optimization based on budget constraints
+- **International Lead Search**: AI-powered lead discovery with quality assessment
+
+### Available MCP Tools
+
+#### Query Metrics Tools
+- `get_query_metrics`: Retrieve performance metrics (success rate, cost, response times)
+- `analyze_query_performance`: Deep analysis of query patterns and optimization opportunities
+- `get_query_trends`: Historical trend analysis for decision making
+
+#### Provider Routing Tools
+- `update_provider_routing`: Dynamic routing strategy updates (COST_OPTIMIZED, PERFORMANCE_OPTIMIZED, BALANCED)
+- `get_provider_health`: Real-time status of all location search providers
+- `test_provider_configuration`: Validate routing changes with sample queries
+
+#### International Search Tools
+- `search_international_leads`: Execute optimized international business searches
+- `enrich_international_lead`: Enhanced lead qualification with website analysis
+- `optimize_search_strategy`: AI-driven search strategy recommendations
+
+### MCP Resources (URI Templates)
+- `query-history://{timeWindow}/{provider}`: Historical query data access
+- `provider-performance://{provider}/{metric}`: Provider-specific performance metrics
+- `market-analysis://{country}/{industry}`: Market intelligence for search optimization
+
+### MCP Configuration
+
+#### Development Setup
+```bash
+# Start with MCP enabled
+./gradlew bootRun --args="--spring.profiles.active=development,mcp"
+
+# Verify MCP server
+curl http://localhost:8082/mcp/tools/list
+```
+
+#### MCP Transport Options
+- **STDIO**: For local AI clients and development (`spring.ai.mcp.server.stdio=true`)
+- **HTTP**: For remote AI systems and production (`spring.ai.mcp.server.http.enabled=true`)
+
+#### Example MCP Client Interaction
+```json
+// AI requests current metrics
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "get_query_metrics",
+    "arguments": {"timeWindow": "1h"}
+  }
+}
+
+// AI optimizes based on high costs
+{
+  "jsonrpc": "2.0", 
+  "method": "tools/call",
+  "params": {
+    "name": "update_provider_routing",
+    "arguments": {
+      "strategy": "COST_OPTIMIZED",
+      "providerPriority": ["nominatim", "bing-maps", "google-places"]
+    }
+  }
+}
+```
+
+### Autonomous Optimization Workflows
+1. **Cost Management**: AI monitors spend and automatically switches to cheaper providers when budget thresholds are exceeded
+2. **Performance Optimization**: AI detects slow responses and reroutes to faster providers
+3. **Quality Assurance**: AI maintains minimum success rates by adjusting provider priorities
+4. **Market Adaptation**: AI learns from search patterns and optimizes strategies per geographic region
+
+### MCP Implementation Architecture
+Located in `dev.prospectos.infrastructure.mcp`:
+```
+├── tools/           # @McpTool implementations
+├── resources/       # @McpResource implementations  
+├── config/         # MCP server configuration
+└── dto/            # MCP response objects
+```
+
 ## Vectorization and Semantic Search
 
 ### Backend-Switchable Architecture
@@ -137,6 +248,16 @@ prospectos.vectorization.min-similarity=0.20
 - **Lead Discovery**: `POST /api/leads/discover`, `POST /api/leads/accept`
 - **Enrichment**: `POST /api/prospect/enrich`
 
+### MCP Endpoints (AI Integration)
+- **Tool Discovery**: `GET /mcp/tools/list` - List available MCP tools
+- **Tool Execution**: `POST /mcp/tools/call` - Execute MCP tools via JSON-RPC 2.0
+- **Resource Access**: `GET /mcp/resources/{uri}` - Access MCP resources via URI templates
+- **Health Check**: `GET /actuator/health/mcp` - MCP server health status
+
+### MCP Transport Methods
+- **HTTP Transport**: Port 8082 (configurable) for remote AI clients
+- **STDIO Transport**: Standard input/output for local AI processes
+
 ## Testing Strategy
 
 The project includes modulith-specific tests to ensure architectural compliance:
@@ -161,5 +282,28 @@ Current technical debt is tracked in `docs/technical-debt/README.md` with detail
 ### After Making Changes
 1. Always run full test suite: `./gradlew test`
 2. Verify modulith boundaries are respected
-3. Update technical debt documentation if applicable
-4. Ensure no new `.env` files or secrets are committed
+3. Test MCP functionality if changes affect infrastructure layer: `./gradlew test --tests "*Mcp*"`
+4. Update technical debt documentation if applicable
+5. Ensure no new `.env` files or secrets are committed
+6. Test MCP tools after infrastructure changes: `curl http://localhost:8082/mcp/tools/list`
+
+### MCP-Specific Development Workflow
+
+#### When Adding New MCP Tools
+1. Create tool class in `dev.prospectos.infrastructure.mcp.tools`
+2. Use `@McpTool` annotation with clear descriptions for AI understanding
+3. Add comprehensive unit tests with mocked dependencies
+4. Test via MCP client or curl commands
+5. Update documentation with new tool capabilities
+
+#### When Modifying Business Logic
+1. Consider impact on MCP tools that depend on modified services
+2. Update MCP tool implementations if service contracts change
+3. Verify autonomous AI workflows still function correctly
+4. Test end-to-end MCP scenarios after changes
+
+#### MCP Security Considerations
+- MCP tools should validate all input parameters
+- Sensitive operations require proper authorization
+- Rate limiting should be applied to prevent abuse
+- All MCP interactions should be logged for audit purposes
