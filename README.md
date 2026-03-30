@@ -73,6 +73,47 @@ Coverage report:
 
 - `build/reports/jacoco/test/html/index.html`
 
+## Docker Compose (Least Privilege Baseline)
+
+### Files
+
+- `Dockerfile`: multi-stage build for Spring Boot JAR, runtime as non-root user (`appuser`, UID/GID `10001`).
+- `docker-compose.yml`: app + PostgreSQL/pgvector with isolated network and explicit writable paths.
+- `.dockerignore`: trims build context and avoids leaking local artifacts/secrets into image builds.
+- `.env.example`: minimal environment contract for containerized execution.
+
+### Commands
+
+```bash
+docker compose build
+docker compose up -d
+docker compose logs -f
+docker compose down
+```
+
+### Permission/Isolation Decisions
+
+- App container runs as non-root (`USER appuser:appgroup`).
+- App filesystem is read-only (`read_only: true`), with only `/tmp` writable via `tmpfs`.
+- Linux capabilities dropped on app (`cap_drop: [ALL]`) and privilege escalation blocked (`no-new-privileges:true`).
+- PostgreSQL data is persisted in named volume `postgres_data`.
+- `init.sql` is bind-mounted read-only into `/docker-entrypoint-initdb.d/01-init.sql`.
+- PostgreSQL is not published to host by default; only the app port is exposed to `127.0.0.1`.
+
+### Host Permissions
+
+- `init.sql` must be readable by Docker (on Linux: typically mode `0644`).
+- Named volumes are managed by Docker and avoid host UID/GID mismatch for DB files.
+- If you see permission errors on Linux:
+  - confirm your user can run Docker (`docker ps`) without `sudo`;
+  - if needed, add user to `docker` group and re-login (`sudo usermod -aG docker $USER`);
+  - note: `docker` group is high privilege (root-equivalent access on host);
+  - for stronger isolation, prefer Docker rootless mode.
+
+### Optional Shared-Volume Note
+
+If two containers must write the same mounted directory with different UIDs/GIDs, use `group_add` and a shared GID. This setup is not required in the current compose because no writable bind mount is shared between services.
+
 ## Configuration Profiles
 
 - `mock`: local-safe defaults, no real provider dependency
