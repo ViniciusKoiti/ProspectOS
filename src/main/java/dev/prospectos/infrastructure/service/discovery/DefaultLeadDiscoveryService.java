@@ -12,6 +12,7 @@ import dev.prospectos.api.dto.LeadDiscoveryRequest;
 import dev.prospectos.api.dto.LeadResultDTO;
 import dev.prospectos.api.dto.LeadSearchResponse;
 import dev.prospectos.api.dto.LeadSearchStatus;
+import dev.prospectos.api.mcp.QueryMetricsRecorder;
 import dev.prospectos.core.domain.ICP;
 import dev.prospectos.infrastructure.config.LeadSearchProperties;
 import dev.prospectos.infrastructure.service.compliance.AllowedSourcesComplianceService;
@@ -38,9 +39,10 @@ public class DefaultLeadDiscoveryService implements LeadDiscoveryService {
         ICPDataService icpDataService,
         CompanyScoringService scoringService,
         AllowedSourcesComplianceService complianceService,
-        LeadSearchProperties properties
+        LeadSearchProperties properties,
+        QueryMetricsRecorder queryMetricsRecorder
     ) {
-        this.sourceRegistry = new DiscoverySourceRegistry(sources);
+        this.sourceRegistry = new DiscoverySourceRegistry(sources, queryMetricsRecorder);
         this.icpDataService = icpDataService;
         this.scoringService = scoringService;
         this.complianceService = complianceService;

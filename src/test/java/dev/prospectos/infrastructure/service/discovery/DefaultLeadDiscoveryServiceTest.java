@@ -5,6 +5,7 @@ import dev.prospectos.api.dto.CompanyCandidateDTO;
 import dev.prospectos.api.dto.ICPDto;
 import dev.prospectos.api.dto.LeadDiscoveryRequest;
 import dev.prospectos.api.dto.ScoreDTO;
+import dev.prospectos.api.mcp.QueryMetricsRecorder;
 import dev.prospectos.infrastructure.config.LeadSearchProperties;
 import dev.prospectos.infrastructure.service.compliance.AllowedSourcesComplianceService;
 import dev.prospectos.infrastructure.service.scoring.CompanyScoringService;
@@ -35,6 +36,9 @@ class DefaultLeadDiscoveryServiceTest {
     @Mock
     private AllowedSourcesComplianceService complianceService;
 
+    @Mock
+    private QueryMetricsRecorder queryMetricsRecorder;
+
     private DefaultLeadDiscoveryService service;
 
     @BeforeEach
@@ -44,7 +48,8 @@ class DefaultLeadDiscoveryServiceTest {
             icpDataService,
             scoringService,
             complianceService,
-            new LeadSearchProperties(1L)
+            new LeadSearchProperties(1L),
+            queryMetricsRecorder
         );
     }
 
@@ -213,7 +218,8 @@ class DefaultLeadDiscoveryServiceTest {
             icpDataService,
             scoringService,
             complianceService,
-            new LeadSearchProperties(defaultIcpId)
+            new LeadSearchProperties(defaultIcpId),
+            queryMetricsRecorder
         );
     }
 
