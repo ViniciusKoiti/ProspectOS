@@ -50,8 +50,9 @@ Then validate the HTTP surface:
 ```bash
 scripts/mcp/mcp-health-check.sh
 scripts/mcp/mcp-tools-test.sh
-python scripts/mcp/mcp-client-demo.py
 ```
+
+For local iterations, prefer in-memory services and focused automated tests over standalone demo clients.
 
 ## Security checks
 

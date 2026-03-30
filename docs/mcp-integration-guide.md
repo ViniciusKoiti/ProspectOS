@@ -215,4 +215,4 @@ curl http://localhost:8082/actuator/metrics/mcp.tool.execution.time
 
 ---
 
-**PrÃ³ximo**: Configure o MCP seguindo o [setup detalhado](./mcp-setup.md) ou veja [exemplos prÃ¡ticos](./mcp-examples.md).
+**Próximo**: configure o MCP seguindo o [setup detalhado](./mcp-setup.md) e valide a superfície HTTP com os scripts de health check e tool testing.
