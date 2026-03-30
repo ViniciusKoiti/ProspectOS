@@ -274,6 +274,15 @@ Diagnostics:
 - Shared code ownership is expected; keep code understandable so another engineer can continue the work quickly.
 - Respect existing module boundaries in the backend and the component architecture direction for the future Flutter app.
 
+## Production-Ready Delivery
+- Build production code by default. Unless the user explicitly asks for a demo, prototype, mock-only example, spike, or proof of concept, assume the requested implementation is intended to ship.
+- Do not default to demo artifacts such as `*-demo.*`, `example-*`, exploratory scripts, temporary mock flows, or manual validation helpers as the main deliverable.
+- Prefer production paths under `src/**` or `apps/**` with real integration points, configuration, error handling, observability, and tests over support artifacts under `scripts/**`.
+- If a demo or sample is explicitly requested, keep it clearly labeled as demo/example and do not present it as the final production implementation.
+- Before adding a non-production artifact, verify that it is necessary in addition to the production code rather than a substitute for it.
+- For testing and local validation, prefer production-capable implementations backed by in-memory stores, mocks, or test doubles inside the normal application architecture instead of standalone demo clients or throwaway scripts.
+- Mock and in-memory adapters are acceptable when they preserve the same contracts as the production implementation and help evolve the final code path safely.
+
 ## Commit Convention (commitlint)
 - Use Conventional Commits for all commit messages.
 - Prefer format: `type(scope): short imperative summary`.
