@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @ConditionalOnMcpEnabled
 public class JpaQueryMetricsService implements ObservedQueryMetricsService {
-
     private final QueryMetricsObservationRepository repository;
     private final Clock clock;
     private final QueryMetricsCostEstimator costEstimator;
@@ -26,12 +25,8 @@ public class JpaQueryMetricsService implements ObservedQueryMetricsService {
         this(repository, Clock.systemUTC(), new QueryMetricsCostEstimator(), new QueryMetricsSnapshotFactory());
     }
 
-    JpaQueryMetricsService(
-        QueryMetricsObservationRepository repository,
-        Clock clock,
-        QueryMetricsCostEstimator costEstimator,
-        QueryMetricsSnapshotFactory snapshotFactory
-    ) {
+    JpaQueryMetricsService(QueryMetricsObservationRepository repository, Clock clock,
+                           QueryMetricsCostEstimator costEstimator, QueryMetricsSnapshotFactory snapshotFactory) {
         this.repository = repository;
         this.clock = clock;
         this.costEstimator = costEstimator;
@@ -48,13 +43,8 @@ public class JpaQueryMetricsService implements ObservedQueryMetricsService {
     @Transactional
     public void recordExecution(String provider, String operation, long durationMs, boolean success, int resultCount) {
         repository.save(new QueryMetricsObservationEntity(
-            normalize(provider),
-            normalizeOperation(operation),
-            clock.instant(),
-            Math.max(durationMs, 0L),
-            success,
-            Math.max(resultCount, 0),
-            costEstimator.estimate(normalize(provider), resultCount)
+            normalize(provider), normalizeOperation(operation), clock.instant(), Math.max(durationMs, 0L), success,
+            Math.max(resultCount, 0), costEstimator.estimate(normalize(provider), resultCount)
         ));
     }
 
@@ -76,10 +66,7 @@ public class JpaQueryMetricsService implements ObservedQueryMetricsService {
     public List<String> observedProviders(QueryTimeWindow timeWindow) {
         Instant cutoff = clock.instant().minus(timeWindow.duration());
         return repository.findAllByRecordedAtAfterOrderByRecordedAtDesc(cutoff).stream()
-            .map(QueryMetricsObservationEntity::provider)
-            .distinct()
-            .sorted()
-            .toList();
+            .map(QueryMetricsObservationEntity::provider).distinct().sorted().toList();
     }
 
     private List<QueryMetricsObservationEntity> entities(Instant cutoff, String provider) {
@@ -97,7 +84,3 @@ public class JpaQueryMetricsService implements ObservedQueryMetricsService {
         return operation == null || operation.isBlank() ? "lead-search" : operation.trim();
     }
 }
-
-
-
-

@@ -15,9 +15,7 @@ import dev.prospectos.api.mcp.QueryTimeWindow;
 @Service
 @ConditionalOnProperty(prefix = "spring.ai.mcp.server", name = "enabled", havingValue = "false", matchIfMissing = true)
 public class InMemoryQueryMetricsService implements ObservedQueryMetricsService {
-
     private static final int MAX_OBSERVATIONS = 2_000;
-
     private final ConcurrentLinkedDeque<QueryMetricsObservation> observations;
     private final Clock clock;
     private final QueryMetricsCostEstimator costEstimator;
@@ -27,12 +25,8 @@ public class InMemoryQueryMetricsService implements ObservedQueryMetricsService 
         this(new ConcurrentLinkedDeque<>(), Clock.systemUTC(), new QueryMetricsCostEstimator(), new QueryMetricsSnapshotFactory());
     }
 
-    InMemoryQueryMetricsService(
-        ConcurrentLinkedDeque<QueryMetricsObservation> observations,
-        Clock clock,
-        QueryMetricsCostEstimator costEstimator,
-        QueryMetricsSnapshotFactory snapshotFactory
-    ) {
+    InMemoryQueryMetricsService(ConcurrentLinkedDeque<QueryMetricsObservation> observations, Clock clock,
+                                QueryMetricsCostEstimator costEstimator, QueryMetricsSnapshotFactory snapshotFactory) {
         this.observations = observations;
         this.clock = clock;
         this.costEstimator = costEstimator;
@@ -47,13 +41,8 @@ public class InMemoryQueryMetricsService implements ObservedQueryMetricsService 
     @Override
     public void recordExecution(String provider, String operation, long durationMs, boolean success, int resultCount) {
         observations.addLast(new QueryMetricsObservation(
-            normalize(provider),
-            normalizeOperation(operation),
-            clock.instant(),
-            Math.max(durationMs, 0L),
-            success,
-            Math.max(resultCount, 0),
-            costEstimator.estimate(normalize(provider), resultCount)
+            normalize(provider), normalizeOperation(operation), clock.instant(), Math.max(durationMs, 0L), success,
+            Math.max(resultCount, 0), costEstimator.estimate(normalize(provider), resultCount)
         ));
         trimToWindow();
     }
@@ -79,13 +68,9 @@ public class InMemoryQueryMetricsService implements ObservedQueryMetricsService 
     }
 
     private void trimToWindow() {
-        while (observations.size() > MAX_OBSERVATIONS) {
-            observations.pollFirst();
-        }
+        while (observations.size() > MAX_OBSERVATIONS) observations.pollFirst();
         var cutoff = clock.instant().minus(QueryTimeWindow.THIRTY_DAYS.duration());
-        while (!observations.isEmpty() && observations.peekFirst().recordedAt().isBefore(cutoff)) {
-            observations.pollFirst();
-        }
+        while (!observations.isEmpty() && observations.peekFirst().recordedAt().isBefore(cutoff)) observations.pollFirst();
     }
 
     private String normalize(String provider) {
@@ -96,6 +81,3 @@ public class InMemoryQueryMetricsService implements ObservedQueryMetricsService 
         return operation == null || operation.isBlank() ? "lead-search" : operation.trim();
     }
 }
-
-
-
