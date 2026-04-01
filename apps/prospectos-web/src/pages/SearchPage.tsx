@@ -117,6 +117,11 @@ export default function SearchPage() {
             label: t('pages.search.sources.cnpjWs', { defaultValue: 'cnpj-ws' }),
             description: t('pages.search.sources.cnpjWsDescription', { defaultValue: 'Discovery using CNPJ web data.' }),
         },
+        {
+            value: 'google-places',
+            label: t('pages.search.sources.googlePlaces', { defaultValue: 'google-places' }),
+            description: t('pages.search.sources.googlePlacesDescription', { defaultValue: 'Official Google Places business discovery.' }),
+        },
     ];
 
     const filteredLeads = useMemo(
@@ -368,3 +373,6 @@ export default function SearchPage() {
         </section>
     );
 }
+
+
+

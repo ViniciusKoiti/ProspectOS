@@ -2,7 +2,7 @@ import { isAxiosError } from 'axios';
 
 import type { LeadResult, WebsitePresence } from '../../types/leadContracts';
 
-export const SEARCH_SOURCE_VALUES = ['in-memory', 'vector-company', 'cnpj-ws'] as const;
+export const SEARCH_SOURCE_VALUES = ['in-memory', 'vector-company', 'cnpj-ws', 'google-places'] as const;
 export const WEBSITE_PRESENCE_FILTER_VALUES = ['all', 'HAS_WEBSITE', 'NO_WEBSITE'] as const;
 
 export type SearchSourceValue = typeof SEARCH_SOURCE_VALUES[number];
@@ -173,3 +173,4 @@ export function mergeWithFallbackError(fallbackMessage: string, detail: string |
 
     return `${fallbackMessage} ${detail}`;
 }
+

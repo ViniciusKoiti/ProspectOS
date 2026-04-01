@@ -8,6 +8,7 @@ final class QueryMetricsCostEstimator {
 
     private static final Map<String, BigDecimal> COST_BY_PROVIDER = Map.of(
         "amazon-location", new BigDecimal("0.0350"),
+        "google-places", new BigDecimal("0.0170"),
         "llm-discovery", new BigDecimal("0.0200"),
         "scraper", new BigDecimal("0.0125"),
         "vector-company", new BigDecimal("0.0008"),

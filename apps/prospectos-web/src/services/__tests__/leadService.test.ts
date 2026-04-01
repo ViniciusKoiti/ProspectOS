@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { api } from '../api';
-import { acceptLead, searchLeads } from '../leadService';
+import { acceptLead, recommendLeadSource, searchLeads } from '../leadService';
 
 vi.mock('../api', () => ({
     api: {
@@ -64,6 +64,36 @@ describe('leadService contract', () => {
         });
     });
 
+    it('parses lead recommendation response', async () => {
+        vi.mocked(api.post).mockResolvedValue({
+            data: {
+                recommendedSource: 'google-places',
+                fallbackSources: ['amazon-location', 'scraper'],
+                reason: 'Selected google-places based on observed success rate 97% and avg response time 220ms over 24h.',
+                expectedCost: 0.03,
+                expectedLatencyMs: 220,
+                timeWindow: '24h',
+            },
+        });
+
+        const result = await recommendLeadSource({
+            query: 'dentists in orlando',
+            limit: 20,
+            sources: ['google-places', 'amazon-location'],
+            icpId: null,
+            timeWindow: '24h',
+        });
+
+        expect(result.recommendedSource).toBe('google-places');
+        expect(api.post).toHaveBeenCalledWith('/leads/recommendation', {
+            query: 'dentists in orlando',
+            limit: 20,
+            sources: ['google-places', 'amazon-location'],
+            icpId: null,
+            timeWindow: '24h',
+        });
+    });
+
     it('rejects invalid lead search request payloads before request', async () => {
         await expect(
             searchLeads({
@@ -123,4 +153,3 @@ describe('leadService contract', () => {
         expect(result.company.id).toBe('12');
     });
 });
-

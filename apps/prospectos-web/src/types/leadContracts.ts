@@ -58,6 +58,23 @@ export const leadSearchResponseSchema = z.object({
     message: z.string().nullable(),
 });
 
+export const leadRecommendationResponseSchema = z.object({
+    recommendedSource: z.string(),
+    fallbackSources: z.array(z.string()),
+    reason: z.string(),
+    expectedCost: z.coerce.number(),
+    expectedLatencyMs: z.number().int().nonnegative(),
+    timeWindow: z.string(),
+});
+
+export const leadRecommendationRequestSchema = z.object({
+    query: z.string().min(1),
+    limit: z.number().int().min(1).max(100),
+    sources: z.array(z.string()).default([]),
+    icpId: z.union([z.string().regex(/^-?\d+$/), z.number().finite()]).nullable(),
+    timeWindow: z.string().default('24h'),
+});
+
 export const leadSearchRequestSchema = z.object({
     query: z.string().min(1),
     limit: z.number().int().min(1).max(100),
@@ -73,3 +90,5 @@ export type AcceptLeadRequest = z.infer<typeof acceptLeadRequestSchema>;
 export type AcceptLeadResponse = z.infer<typeof acceptLeadResponseSchema>;
 export type LeadSearchRequest = z.infer<typeof leadSearchRequestSchema>;
 export type LeadSearchResponse = z.infer<typeof leadSearchResponseSchema>;
+export type LeadRecommendationRequest = z.infer<typeof leadRecommendationRequestSchema>;
+export type LeadRecommendationResponse = z.infer<typeof leadRecommendationResponseSchema>;
