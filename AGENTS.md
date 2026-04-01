@@ -13,7 +13,7 @@ Backend architecture remains a Spring Modulith modular monolith.
 - Runtime/toolchain: Java 21 (`build.gradle` toolchain). If Gradle says JAVA_HOME is missing, install JDK 21 and set `JAVA_HOME`.
 - Modules (by package): `dev.prospectos.core`, `dev.prospectos.api`, `dev.prospectos.ai`, `dev.prospectos.infrastructure`.
 - Tests: JUnit 5 + Spring Boot Test + Spring Modulith Test + AssertJ + Mockito.
-- Default profile: `mock` (`src/main/resources/application.properties`).
+- Default profile: `development` (`src/main/resources/application.properties`).
 - Monorepo direction: backend + Flutter app with clear workspace boundaries.
 
 ## Build / Test / Run
@@ -154,9 +154,19 @@ Diagnostics:
 
 ## Configuration & Profiles
 ### Profiles
-- `mock`: safe default; disables real AI provider autoconfig (`src/main/resources/application-mock.properties`).
-- `development`: dev defaults; intended when no real API keys are configured (`src/main/resources/application-development.properties`).
-- `test`: used by integration tests; uses H2 in-memory and disables providers by default (`src/test/resources/application-test.properties`).
+- `development`: primary local runtime for backend + frontend integration (`src/main/resources/application-development.properties`).
+- `production`: production runtime with real infrastructure and stricter validation (`src/main/resources/application-production.properties`).
+- `test`: deterministic automated-test runtime (`src/test/resources/application-test.properties`).
+- `test-pg`: PostgreSQL/Testcontainers support profile for integration tests only (`src/test/resources/application-test-pg.properties`).
+
+### Profile Governance
+- Treat profiles as environment selectors, not feature toggles.
+- The only stable environment profiles are `development`, `production`, and `test`.
+- `test-pg` is allowed only as a test support profile layered on top of `test` or another test-specific context when PostgreSQL/Testcontainers wiring is required.
+- Do not create new profiles for capabilities, transport modes, mocks, or partial runtime variants such as `mcp`, `mcp-mock`, `mock`, `foo-enabled`, or `bar-disabled`.
+- New capabilities must be enabled by properties, conditional beans, or explicit test configuration, not by inventing another profile.
+- If a legacy profile already exists, treat it as transitional. Do not copy its pattern into new code; prefer migrating it toward property-based activation.
+- Before adding or changing any profile, document why an existing environment profile plus properties cannot solve the problem.
 
 ### Dotenv
 - `.env` is loaded by `dev.prospectos.config.DotenvEnvironmentPostProcessor` via `src/main/resources/META-INF/spring.factories`.
@@ -300,6 +310,14 @@ Diagnostics:
   - `test`
 - Keep the subject concise, lower case (except proper nouns), and without trailing period.
 
+## Commit Hygiene
+- Do not leave multiple meaningful code changes uncommitted when a coherent slice is finished.
+- For medium or large tasks, create small, reviewable commits as soon as each slice is validated.
+- Before switching context to a new concern, stage and commit the finished slice or explicitly report why it cannot be committed yet.
+- Every commit must correspond to one behavioral or structural objective, with matching tests or validation evidence when practical.
+- If validation is partial, the commit message or handoff must state what passed, what was not run, and what is still unstable.
+- Do not accumulate broad worktree drift across unrelated areas of the repository.
+
 ## Multi-Agent Runtime (Workspace)
 - Runtime contracts are stored under `docs/workspaces/agents/*.toml`.
 - Active session state is stored in `docs/workspaces/agents/runtime/session.toml`.
@@ -315,4 +333,5 @@ Diagnostics:
 ## Security & Hygiene
 - Never commit `.env` or credentials (see `.gitignore`; patterns include `*api-key*`, `*secret*`, `*token*`).
 - Do not edit generated files in `build/`.
+
 
