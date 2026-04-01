@@ -28,6 +28,7 @@ final class DiscoverySourceRegistry {
             discovered.addAll(QueryMetricsExecutionTracker.track(
                 metricsRecorder,
                 source.sourceName(),
+                context.query(),
                 () -> source.discover(context)
             ));
         }

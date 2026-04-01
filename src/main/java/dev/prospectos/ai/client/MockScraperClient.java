@@ -12,7 +12,7 @@ import java.util.Map;
  * Used when AI scraping is disabled or in test environments.
  */
 @Component
-@Profile({"test", "mock"})
+@Profile("test")
 public class MockScraperClient implements ScraperClientInterface {
 
     @Override

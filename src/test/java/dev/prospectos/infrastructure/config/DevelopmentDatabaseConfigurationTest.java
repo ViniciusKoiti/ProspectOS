@@ -11,30 +11,30 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class DevelopmentDatabaseConfigurationTest {
 
     @Test
-    void developmentProfile_UsesStableH2Configuration() throws IOException {
+    void developmentProfile_UsesSharedPostgresConfiguration() throws IOException {
         String developmentProps = Files.readString(Path.of("src/main/resources/application-development.properties"));
 
         assertTrue(
-            developmentProps.contains("spring.datasource.url=jdbc:h2:mem:prospectos;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"),
-            "development profile must keep H2 in-memory DB alive across restarts"
+            !developmentProps.contains("spring.datasource.url="),
+            "development profile should inherit datasource configuration from the shared base properties"
         );
         assertTrue(
             developmentProps.contains("spring.jpa.hibernate.ddl-auto=update"),
-            "development profile must avoid create-drop to reduce schema loss risk"
+            "development profile must keep schema updates non-destructive for local runtime"
         );
     }
 
     @Test
-    void envExample_UsesStableH2ConfigurationForDevelopment() throws IOException {
+    void envExample_UsesPostgresConfigurationForDevelopment() throws IOException {
         String envExample = Files.readString(Path.of(".env.example"));
 
         assertTrue(
-            envExample.contains("SPRING_DATASOURCE_URL=jdbc:h2:mem:prospectos;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"),
-            ".env.example should point to stable H2 memory URL for development"
+            envExample.contains("SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/prospectos"),
+            ".env.example should point to the shared PostgreSQL development runtime"
         );
         assertTrue(
-            envExample.contains("SPRING_JPA_HIBERNATE_DDL_AUTO=update"),
-            ".env.example should recommend update for development schema stability"
+            envExample.contains("SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.PostgreSQLDialect"),
+            ".env.example should align development with the PostgreSQL dialect used by the real runtime"
         );
     }
 }

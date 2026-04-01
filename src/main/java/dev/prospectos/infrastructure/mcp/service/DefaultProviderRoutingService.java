@@ -1,41 +1,62 @@
 package dev.prospectos.infrastructure.mcp.service;
 
-import dev.prospectos.api.mcp.ProviderRoutingService;
-import dev.prospectos.api.mcp.RoutingStrategy;
-import dev.prospectos.api.mcp.RoutingUpdate;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Service;
-
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
+
+import dev.prospectos.api.mcp.ProviderHealth;
+import dev.prospectos.api.mcp.ProviderRoutingService;
+import dev.prospectos.api.mcp.QueryTimeWindow;
+import dev.prospectos.api.mcp.RoutingStrategy;
+import dev.prospectos.api.mcp.RoutingUpdate;
+import dev.prospectos.infrastructure.mcp.config.ConditionalOnMcpEnabled;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-@Profile("mcp")
+@ConditionalOnMcpEnabled
 public class DefaultProviderRoutingService implements ProviderRoutingService {
 
-    private static final List<String> MOCK_PROVIDERS = List.of("nominatim", "bing-maps", "google-places", "scraper", "llm-discovery");
+    private final ObservedQueryMetricsService queryMetricsService;
+    private final ProviderRoutingState state = new ProviderRoutingState();
+    private final ProviderRoutingHealthSimulator evaluator = new ProviderRoutingHealthSimulator();
 
-    private final ProviderRoutingHealthSimulator simulator = new ProviderRoutingHealthSimulator(new Random());
-    private RoutingStrategy currentStrategy = RoutingStrategy.BALANCED;
-    private List<String> currentPriority = List.of("nominatim", "bing-maps", "google-places");
+    public DefaultProviderRoutingService(ObservedQueryMetricsService queryMetricsService) {
+        this.queryMetricsService = queryMetricsService;
+    }
 
     @Override
     public RoutingUpdate updateRouting(RoutingStrategy strategy, List<String> providerPriority, Map<String, String> conditions) {
-        log.debug("Updating routing strategy={} priority={} conditions={}", strategy, providerPriority, conditions);
-        var previousStrategy = currentStrategy;
-        currentStrategy = strategy;
-        currentPriority = providerPriority != null ? List.copyOf(providerPriority) : currentPriority;
-        var update = new RoutingUpdate(true, "Routing strategy updated successfully", previousStrategy.name(), strategy.name(), simulator.estimatedSavings(strategy), simulator.impactedQueriesPerHour(), true);
-        log.info("Routing updated: {} -> {}, estimated savings: {}%, impacted queries: {}", previousStrategy, strategy, update.estimatedSavingsPercent(), update.impactedQueriesPerHour());
-        return update;
+        var previousStrategy = state.strategy();
+        var effectivePriority = providerPriority == null || providerPriority.isEmpty() ? state.providerPriority() : List.copyOf(providerPriority);
+        state.update(strategy, effectivePriority);
+        var hourlySnapshot = queryMetricsService.getMetrics(QueryTimeWindow.ONE_HOUR, null);
+        log.info("Routing updated via MCP: {} -> {} priority={} conditions={}", previousStrategy, strategy, effectivePriority, conditions);
+        return new RoutingUpdate(
+            true,
+            strategy,
+            effectivePriority,
+            "Routing strategy updated using observed provider metrics",
+            Instant.now(),
+            previousStrategy.name(),
+            evaluator.estimatedSavings(strategy, hourlySnapshot),
+            evaluator.impactedQueriesPerHour(hourlySnapshot),
+            true
+        );
     }
 
     @Override
-    public List<dev.prospectos.api.mcp.ProviderHealth> getProviderHealth() {
-        log.debug("Generating provider health status for {} providers", MOCK_PROVIDERS.size());
-        return MOCK_PROVIDERS.stream().map(simulator::generate).toList();
+    public List<ProviderHealth> getProviderHealth() {
+        var snapshot = queryMetricsService.getMetrics(QueryTimeWindow.TWENTY_FOUR_HOURS, null);
+        List<String> providers = new ArrayList<>(new LinkedHashSet<>(queryMetricsService.observedProviders(QueryTimeWindow.TWENTY_FOUR_HOURS)));
+        state.providerPriority().stream().filter(provider -> !providers.contains(provider)).forEach(providers::add);
+        return providers.stream().map(provider -> evaluator.generate(provider, snapshot)).toList();
     }
 }
+
+
+
+

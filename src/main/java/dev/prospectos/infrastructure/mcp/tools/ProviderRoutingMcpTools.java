@@ -2,6 +2,7 @@ package dev.prospectos.infrastructure.mcp.tools;
 
 import dev.prospectos.api.mcp.ProviderRoutingService;
 import dev.prospectos.api.mcp.RoutingStrategy;
+import dev.prospectos.infrastructure.mcp.config.ConditionalOnMcpEnabled;
 import dev.prospectos.infrastructure.mcp.dto.ProviderHealthResponse;
 import dev.prospectos.infrastructure.mcp.dto.RoutingUpdateResponse;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +17,7 @@ import java.util.Map;
 
 @Slf4j
 @Component
-@Profile("mcp")
+@ConditionalOnMcpEnabled
 @RequiredArgsConstructor
 public class ProviderRoutingMcpTools {
 
@@ -59,3 +60,6 @@ public class ProviderRoutingMcpTools {
         return results;
     }
 }
+
+
+

@@ -21,7 +21,7 @@ class McpServerHealthIndicatorTest {
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
         .withUserConfiguration(McpHealthTestConfiguration.class)
         .withPropertyValues(
-            "spring.profiles.active=mcp",
+            "spring.ai.mcp.server.enabled=true",
             "spring.ai.mcp.server.name=test-mcp-server",
             "spring.ai.mcp.server.protocol=STREAMABLE",
             "spring.ai.mcp.server.stdio=true",

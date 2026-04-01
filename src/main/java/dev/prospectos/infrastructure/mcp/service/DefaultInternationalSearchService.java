@@ -7,8 +7,8 @@ import dev.prospectos.api.mcp.LeadData;
 import dev.prospectos.api.mcp.LeadSearchCriteria;
 import dev.prospectos.api.mcp.MarketCoverageAnalysis;
 import dev.prospectos.api.mcp.SearchStrategy;
+import dev.prospectos.infrastructure.mcp.config.ConditionalOnMcpMockRuntime;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,7 +16,7 @@ import java.util.Random;
 
 @Slf4j
 @Service
-@Profile("mcp")
+@ConditionalOnMcpMockRuntime
 public class DefaultInternationalSearchService implements InternationalSearchService {
 
     private final InternationalLeadGenerator leadGenerator;
@@ -68,3 +68,8 @@ public class DefaultInternationalSearchService implements InternationalSearchSer
         return analysis;
     }
 }
+
+
+
+
+

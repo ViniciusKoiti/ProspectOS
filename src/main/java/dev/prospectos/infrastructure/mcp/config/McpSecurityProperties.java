@@ -1,7 +1,6 @@
 package dev.prospectos.infrastructure.mcp.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Profile;
 
 import java.time.Duration;
 import java.util.Set;
@@ -10,7 +9,7 @@ import java.util.Set;
  * Configuration properties for MCP security and rate limiting.
  */
 @ConfigurationProperties(prefix = "spring.ai.mcp.server.security")
-@Profile("mcp")
+@ConditionalOnMcpEnabled
 public record McpSecurityProperties(
     boolean enabled,
     String apiKeyHeader,
@@ -55,3 +54,5 @@ public record McpSecurityProperties(
         boolean logFailedRequests
     ) {}
 }
+
+

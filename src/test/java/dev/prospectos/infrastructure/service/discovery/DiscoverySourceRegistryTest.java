@@ -42,7 +42,7 @@ class DiscoverySourceRegistryTest {
         var discovered = registry.discover(List.of("amazon-location"), new DiscoveryContext("dentistas", null, 5, null));
 
         assertThat(discovered).hasSize(2);
-        verify(metricsRecorder).recordExecution(eq("amazon-location"), anyLong(), eq(true), eq(2));
+        verify(metricsRecorder).recordExecution(eq("amazon-location"), eq("dentistas"), anyLong(), eq(true), eq(2));
     }
 
     @Test
@@ -65,6 +65,6 @@ class DiscoverySourceRegistryTest {
             .isInstanceOf(IllegalStateException.class)
             .hasMessage("boom");
 
-        verify(metricsRecorder).recordExecution(eq("open-cnpj"), anyLong(), eq(false), eq(0));
+        verify(metricsRecorder).recordExecution(eq("open-cnpj"), eq("clinicas"), anyLong(), eq(false), eq(0));
     }
 }

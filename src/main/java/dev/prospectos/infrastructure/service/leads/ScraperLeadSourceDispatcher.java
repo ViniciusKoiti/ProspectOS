@@ -6,7 +6,6 @@ import java.util.Set;
 
 import dev.prospectos.api.CompanyDataService;
 import dev.prospectos.api.LeadDiscoveryService;
-import dev.prospectos.api.dto.CompanyDTO;
 import dev.prospectos.api.dto.LeadDiscoveryRequest;
 import dev.prospectos.api.dto.LeadResultDTO;
 import dev.prospectos.api.dto.LeadSearchResponse;
@@ -45,18 +44,17 @@ final class ScraperLeadSourceDispatcher {
     List<LeadResultDTO> searchBySource(String source, ScraperLeadRequestContext context, Long icpId, ICP icp) {
         String normalizedSource = normalize(source);
         if ("in-memory".equals(normalizedSource)) {
-            return QueryMetricsExecutionTracker.track(metricsRecorder, normalizedSource, () -> searchInMemory(normalizedSource, context, icp));
+            return QueryMetricsExecutionTracker.track(metricsRecorder, normalizedSource, context.query(), () -> searchInMemory(normalizedSource, context, icp));
         }
         if (discoverySources.contains(normalizedSource)) {
             return searchDiscovery(normalizedSource, context, icpId);
         }
-        return QueryMetricsExecutionTracker.track(metricsRecorder, normalizedSource, () -> websiteLeadSearch.search(normalizedSource, context, icp));
+        return QueryMetricsExecutionTracker.track(metricsRecorder, normalizedSource, context.query(), () -> websiteLeadSearch.search(normalizedSource, context, icp));
     }
 
     private List<LeadResultDTO> searchInMemory(String source, ScraperLeadRequestContext context, ICP icp) {
-        List<String> tokens = InMemoryLeadQueryMatcher.tokens(context.query());
-        List<CompanyDTO> companies = companyDataService.findAllCompanies();
-        return companies.stream()
+        var tokens = InMemoryLeadQueryMatcher.tokens(context.query());
+        return companyDataService.findAllCompanies().stream()
             .filter(company -> InMemoryLeadQueryMatcher.matches(company, tokens))
             .limit(context.limit())
             .map(company -> inMemoryLeadResultFactory.toLeadResult(company, source, icp))
@@ -64,23 +62,22 @@ final class ScraperLeadSourceDispatcher {
     }
 
     private List<LeadResultDTO> searchDiscovery(String source, ScraperLeadRequestContext context, Long icpId) {
-        LeadDiscoveryRequest request = new LeadDiscoveryRequest(
+        LeadSearchResponse response = leadDiscoveryService.discoverLeads(new LeadDiscoveryRequest(
             context.query(),
             null,
             context.limit(),
             List.of(source),
             icpId
-        );
-        LeadSearchResponse response = leadDiscoveryService.discoverLeads(request);
-        if (response.status() == LeadSearchStatus.FAILED) {
-            throw new IllegalStateException(response.message() == null ? "Discovery failed" : response.message());
+        ));
+        if (response.status() != LeadSearchStatus.COMPLETED || response.leads() == null) {
+            throw new IllegalStateException(response.message() == null ? "Lead discovery source failed" : response.message());
         }
         return response.leads();
     }
 
     private String normalize(String source) {
-        if (source == null) {
-            return "";
+        if (source == null || source.isBlank()) {
+            throw new IllegalArgumentException("Lead source cannot be blank");
         }
         return source.trim().toLowerCase(Locale.ROOT);
     }

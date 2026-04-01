@@ -10,19 +10,24 @@ public final class QueryMetricsExecutionTracker {
     }
 
     public static <T> List<T> track(QueryMetricsRecorder recorder, String provider, QueryOperation<T> operation) {
-        long startedAt = System.nanoTime();
-        try {
-            List<T> results = operation.execute();
-            recorder.recordExecution(provider, elapsedMs(startedAt), true, results.size());
-            return results;
-        } catch (RuntimeException exception) {
-            recorder.recordExecution(provider, elapsedMs(startedAt), false, 0);
-            throw exception;
-        }
+        return track(recorder, provider, provider, operation);
     }
 
-    private static long elapsedMs(long startedAt) {
-        return (System.nanoTime() - startedAt) / 1_000_000L;
+    public static <T> List<T> track(
+        QueryMetricsRecorder recorder,
+        String provider,
+        String operationName,
+        QueryOperation<T> operation
+    ) {
+        long start = System.currentTimeMillis();
+        try {
+            List<T> results = operation.execute();
+            recorder.recordExecution(provider, operationName, System.currentTimeMillis() - start, true, results.size());
+            return results;
+        } catch (RuntimeException exception) {
+            recorder.recordExecution(provider, operationName, System.currentTimeMillis() - start, false, 0);
+            throw exception;
+        }
     }
 
     @FunctionalInterface

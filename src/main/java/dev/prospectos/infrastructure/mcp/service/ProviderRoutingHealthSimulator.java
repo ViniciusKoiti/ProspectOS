@@ -1,59 +1,64 @@
 package dev.prospectos.infrastructure.mcp.service;
 
-import dev.prospectos.api.mcp.ProviderHealth;
-
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
-import java.util.Random;
+
+import dev.prospectos.api.mcp.ProviderHealth;
+import dev.prospectos.api.mcp.QueryMetricsSnapshot;
+import dev.prospectos.api.mcp.RoutingStrategy;
 
 final class ProviderRoutingHealthSimulator {
 
-    private static final List<String> STATUSES = List.of("HEALTHY", "HEALTHY", "HEALTHY", "DEGRADED", "DOWN");
-    private final Random random;
-
-    ProviderRoutingHealthSimulator(Random random) {
-        this.random = random;
+    ProviderHealth generate(String provider, QueryMetricsSnapshot snapshot) {
+        QueryMetricsSnapshot.ProviderMetric metric = snapshot.providerBreakdown().stream()
+            .filter(candidate -> candidate.provider().equals(provider))
+            .findFirst()
+            .orElse(new QueryMetricsSnapshot.ProviderMetric(provider, 0, BigDecimal.ZERO, 0.0d, 0L));
+        String status = status(metric);
+        return new ProviderHealth(provider, status, metric.avgResponseTime(), 1.0d - metric.successRate(), lastError(status), recommendations(status, metric));
     }
 
-    ProviderHealth generate(String provider) {
-        var status = STATUSES.get(random.nextInt(STATUSES.size()));
-        var errorRate = switch (status) {
-            case "HEALTHY" -> random.nextDouble() * 0.05;
-            case "DEGRADED" -> 0.1 + (random.nextDouble() * 0.15);
-            case "DOWN" -> 1.0;
-            default -> 0.1;
-        };
-        var responseTime = switch (status) {
-            case "HEALTHY" -> 500 + random.nextInt(300);
-            case "DEGRADED" -> 1000 + random.nextInt(500);
-            case "DOWN" -> 5000;
-            default -> 800;
-        };
-        var recommendations = switch (status) {
-            case "HEALTHY" -> List.of("Provider performing well");
-            case "DEGRADED" -> List.of(
-                "Consider reducing traffic to this provider",
-                "Monitor response times closely",
-                errorRate > 0.2 ? "High error rate detected - investigate" : "Error rate within tolerance"
-            );
-            case "DOWN" -> List.of(
-                "Provider is unavailable - route traffic elsewhere",
-                "Check provider status page",
-                "Consider failover to backup provider"
-            );
-            default -> List.of("Unknown status");
-        };
-        return new ProviderHealth(provider, status, responseTime, errorRate, "DOWN".equals(status) ? "Connection timeout after 5000ms" : null, recommendations);
-    }
-
-    int estimatedSavings(dev.prospectos.api.mcp.RoutingStrategy strategy) {
+    int estimatedSavings(RoutingStrategy strategy, QueryMetricsSnapshot snapshot) {
+        double base = snapshot.avgCostPerQuery().doubleValue() * 1000.0d;
         return switch (strategy) {
-            case COST_OPTIMIZED -> 15 + random.nextInt(20);
-            case PERFORMANCE_OPTIMIZED -> -5 + random.nextInt(10);
-            case BALANCED -> 5 + random.nextInt(10);
+            case COST_OPTIMIZED -> (int) Math.min(35, Math.round(base));
+            case PERFORMANCE_OPTIMIZED -> 0;
+            case BALANCED -> (int) Math.min(15, Math.round(base / 2.0d));
         };
     }
 
-    long impactedQueriesPerHour() {
-        return 50 + random.nextInt(200);
+    long impactedQueriesPerHour(QueryMetricsSnapshot snapshot) {
+        return snapshot.totalQueries();
+    }
+
+    private String status(QueryMetricsSnapshot.ProviderMetric metric) {
+        if (metric.queries() == 0) {
+            return "UNKNOWN";
+        }
+        if (metric.successRate() < 0.50d) {
+            return "DOWN";
+        }
+        if (metric.successRate() < 0.85d || metric.avgResponseTime() > 2_500L) {
+            return "DEGRADED";
+        }
+        return "HEALTHY";
+    }
+
+    private String lastError(String status) {
+        return "DOWN".equals(status) ? "Provider is failing recent requests" : null;
+    }
+
+    private List<String> recommendations(String status, QueryMetricsSnapshot.ProviderMetric metric) {
+        return switch (status) {
+            case "HEALTHY" -> List.of("Provider is healthy for current routing", "Observed success rate: " + percent(metric.successRate()));
+            case "DEGRADED" -> List.of("Reduce traffic until latency and failures stabilize", "Observed success rate: " + percent(metric.successRate()));
+            case "DOWN" -> List.of("Remove provider from active routing", "Retry after provider health recovers");
+            default -> List.of("Collect traffic before making routing decisions");
+        };
+    }
+
+    private String percent(double value) {
+        return BigDecimal.valueOf(value * 100.0d).setScale(0, RoundingMode.HALF_UP) + "%";
     }
 }

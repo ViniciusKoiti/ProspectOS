@@ -2,13 +2,13 @@ package dev.prospectos.infrastructure.mcp.tools;
 
 import dev.prospectos.api.mcp.QueryMetricsService;
 import dev.prospectos.api.mcp.QueryTimeWindow;
+import dev.prospectos.infrastructure.mcp.config.ConditionalOnMcpEnabled;
 import dev.prospectos.infrastructure.mcp.dto.QueryMetricsResponse;
 import dev.prospectos.infrastructure.service.compliance.AllowedSourcesProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springaicommunity.mcp.annotation.McpTool;
 import org.springaicommunity.mcp.annotation.McpToolParam;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -19,7 +19,7 @@ import java.util.Set;
 
 @Slf4j
 @Component
-@Profile("mcp")
+@ConditionalOnMcpEnabled
 @RequiredArgsConstructor
 public class QueryMetricsMcpTools {
 
@@ -92,4 +92,7 @@ public class QueryMetricsMcpTools {
         return Collections.unmodifiableSet(providers);
     }
 }
+
+
+
 

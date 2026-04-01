@@ -1,10 +1,9 @@
 package dev.prospectos.infrastructure.mcp.tools;
 
-import dev.prospectos.api.mcp.ProviderHealth;
-import dev.prospectos.api.mcp.ProviderRoutingService;
-import dev.prospectos.api.mcp.RoutingStrategy;
-import dev.prospectos.api.mcp.RoutingUpdate;
-import dev.prospectos.infrastructure.service.compliance.AllowedSourcesProperties;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,8 +11,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.util.List;
-import java.util.Map;
+import dev.prospectos.api.mcp.ProviderHealth;
+import dev.prospectos.api.mcp.ProviderRoutingService;
+import dev.prospectos.api.mcp.QueryMetricsService;
+import dev.prospectos.api.mcp.QueryMetricsSnapshot;
+import dev.prospectos.api.mcp.QueryTimeWindow;
+import dev.prospectos.api.mcp.RoutingStrategy;
+import dev.prospectos.api.mcp.RoutingUpdate;
+import dev.prospectos.infrastructure.service.compliance.AllowedSourcesProperties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -40,7 +45,7 @@ class ProviderRoutingMcpToolsTest {
         providerRoutingMcpTools = new ProviderRoutingMcpTools(
             providerRoutingService,
             new ProviderRoutingMcpInputParser(allowedSourcesProperties),
-            new ProviderRoutingConfigurationTester()
+            new ProviderRoutingConfigurationTester(queryMetricsService())
         );
     }
 
@@ -95,8 +100,8 @@ class ProviderRoutingMcpToolsTest {
         var result = providerRoutingMcpTools.testProviderConfiguration("nominatim,bing-maps");
 
         assertThat(result).containsKeys("testStatus", "totalTests", "successfulTests", "averageResponseTime", "overallSuccessRate", "providerResults");
-        assertThat(result.get("testStatus")).isEqualTo("COMPLETED");
-        assertThat(result.get("totalTests")).isEqualTo(10);
+        assertThat(result.get("testStatus")).isEqualTo("PASSED");
+        assertThat(result.get("totalTests")).isEqualTo(2);
         @SuppressWarnings("unchecked")
         var providerResults = (Map<String, Map<String, Object>>) result.get("providerResults");
         assertThat(providerResults).containsKeys("nominatim", "bing-maps");
@@ -127,6 +132,18 @@ class ProviderRoutingMcpToolsTest {
                 conditions.containsKey("region") &&
                 conditions.get("region").equals("europe")
         ));
+    }
+
+    private QueryMetricsService queryMetricsService() {
+        return (timeWindow, provider) -> new QueryMetricsSnapshot(
+            provider == null ? 2 : 1,
+            new BigDecimal("0.02"),
+            new BigDecimal("0.0100"),
+            0.95,
+            120,
+            new QueryMetricsSnapshot.Trends("+0%", "+0%", "+0%"),
+            List.of(new QueryMetricsSnapshot.ProviderMetric(provider == null ? "nominatim" : provider, 1, new BigDecimal("0.01"), 0.95, 120))
+        );
     }
 
     private RoutingUpdate createMockRoutingUpdate() {

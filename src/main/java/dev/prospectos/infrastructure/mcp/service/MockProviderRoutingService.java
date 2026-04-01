@@ -4,7 +4,7 @@ import dev.prospectos.api.mcp.ProviderHealth;
 import dev.prospectos.api.mcp.ProviderRoutingService;
 import dev.prospectos.api.mcp.RoutingStrategy;
 import dev.prospectos.api.mcp.RoutingUpdate;
-import org.springframework.context.annotation.Profile;
+import dev.prospectos.infrastructure.mcp.config.ConditionalOnMcpMockRuntime;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Service
-@Profile("mcp-mock")
+@ConditionalOnMcpMockRuntime
 public class MockProviderRoutingService implements ProviderRoutingService {
 
     private final AtomicReference<RoutingUpdate> currentRouting = new AtomicReference<>(
@@ -65,4 +65,8 @@ public class MockProviderRoutingService implements ProviderRoutingService {
         );
     }
 }
+
+
+
+
 

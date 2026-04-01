@@ -3,8 +3,8 @@ package dev.prospectos.infrastructure.mcp.service;
 import dev.prospectos.api.mcp.QueryMetricsService;
 import dev.prospectos.api.mcp.QueryMetricsSnapshot;
 import dev.prospectos.api.mcp.QueryTimeWindow;
+import dev.prospectos.infrastructure.mcp.config.ConditionalOnMcpMockRuntime;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -13,7 +13,7 @@ import java.util.Random;
 
 @Slf4j
 @Service
-@Profile("mcp-mock")
+@ConditionalOnMcpMockRuntime
 public class DefaultQueryMetricsService implements QueryMetricsService {
 
     private static final List<String> PROVIDERS = List.of("nominatim", "bing-maps", "google-places", "scraper", "llm-discovery");
@@ -52,3 +52,7 @@ public class DefaultQueryMetricsService implements QueryMetricsService {
         return trends.get(random.nextInt(trends.size()));
     }
 }
+
+
+
+

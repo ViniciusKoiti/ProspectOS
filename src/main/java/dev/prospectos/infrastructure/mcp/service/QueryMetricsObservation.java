@@ -6,6 +6,7 @@ import java.util.Objects;
 
 record QueryMetricsObservation(
     String provider,
+    String operation,
     Instant recordedAt,
     long durationMs,
     boolean success,
@@ -15,6 +16,7 @@ record QueryMetricsObservation(
 
     QueryMetricsObservation {
         Objects.requireNonNull(provider, "provider must not be null");
+        Objects.requireNonNull(operation, "operation must not be null");
         Objects.requireNonNull(recordedAt, "recordedAt must not be null");
         Objects.requireNonNull(estimatedCost, "estimatedCost must not be null");
     }

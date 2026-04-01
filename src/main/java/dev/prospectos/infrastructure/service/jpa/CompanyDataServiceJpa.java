@@ -98,3 +98,4 @@ public class CompanyDataServiceJpa implements CompanyDataService {
         eventPublisher.publishEvent(new CompanyVectorReindexRequested(companyId));
     }
 }
+

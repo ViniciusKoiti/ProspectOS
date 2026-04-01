@@ -1,6 +1,7 @@
 package dev.prospectos.infrastructure.mcp.tools;
 
 import dev.prospectos.api.mcp.InternationalSearchService;
+import dev.prospectos.infrastructure.mcp.config.ConditionalOnMcpMockRuntime;
 import dev.prospectos.infrastructure.mcp.dto.EnrichedLeadResponse;
 import dev.prospectos.infrastructure.mcp.dto.InternationalSearchResponse;
 import dev.prospectos.infrastructure.mcp.dto.MarketCoverageResponse;
@@ -9,12 +10,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springaicommunity.mcp.annotation.McpTool;
 import org.springaicommunity.mcp.annotation.McpToolParam;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-@Profile("mcp")
+@ConditionalOnMcpMockRuntime
 @RequiredArgsConstructor
 public class InternationalSearchMcpTools {
 
@@ -82,3 +82,8 @@ public class InternationalSearchMcpTools {
         return response;
     }
 }
+
+
+
+
+

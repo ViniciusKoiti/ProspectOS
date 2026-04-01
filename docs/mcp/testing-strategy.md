@@ -2,23 +2,23 @@
 
 ## Scope
 
-This repository now validates the MCP surface in three layers:
+O slice MCP agora e validado em quatro camadas:
 
-1. API contracts under `src/test/java/dev/prospectos/api/mcp`
-2. Infrastructure adapters under `src/test/java/dev/prospectos/infrastructure/mcp`
-3. Manual end-to-end validation scripts under `scripts/mcp`
+1. contratos em `src/test/java/dev/prospectos/api/mcp`
+2. adapters MCP em `src/test/java/dev/prospectos/infrastructure/mcp`
+3. fluxo MCP com Postgres/Testcontainers em `src/test/java/dev/prospectos/integration/McpPostgresFlowIntegrationTest.java`
+4. fluxo `development` com Postgres/Testcontainers em `src/test/java/dev/prospectos/integration/LeadSearchDevelopmentPostgresIntegrationTest.java`
 
 ## Automated test matrix
 
 ### Contract tests
 - `RoutingStrategyTest`
 - `QueryTimeWindowTest`
-- DTO mapping tests for MCP-facing responses
+- `QueryMetricsRecorderTest`
 
 ### Tool and resource tests
 - `QueryMetricsMcpToolsTest`
 - `ProviderRoutingMcpToolsTest`
-- `InternationalSearchMcpToolsTest`
 - `QueryHistoryMcpResourcesTest`
 
 ### Configuration and security tests
@@ -26,39 +26,56 @@ This repository now validates the MCP surface in three layers:
 - `McpApiKeyAuthenticationFilterTest`
 - `McpRateLimitingFilterTest`
 
-## Recommended local command
+### Persistence and service tests
+- `JpaQueryMetricsServiceTest`
+- `QueryMetricsObservationEntityTest`
+- `DefaultQueryHistoryServiceTest`
+- `DefaultProviderRoutingServiceTest`
 
-Use the focused MCP suite while iterating locally:
+### Integration tests
+- `McpPostgresFlowIntegrationTest`
+- `LeadSearchDevelopmentPostgresIntegrationTest`
 
+## Recommended commands
+
+### Fast MCP iteration
 ```powershell
 $env:GRADLE_USER_HOME='D:\Cursos\prospectos\.gradle-user-home'
 ./gradlew test --tests 'dev.prospectos.api.mcp.*' --tests 'dev.prospectos.infrastructure.mcp.*' -x jacocoTestReport -x jacocoTestCoverageVerification
 ```
 
-This skips the repository-wide JaCoCo gate, which is useful when validating only the MCP slice. Full CI validation should still run the normal `./gradlew test` workflow.
-
-## End-to-end validation
-
-Start the server with the MCP profile:
-
+### MCP flow with Postgres
 ```powershell
-./gradlew bootRun --args="--spring.profiles.active=mcp"
+$env:GRADLE_USER_HOME='D:\Cursos\prospectos\.gradle-user-home'
+./gradlew --no-daemon test --tests 'dev.prospectos.integration.McpPostgresFlowIntegrationTest' -x jacocoTestReport -x jacocoTestCoverageVerification
 ```
 
-Then validate the HTTP surface:
+Observacao: esse teste ativa MCP por `spring.ai.mcp.server.enabled=true`, sem profile extra.
 
-```bash
-scripts/mcp/mcp-health-check.sh
-scripts/mcp/mcp-tools-test.sh
+### Development flow with Postgres
+```powershell
+$env:GRADLE_USER_HOME='D:\Cursos\prospectos\.gradle-user-home'
+./gradlew --no-daemon test --tests 'dev.prospectos.integration.LeadSearchDevelopmentPostgresIntegrationTest' -x jacocoTestReport -x jacocoTestCoverageVerification
 ```
 
-For local iterations, prefer in-memory services and focused automated tests over standalone demo clients.
+### Full validation
+```powershell
+$env:GRADLE_USER_HOME='D:\Cursos\prospectos\.gradle-user-home'
+./gradlew --no-daemon clean test
+```
+
+## Full-flow reference
+
+Para o fluxo completo e a ordem de validacao:
+- [full-flow-testing.md](/D:/Cursos/prospectos/docs/mcp/full-flow-testing.md)
+- [mcp-full-runtime.puml](/D:/Cursos/prospectos/docs/mcp/flows/mcp-full-runtime.puml)
+- [mcp-full-validation.puml](/D:/Cursos/prospectos/docs/mcp/flows/mcp-full-validation.puml)
 
 ## Security checks
 
-The MCP HTTP surface is protected by servlet filters scoped to `/mcp/*`:
-- API key authentication through `X-MCP-API-KEY` or `Authorization: Bearer ...`
-- Per-client rate limiting with response headers and `429` handling
-- Audit logging for authentication and throttling events
+A superficie HTTP do MCP continua protegida por filtros servlet em `/mcp/*`:
+- API key via `X-MCP-API-KEY` ou `Authorization: Bearer ...`
+- rate limiting por cliente com `429`
+- auditoria de autenticacao e throttling
 
-The automated security tests cover both successful and rejected requests.
+Os testes automatizados cobrem os caminhos de sucesso e rejeicao.

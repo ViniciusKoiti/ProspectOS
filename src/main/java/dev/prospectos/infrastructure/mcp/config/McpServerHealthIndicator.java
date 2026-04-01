@@ -9,14 +9,13 @@ import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.core.env.Environment;
 import org.springframework.core.MethodIntrospector;
 import org.springframework.stereotype.Component;
-import org.springframework.context.annotation.Profile;
 import lombok.RequiredArgsConstructor;
 
 import java.lang.annotation.Annotation;
 import java.util.Objects;
 
 @Component("mcpServer")
-@Profile("mcp")
+@ConditionalOnMcpEnabled
 @RequiredArgsConstructor
 public class McpServerHealthIndicator extends AbstractHealthIndicator {
 
@@ -49,3 +48,6 @@ public class McpServerHealthIndicator extends AbstractHealthIndicator {
             .sum();
     }
 }
+
+
+

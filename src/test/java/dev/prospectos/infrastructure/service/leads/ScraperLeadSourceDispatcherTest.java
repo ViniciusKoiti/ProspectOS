@@ -57,7 +57,7 @@ class ScraperLeadSourceDispatcherTest {
         var results = dispatcher.searchBySource("in-memory", new ScraperLeadRequestContext(5, List.of("in-memory"), "TechCorp", "TechCorp"), 1L, icp);
 
         assertThat(results).hasSize(1);
-        verify(metricsRecorder).recordExecution(eq("in-memory"), anyLong(), eq(true), eq(1));
+        verify(metricsRecorder).recordExecution(eq("in-memory"), eq("TechCorp"), anyLong(), eq(true), eq(1));
     }
 
     @Test
@@ -69,7 +69,7 @@ class ScraperLeadSourceDispatcherTest {
         var results = dispatcher.searchBySource("amazon-location", new ScraperLeadRequestContext(5, List.of("amazon-location"), "clinicas", "clinicas"), 1L, null);
 
         assertThat(results).hasSize(1);
-        verify(metricsRecorder, never()).recordExecution(eq("amazon-location"), anyLong(), eq(true), eq(1));
+        verify(metricsRecorder, never()).recordExecution(eq("amazon-location"), eq("clinicas"), anyLong(), eq(true), eq(1));
     }
 
     @Test
@@ -84,7 +84,7 @@ class ScraperLeadSourceDispatcherTest {
             null
         )).isInstanceOf(IllegalStateException.class).hasMessage("Scraper failed");
 
-        verify(metricsRecorder).recordExecution(eq("scraper"), anyLong(), eq(false), eq(0));
+        verify(metricsRecorder).recordExecution(eq("scraper"), eq("https://acme.com"), anyLong(), eq(false), eq(0));
     }
 
     private ScraperLeadSourceDispatcher newDispatcher(Set<String> discoverySources) {

@@ -1,10 +1,10 @@
 package dev.prospectos.infrastructure.mcp.security;
 
+import dev.prospectos.infrastructure.mcp.config.ConditionalOnMcpEnabled;
 import dev.prospectos.infrastructure.mcp.config.McpSecurityProperties;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -13,7 +13,7 @@ import java.util.Map;
 
 @Slf4j
 @Service
-@Profile("mcp")
+@ConditionalOnMcpEnabled
 @RequiredArgsConstructor
 public class McpAuditService {
 
@@ -90,3 +90,7 @@ public class McpAuditService {
         log.warn(failureMessage, payload);
     }
 }
+
+
+
+

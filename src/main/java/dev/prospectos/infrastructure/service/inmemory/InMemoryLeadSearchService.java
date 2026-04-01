@@ -15,13 +15,15 @@ import dev.prospectos.api.dto.LeadResultDTO;
 import dev.prospectos.api.dto.LeadSearchRequest;
 import dev.prospectos.api.dto.LeadSearchResponse;
 import dev.prospectos.api.dto.LeadSearchStatus;
+import dev.prospectos.api.mcp.QueryMetricsRecorder;
 import dev.prospectos.core.domain.ICP;
 import dev.prospectos.infrastructure.config.LeadSearchProperties;
+import dev.prospectos.infrastructure.mcp.service.QueryMetricsExecutionTracker;
 import dev.prospectos.infrastructure.service.compliance.AllowedSourcesComplianceService;
 import dev.prospectos.infrastructure.service.scoring.CompanyScoringService;
 
 /**
- * In-memory lead search for demo and test profiles.
+ * In-memory lead search for deterministic test runtime.
  */
 @Service
 @Profile("test")
@@ -34,19 +36,22 @@ public class InMemoryLeadSearchService implements LeadSearchService {
     private final AllowedSourcesComplianceService complianceService;
     private final LeadSearchProperties properties;
     private final InMemoryLeadResultFactory leadResultFactory;
+    private final QueryMetricsRecorder queryMetricsRecorder;
 
     public InMemoryLeadSearchService(
         CompanyDataService companyDataService,
         ICPDataService icpDataService,
         CompanyScoringService scoringService,
         AllowedSourcesComplianceService complianceService,
-        LeadSearchProperties properties
+        LeadSearchProperties properties,
+        QueryMetricsRecorder queryMetricsRecorder
     ) {
         this.companyDataService = companyDataService;
         this.icpDataService = icpDataService;
         this.complianceService = complianceService;
         this.properties = properties;
         this.leadResultFactory = new InMemoryLeadResultFactory(scoringService);
+        this.queryMetricsRecorder = queryMetricsRecorder;
     }
 
     @Override
@@ -57,20 +62,17 @@ public class InMemoryLeadSearchService implements LeadSearchService {
         List<String> requestedSources = complianceService.validateSources(request.sources());
         String sourceName = InMemoryLeadSourceResolver.resolve(requestedSources);
         ICP icp = resolveIcp(request.icpId());
+        List<LeadResultDTO> leads = QueryMetricsExecutionTracker.track(queryMetricsRecorder, sourceName, request.query(), () -> searchCompanies(tokens, limit, sourceName, icp));
+        return new LeadSearchResponse(LeadSearchStatus.COMPLETED, leads, UUID.randomUUID(), "In-memory search completed");
+    }
 
+    private List<LeadResultDTO> searchCompanies(List<String> tokens, int limit, String sourceName, ICP icp) {
         List<CompanyDTO> companies = companyDataService.findAllCompanies();
-        List<LeadResultDTO> leads = companies.stream()
+        return companies.stream()
             .filter(company -> InMemoryLeadQueryMatcher.matches(company, tokens))
             .limit(limit)
             .map(company -> leadResultFactory.toLeadResult(company, sourceName, icp))
             .toList();
-
-        return new LeadSearchResponse(
-            LeadSearchStatus.COMPLETED,
-            leads,
-            UUID.randomUUID(),
-            "In-memory search completed"
-        );
     }
 
     private void validateRequest(LeadSearchRequest request) {
@@ -88,3 +90,5 @@ public class InMemoryLeadSearchService implements LeadSearchService {
         return InMemoryLeadIcpResolver.toDomain(icpDto);
     }
 }
+
+

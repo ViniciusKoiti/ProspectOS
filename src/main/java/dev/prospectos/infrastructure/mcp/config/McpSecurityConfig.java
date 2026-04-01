@@ -6,13 +6,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 
 /**
  * Registers MCP servlet filters for rate limiting and API-key authentication.
  */
 @Configuration
-@Profile("mcp")
+@ConditionalOnMcpEnabled
 @ConditionalOnProperty(name = "spring.ai.mcp.server.security.enabled", havingValue = "true", matchIfMissing = true)
 public class McpSecurityConfig {
 
@@ -36,3 +35,6 @@ public class McpSecurityConfig {
         return registration;
     }
 }
+
+
+

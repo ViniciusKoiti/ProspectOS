@@ -9,7 +9,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
  * Ensures mock implementations are used when real AI APIs are not available
  */
 @Configuration
-@Profile({"mock", "test"})
+@Profile("test")
 public class MockAIConfiguration {
     
     // This configuration ensures that mock implementations
