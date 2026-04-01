@@ -310,6 +310,14 @@ Diagnostics:
   - `test`
 - Keep the subject concise, lower case (except proper nouns), and without trailing period.
 
+## Commit Planning
+- Before starting implementation for any medium or large task, define a commit plan first.
+- The commit plan must break the work into small, reviewable slices before editing files.
+- Each planned commit should map to one clear objective such as `docs`, `refactor`, `feat`, `fix`, or `test`.
+- Do not start broad development and only think about commits afterwards.
+- If the plan changes during execution, update the commit plan before continuing to expand the worktree.
+- The goal is to avoid accumulating many modified files without a clear commit boundary.
+
 ## Commit Hygiene
 - Do not leave multiple meaningful code changes uncommitted when a coherent slice is finished.
 - For medium or large tasks, create small, reviewable commits as soon as each slice is validated.
@@ -317,7 +325,6 @@ Diagnostics:
 - Every commit must correspond to one behavioral or structural objective, with matching tests or validation evidence when practical.
 - If validation is partial, the commit message or handoff must state what passed, what was not run, and what is still unstable.
 - Do not accumulate broad worktree drift across unrelated areas of the repository.
-
 ## Multi-Agent Runtime (Workspace)
 - Runtime contracts are stored under `docs/workspaces/agents/*.toml`.
 - Active session state is stored in `docs/workspaces/agents/runtime/session.toml`.
@@ -333,5 +340,7 @@ Diagnostics:
 ## Security & Hygiene
 - Never commit `.env` or credentials (see `.gitignore`; patterns include `*api-key*`, `*secret*`, `*token*`).
 - Do not edit generated files in `build/`.
+
+
 
 
