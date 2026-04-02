@@ -30,7 +30,7 @@ public class DefaultLeadRecommendationService implements LeadRecommendationServi
     @Override
     public LeadRecommendationResponse recommend(LeadRecommendationRequest request) {
         var timeWindow = request.timeWindow() == null ? QueryTimeWindow.TWENTY_FOUR_HOURS : QueryTimeWindow.fromValue(request.timeWindow());
-        var validated = complianceService.validateSources(request.sources());
+        var validated = complianceService.recommendationSources(request.sources());
         var snapshot = queryMetricsService.getMetrics(timeWindow, null);
         var ranked = rank(validated, snapshot);
         var recommended = ranked.getFirst();
@@ -82,3 +82,4 @@ public class DefaultLeadRecommendationService implements LeadRecommendationServi
         return BigDecimal.valueOf(successRate * 100.0d).setScale(0, RoundingMode.HALF_UP) + "%";
     }
 }
+

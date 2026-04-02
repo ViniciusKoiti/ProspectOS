@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { LeadResult } from '../../types/leadContracts';
+import type { LeadRecommendationResponse, LeadResult } from '../../types/leadContracts';
 import SearchPage from '../SearchPage';
 
 vi.mock('@tanstack/react-query', () => ({
@@ -36,13 +36,18 @@ const translations: Record<string, string> = {
     'pages.search.errors.loadIcps': 'Falha ao carregar ICPs',
     'pages.search.errors.execute': 'Falha ao executar busca.',
     'pages.search.errors.accept': 'Falha ao aceitar lead.',
+    'pages.search.errors.recommendation': 'Falha ao recomendar fontes.',
     'pages.search.empty.title': 'Sem resultados',
     'pages.search.empty.description': 'Execute uma busca para ver resultados.',
     'pages.search.table.source': 'Source',
     'pages.search.actions.accept': 'Aceitar',
     'pages.search.actions.viewCompany': 'Ver empresa',
     'pages.search.actions.exportCsv': 'Export CSV',
+    'pages.search.actions.recommendSources': 'Recomendar fontes',
+    'pages.search.actions.applyRecommendation': 'Usar recomendação',
     'pages.search.feedback.acceptSuccess': 'Lead aceito com sucesso',
+    'pages.search.recommendation.title': 'Fonte recomendada',
+    'pages.search.recommendation.fallbacks': 'Fallbacks',
     'common.actions': 'Ações',
     'common.retry': 'Tentar novamente',
     'common.loading': 'Carregando',
@@ -93,25 +98,40 @@ function createLead(params: { leadKey: string; websitePresence: LeadResult['cand
     };
 }
 
+function createRecommendation(): LeadRecommendationResponse {
+    return {
+        recommendedSource: 'google-places',
+        fallbackSources: ['amazon-location', 'in-memory'],
+        reason: 'Selected google-places based on observed success rate 97% and avg response time 220ms over 24h.',
+        expectedCost: 0.03,
+        expectedLatencyMs: 220,
+        timeWindow: '24h',
+    };
+}
+
 function mockForm(websitePresence: 'all' | 'HAS_WEBSITE' | 'NO_WEBSITE' = 'all') {
     vi.mocked(useForm).mockReturnValue({
         register: vi.fn(() => ({})),
         watch: vi.fn((field: string) => {
+            if (field === 'query') {
+                return 'empresas de software';
+            }
+            if (field === 'limit') {
+                return 20;
+            }
             if (field === 'sources') {
                 return ['in-memory'];
             }
-
             if (field === 'icpId') {
                 return null;
             }
-
             if (field === 'websitePresence') {
                 return websitePresence;
             }
-
             return undefined;
         }),
         setValue: vi.fn(),
+        setError: vi.fn(),
         handleSubmit: vi.fn((callback) => () => callback({
             query: 'empresas de software',
             limit: 20,
@@ -129,6 +149,7 @@ function mockPageState(params: {
     icpsLoading?: boolean;
     icpsError?: boolean;
     search: MutationState;
+    recommend?: Partial<MutationState>;
     accept?: Partial<MutationState>;
     websitePresence?: 'all' | 'HAS_WEBSITE' | 'NO_WEBSITE';
 }) {
@@ -149,6 +170,16 @@ function mockPageState(params: {
         reset: vi.fn(),
     };
 
+    const recommendMutation = {
+        isPending: false,
+        isError: false,
+        error: null,
+        data: null,
+        mutateAsync: vi.fn(),
+        reset: vi.fn(),
+        ...params.recommend,
+    };
+
     const acceptMutation = {
         isPending: false,
         isError: false,
@@ -161,6 +192,7 @@ function mockPageState(params: {
 
     vi.mocked(useMutation)
         .mockReturnValueOnce(searchMutation as unknown as ReturnType<typeof useMutation>)
+        .mockReturnValueOnce(recommendMutation as unknown as ReturnType<typeof useMutation>)
         .mockReturnValueOnce(acceptMutation as unknown as ReturnType<typeof useMutation>);
 
     mockForm(params.websitePresence);
@@ -245,6 +277,28 @@ describe('SearchPage', () => {
         const markup = renderPage();
 
         expect(markup).toContain('Falha ao executar busca. Backend indisponível temporariamente');
+    });
+
+    it('renders recommendation card when a source suggestion is available', () => {
+        mockPageState({
+            search: {
+                isPending: false,
+                isError: false,
+                error: null,
+                data: null,
+            },
+            recommend: {
+                data: createRecommendation(),
+            },
+        });
+
+        const markup = renderPage();
+
+        expect(markup).toContain('search-recommendation-card');
+        expect(markup).toContain('Fonte recomendada');
+        expect(markup).toContain('google-places');
+        expect(markup).toContain('amazon-location, in-memory');
+        expect(markup).toContain('Usar recomendação');
     });
 
     it('renders result table, website presence badges and export action when completed', () => {

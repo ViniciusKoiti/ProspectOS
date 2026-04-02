@@ -30,67 +30,51 @@ public class AllowedSourcesComplianceService {
     }
 
     public List<String> validateSources(List<String> requestedSources) {
-        List<String> effectiveSources = resolveEffectiveSources(requestedSources);
+        return validateNormalized(resolveEffectiveSources(requestedSources));
+    }
+
+    public List<String> recommendationSources(List<String> requestedSources) {
+        if (hasAnyNonBlank(requestedSources)) {
+            return validateNormalized(requestedSources);
+        }
+        return List.copyOf(allowedSources.stream().sorted().toList());
+    }
+
+    private List<String> validateNormalized(List<String> effectiveSources) {
         LinkedHashSet<String> normalized = new LinkedHashSet<>();
         for (String source : effectiveSources) {
-            if (source == null) {
-                continue;
-            }
+            if (source == null) continue;
             String normalizedSource = normalize(source);
-            if (normalizedSource.isBlank()) {
-                continue;
-            }
+            if (normalizedSource.isBlank()) continue;
             normalized.add(normalizedSource);
         }
-
         if (!normalized.isEmpty() && allowedSources.isEmpty()) {
             throw new IllegalArgumentException("No allowed sources configured");
         }
-
         for (String source : normalized) {
             if (!allowedSources.contains(source)) {
                 throw new IllegalArgumentException("Disallowed source: " + source);
             }
         }
-
         return List.copyOf(normalized);
     }
 
     private List<String> resolveEffectiveSources(List<String> requestedSources) {
-        if (requestedSources == null || requestedSources.isEmpty()) {
-            return defaultSources;
-        }
+        return hasAnyNonBlank(requestedSources) ? requestedSources : defaultSources;
+    }
 
-        boolean hasAnyNonBlank = requestedSources.stream()
-            .filter(Objects::nonNull)
-            .map(String::trim)
-            .anyMatch(source -> !source.isBlank());
-        return hasAnyNonBlank ? requestedSources : defaultSources;
+    private boolean hasAnyNonBlank(List<String> requestedSources) {
+        return requestedSources != null && requestedSources.stream().filter(Objects::nonNull).map(String::trim).anyMatch(source -> !source.isBlank());
     }
 
     private Set<String> normalizeAllowedSources(List<String> sources) {
-        if (sources == null || sources.isEmpty()) {
-            return Set.of();
-        }
-
-        return sources.stream()
-            .filter(Objects::nonNull)
-            .map(this::normalize)
-            .filter(source -> !source.isBlank())
-            .collect(Collectors.toUnmodifiableSet());
+        if (sources == null || sources.isEmpty()) return Set.of();
+        return sources.stream().filter(Objects::nonNull).map(this::normalize).filter(source -> !source.isBlank()).collect(Collectors.toUnmodifiableSet());
     }
 
     private List<String> normalizeDefaultSources(List<String> sources) {
-        if (sources == null || sources.isEmpty()) {
-            return List.of();
-        }
-
-        return sources.stream()
-            .filter(Objects::nonNull)
-            .map(this::normalize)
-            .filter(source -> !source.isBlank())
-            .distinct()
-            .toList();
+        if (sources == null || sources.isEmpty()) return List.of();
+        return sources.stream().filter(Objects::nonNull).map(this::normalize).filter(source -> !source.isBlank()).distinct().toList();
     }
 
     private String normalize(String source) {

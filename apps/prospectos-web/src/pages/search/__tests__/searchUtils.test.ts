@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import type { LeadResult } from '../../../types/leadContracts';
+import type { LeadRecommendationResponse, LeadResult } from '../../../types/leadContracts';
 import {
+    applyRecommendedSources,
     buildSearchResultsCsv,
     filterLeadsByWebsitePresence,
     getScoreBadgeVariant,
@@ -11,6 +12,7 @@ import {
     isWebsitePresenceFilterValue,
     mergeWithFallbackError,
     parseApiErrorMessage,
+    recommendationRequestSources,
 } from '../searchUtils';
 
 function createLead(websitePresence: LeadResult['candidate']['websitePresence']): LeadResult {
@@ -44,7 +46,26 @@ describe('searchUtils', () => {
         expect(isSearchSourceValue('in-memory')).toBe(true);
         expect(isSearchSourceValue('vector-company')).toBe(true);
         expect(isSearchSourceValue('cnpj-ws')).toBe(true);
+        expect(isSearchSourceValue('amazon-location')).toBe(true);
+        expect(isSearchSourceValue('google-places')).toBe(true);
         expect(isSearchSourceValue('other-source')).toBe(false);
+    });
+
+    it('builds recommendation request sources without in-memory', () => {
+        expect(recommendationRequestSources()).toEqual(['vector-company', 'cnpj-ws', 'amazon-location', 'google-places']);
+    });
+
+    it('applies recommendation sources preserving supported order and uniqueness', () => {
+        const recommendation: LeadRecommendationResponse = {
+            recommendedSource: 'google-places',
+            fallbackSources: ['amazon-location', 'google-places', 'in-memory', 'unsupported'],
+            reason: 'Best source',
+            expectedCost: 0.03,
+            expectedLatencyMs: 220,
+            timeWindow: '24h',
+        };
+
+        expect(applyRecommendedSources(recommendation)).toEqual(['google-places', 'amazon-location', 'in-memory']);
     });
 
     it('validates supported website presence filters', () => {

@@ -1,8 +1,8 @@
 import { isAxiosError } from 'axios';
 
-import type { LeadResult, WebsitePresence } from '../../types/leadContracts';
+import type { LeadRecommendationResponse, LeadResult, WebsitePresence } from '../../types/leadContracts';
 
-export const SEARCH_SOURCE_VALUES = ['in-memory', 'vector-company', 'cnpj-ws', 'google-places'] as const;
+export const SEARCH_SOURCE_VALUES = ['in-memory', 'vector-company', 'cnpj-ws', 'amazon-location', 'google-places'] as const;
 export const WEBSITE_PRESENCE_FILTER_VALUES = ['all', 'HAS_WEBSITE', 'NO_WEBSITE'] as const;
 
 export type SearchSourceValue = typeof SEARCH_SOURCE_VALUES[number];
@@ -32,6 +32,15 @@ const CSV_HEADERS = [
 
 export function isSearchSourceValue(value: string): value is SearchSourceValue {
     return SEARCH_SOURCE_VALUES.some((candidate) => candidate === value);
+}
+
+export function recommendationRequestSources(): SearchSourceValue[] {
+    return [...SEARCH_SOURCE_VALUES].filter((value) => value !== 'in-memory');
+}
+
+export function applyRecommendedSources(recommendation: LeadRecommendationResponse): SearchSourceValue[] {
+    const nextSources = [recommendation.recommendedSource, ...recommendation.fallbackSources].filter(isSearchSourceValue);
+    return nextSources.filter((source, index) => nextSources.indexOf(source) === index);
 }
 
 export function isWebsitePresenceFilterValue(value: string): value is WebsitePresenceFilterValue {
@@ -173,4 +182,3 @@ export function mergeWithFallbackError(fallbackMessage: string, detail: string |
 
     return `${fallbackMessage} ${detail}`;
 }
-

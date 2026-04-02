@@ -20,7 +20,7 @@ class DefaultLeadRecommendationServiceTest {
     void recommendPrefersObservedProviderWithBestSuccessAndLatency() {
         var metricsService = mock(QueryMetricsService.class);
         var complianceService = mock(AllowedSourcesComplianceService.class);
-        when(complianceService.validateSources(null)).thenReturn(List.of("google-places", "amazon-location", "scraper"));
+        when(complianceService.recommendationSources(null)).thenReturn(List.of("google-places", "amazon-location", "scraper"));
         when(metricsService.getMetrics(QueryTimeWindow.TWENTY_FOUR_HOURS, null)).thenReturn(new QueryMetricsSnapshot(
             180,
             new BigDecimal("12.30"),
@@ -45,10 +45,32 @@ class DefaultLeadRecommendationServiceTest {
     }
 
     @Test
+    void recommendUsesAllAllowedSourcesWhenRequestDoesNotPinSources() {
+        var metricsService = mock(QueryMetricsService.class);
+        var complianceService = mock(AllowedSourcesComplianceService.class);
+        when(complianceService.recommendationSources(null)).thenReturn(List.of("in-memory", "google-places"));
+        when(metricsService.getMetrics(QueryTimeWindow.TWENTY_FOUR_HOURS, null)).thenReturn(new QueryMetricsSnapshot(
+            0,
+            BigDecimal.ZERO,
+            BigDecimal.ZERO,
+            0.0d,
+            0L,
+            new QueryMetricsSnapshot.Trends("stable", "stable", "stable"),
+            List.of()
+        ));
+
+        var service = new DefaultLeadRecommendationService(metricsService, complianceService);
+        var response = service.recommend(new LeadRecommendationRequest("software companies", 10, null, null, null));
+
+        assertThat(response.recommendedSource()).isEqualTo("google-places");
+        assertThat(response.fallbackSources()).containsExactly("in-memory");
+    }
+
+    @Test
     void recommendFallsBackToPreferredConfiguredSourceWhenNoMetricsExist() {
         var metricsService = mock(QueryMetricsService.class);
         var complianceService = mock(AllowedSourcesComplianceService.class);
-        when(complianceService.validateSources(List.of("vector-company", "google-places"))).thenReturn(List.of("vector-company", "google-places"));
+        when(complianceService.recommendationSources(List.of("vector-company", "google-places"))).thenReturn(List.of("vector-company", "google-places"));
         when(metricsService.getMetrics(QueryTimeWindow.TWENTY_FOUR_HOURS, null)).thenReturn(new QueryMetricsSnapshot(
             0,
             BigDecimal.ZERO,
