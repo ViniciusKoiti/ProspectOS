@@ -4,5 +4,6 @@ public record ProspectEnrichResponse(
     String name,
     String website,
     String industry,
-    String analysis
+    String analysis,
+    ProspectWebsiteAuditResponse audit
 ) {}

@@ -99,6 +99,9 @@ class ProspectEnrichmentFacadeIntegrationTest {
         assertThat(response.website()).isEqualTo("https://acme.com");
         assertThat(response.industry()).isEqualTo("SaaS");
         assertThat(response.analysis()).isEqualTo("Strong fit");
+        assertThat(response.audit()).isNotNull();
+        assertThat(response.audit().status()).isEqualTo("GOOD");
+        assertThat(response.audit().contactInfoDetected()).isTrue();
 
         verify(scraperClient).scrapeWebsiteSync("https://acme.com", false);
     }
@@ -132,6 +135,9 @@ class ProspectEnrichmentFacadeIntegrationTest {
         assertThat(response.website()).isEqualTo("https://fallback.example.com");
         assertThat(response.industry()).isEqualTo("Retail");
         assertThat(response.analysis()).isEqualTo("Fallback analysis");
+        assertThat(response.audit()).isNotNull();
+        assertThat(response.audit().status()).isEqualTo("REVIEW");
+        assertThat(response.audit().scrapeSucceeded()).isFalse();
     }
 
     @Test
@@ -166,6 +172,8 @@ class ProspectEnrichmentFacadeIntegrationTest {
         ));
 
         assertThat(response.website()).isEqualTo("http://legacy.example.com");
+        assertThat(response.audit()).isNotNull();
+        assertThat(response.audit().secure()).isFalse();
         verify(scraperClient).scrapeWebsiteSync("http://legacy.example.com", false);
     }
 }

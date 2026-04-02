@@ -43,6 +43,8 @@ class ProspectEnrichmentIntegrationTest extends PostgresIntegrationTestBase {
             .andExpect(jsonPath("$.website").value("https://acme.com"))
             .andExpect(jsonPath("$.industry").value("Technology"))
             .andExpect(jsonPath("$.analysis").isNotEmpty())
+            .andExpect(jsonPath("$.audit").exists())
+            .andExpect(jsonPath("$.audit.status").value("REVIEW"))
             .andReturn()
             .getResponse()
             .getContentAsString();

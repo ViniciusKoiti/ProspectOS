@@ -21,6 +21,7 @@ public class ProspectEnrichmentFacade {
     private final CompanyEnrichmentService companyEnrichmentService;
     private final ContactProcessor contactProcessor;
     private final ProspectEnrichmentAssembler assembler;
+    private final InternalWebsiteAuditor websiteAuditor;
 
     public ProspectEnrichmentFacade(ProspectEnrichService prospectEnrichService, ScraperClientInterface scraperClient,
                                     CompanyEnrichmentService companyEnrichmentService, ContactProcessor contactProcessor) {
@@ -29,6 +30,7 @@ public class ProspectEnrichmentFacade {
         this.companyEnrichmentService = companyEnrichmentService;
         this.contactProcessor = contactProcessor;
         this.assembler = new ProspectEnrichmentAssembler();
+        this.websiteAuditor = new InternalWebsiteAuditor();
     }
 
     public ProspectEnrichResponse enrich(ProspectEnrichRequest request) {
@@ -55,7 +57,8 @@ public class ProspectEnrichmentFacade {
             applyEnrichment(company, enrichmentResult);
         }
         String analysis = prospectEnrichService.enrichCompany(company);
-        return new ProspectEnrichResponse(company.getName(), company.getWebsite().getUrl(), company.getIndustry(), analysis);
+        var audit = websiteAuditor.audit(company.getWebsite().getUrl(), response);
+        return new ProspectEnrichResponse(company.getName(), company.getWebsite().getUrl(), company.getIndustry(), analysis, audit);
     }
 
     private void applyEnrichment(Company company, EnrichmentResult enrichmentResult) {

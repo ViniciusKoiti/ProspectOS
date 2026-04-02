@@ -2,6 +2,7 @@ package dev.prospectos.infrastructure.config;
 
 import dev.prospectos.api.dto.ProspectEnrichRequest;
 import dev.prospectos.api.dto.ProspectEnrichResponse;
+import dev.prospectos.api.dto.ProspectWebsiteAuditResponse;
 import dev.prospectos.infrastructure.service.prospect.ProspectEnrichmentFacade;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,7 +37,16 @@ public class TestProspectConfiguration {
                 "Example Company",
                 request.website(),
                 request.industry() != null ? request.industry() : "Technology",
-                "Comprehensive AI-generated analysis of the company's market position, competitive advantages, and growth opportunities in the technology sector."
+                "Comprehensive AI-generated analysis of the company's market position, competitive advantages, and growth opportunities in the technology sector.",
+                new ProspectWebsiteAuditResponse(
+                    72,
+                    "REVIEW",
+                    request.website().startsWith("https://"),
+                    true,
+                    true,
+                    false,
+                    java.util.List.of("Internal audit identified partial website quality signals.")
+                )
             );
         });
 
