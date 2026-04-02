@@ -5,12 +5,17 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import dev.prospectos.api.mcp.QueryMetricsRecorder;
+import dev.prospectos.infrastructure.mcp.service.QueryMetricsExecutionTracker;
+
 final class DiscoverySourceRegistry {
 
     private final Map<String, LeadDiscoverySource> sourcesByName;
+    private final QueryMetricsRecorder metricsRecorder;
 
-    DiscoverySourceRegistry(List<LeadDiscoverySource> sources) {
+    DiscoverySourceRegistry(List<LeadDiscoverySource> sources, QueryMetricsRecorder metricsRecorder) {
         this.sourcesByName = indexSources(sources);
+        this.metricsRecorder = metricsRecorder;
     }
 
     List<DiscoveredLeadCandidate> discover(List<String> sourceNames, DiscoveryContext context) {
@@ -20,7 +25,12 @@ final class DiscoverySourceRegistry {
             if (source == null) {
                 throw new IllegalArgumentException("Configured source without implementation: " + sourceName);
             }
-            discovered.addAll(source.discover(context));
+            discovered.addAll(QueryMetricsExecutionTracker.track(
+                metricsRecorder,
+                source.sourceName(),
+                context.query(),
+                () -> source.discover(context)
+            ));
         }
         return discovered;
     }

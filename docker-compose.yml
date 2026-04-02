@@ -1,23 +1,63 @@
 services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: prospectos-app:local
+    container_name: prospectos-app
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-development}
+      SERVER_PORT: ${APP_PORT:-8080}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-prospectos}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-prospectos}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-update}
+      SPRING_AI_OPENAI_API_KEY: ${SPRING_AI_OPENAI_API_KEY:-}
+      SPRING_AI_ANTHROPIC_API_KEY: ${SPRING_AI_ANTHROPIC_API_KEY:-}
+      PROSPECTOS_AI_GROQ_API_KEY: ${PROSPECTOS_AI_GROQ_API_KEY:-}
+    ports:
+      - "${APP_BIND_HOST:-127.0.0.1}:${APP_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    networks:
+      - backend
+
   postgres:
     image: pgvector/pgvector:pg15
     container_name: prospectos-postgres
     environment:
-      POSTGRES_DB: prospectos
-      POSTGRES_USER: prospectos
-      POSTGRES_PASSWORD: prospectos123
-    ports:
-      - "5432:5432"
+      POSTGRES_DB: ${POSTGRES_DB:-prospectos}
+      POSTGRES_USER: ${POSTGRES_USER:-prospectos}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - type: bind
+        source: ./init.sql
+        target: /docker-entrypoint-initdb.d/01-init.sql
+        read_only: true
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U prospectos -d prospectos"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-prospectos} -d ${POSTGRES_DB:-prospectos}"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
     restart: unless-stopped
+    networks:
+      - backend
 
 volumes:
   postgres_data:
+
+networks:
+  backend:
+    driver: bridge

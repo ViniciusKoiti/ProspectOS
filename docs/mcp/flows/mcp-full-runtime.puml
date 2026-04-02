@@ -1,0 +1,59 @@
+@startuml
+title ProspectOS MCP Full Runtime Flow
+
+actor "MCP Client / Agent" as Client
+participant "HTTP /api/leads/search\nor /api/leads/discover" as BusinessApi
+participant "LeadSearch / Discovery\nServices" as SearchFlow
+participant "QueryMetricsExecutionTracker" as Tracker
+participant "JpaQueryMetricsService" as Metrics
+participant "HTTP /mcp" as McpEndpoint
+participant "McpRateLimitingFilter" as RateLimit
+participant "McpApiKeyAuthenticationFilter" as Auth
+participant "MCP Tools / Resources" as Surface
+participant "DefaultQueryHistoryService" as History
+participant "DefaultProviderRoutingService" as Routing
+participant "CompanyDataServiceJpa" as Companies
+
+database "Postgres\ncompanies\nicp\nmcp_query_observations" as Postgres
+
+== Generate operational data ==
+Client -> BusinessApi: POST search/discover
+BusinessApi -> SearchFlow: execute request
+SearchFlow -> Tracker: track(provider, query, operation)
+Tracker -> Metrics: recordExecution(...)
+Metrics -> Postgres: INSERT mcp_query_observations
+SearchFlow --> Client: leads / status
+
+== MCP query metrics ==
+Client -> McpEndpoint: tool/resource request
+McpEndpoint -> RateLimit: validate quota
+RateLimit -> Auth: validate API key
+Auth -> Surface: dispatch request
+alt get_query_metrics
+  Surface -> Metrics: getMetrics(window, provider)
+  Metrics -> Postgres: SELECT observations
+  Metrics --> Surface: QueryMetricsSnapshot
+else query-history://...
+  Surface -> History: getQueryHistory(...)
+  History -> Metrics: observations(window, provider)
+  Metrics -> Postgres: SELECT observations
+  History --> Surface: QueryHistoryData
+else provider-performance://...
+  Surface -> History: getProviderPerformance(...)
+  History -> Metrics: observations(24h, provider)
+  Metrics -> Postgres: SELECT observations
+  History --> Surface: ProviderPerformanceData
+else market-analysis://...
+  Surface -> History: getMarketAnalysis(country, industry)
+  History -> Companies: findAllCompanies()
+  Companies -> Postgres: SELECT companies
+  History --> Surface: MarketAnalysisData
+else update_provider_routing
+  Surface -> Routing: updateRouting(...)
+  Routing -> Metrics: getMetrics(1h, null)
+  Metrics -> Postgres: SELECT observations
+  Routing --> Surface: RoutingUpdate
+end
+Surface --> Client: MCP response
+
+@enduml

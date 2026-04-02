@@ -27,6 +27,7 @@ import dev.prospectos.api.dto.LeadSearchResponse;
 import dev.prospectos.api.dto.LeadSearchStatus;
 import dev.prospectos.api.dto.ScoreDTO;
 import dev.prospectos.api.dto.SourceProvenanceDTO;
+import dev.prospectos.api.mcp.QueryMetricsRecorder;
 import dev.prospectos.core.domain.Company;
 import dev.prospectos.core.domain.CompanySize;
 import dev.prospectos.core.domain.Email;
@@ -74,6 +75,9 @@ class ScraperLeadSearchServiceTest {
     @Mock
     private AllowedSourcesComplianceService complianceService;
 
+    @Mock
+    private QueryMetricsRecorder queryMetricsRecorder;
+
     private ScraperLeadSearchService service;
 
     @BeforeEach
@@ -90,7 +94,8 @@ class ScraperLeadSearchServiceTest {
                 List.of("in-memory", "scraper", "llm-discovery", "vector-company", "cnpj-ws"),
                 List.of("scraper")
             ),
-            new LeadSearchProperties(1L)
+            new LeadSearchProperties(1L),
+            queryMetricsRecorder
         );
     }
 
@@ -166,7 +171,8 @@ class ScraperLeadSearchServiceTest {
                 List.of("in-memory", "scraper", "llm-discovery", "vector-company", "cnpj-ws"),
                 List.of("scraper")
             ),
-            new LeadSearchProperties(null)
+            new LeadSearchProperties(null),
+            queryMetricsRecorder
         );
 
         when(complianceService.validateSources(List.of("scraper"))).thenReturn(List.of("scraper"));

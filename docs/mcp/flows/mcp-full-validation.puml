@@ -1,0 +1,19 @@
+@startuml
+title MCP Full Validation Flow
+
+start
+:Start Postgres Testcontainer;
+:Boot Spring with target profiles;
+:Seed ICP and company data;
+:Call /api/leads/search or /api/leads/discover;
+:Persist mcp_query_observations;
+:Assert business response is COMPLETED;
+:Query QueryMetricsService / QueryHistoryService;
+:Assert metrics and history are populated;
+:Call MCP tools/resources;
+:Assert payloads match persisted state;
+:Check /actuator/health/mcp;
+:Check auth 401 and throttling 429 cases;
+stop
+
+@enduml

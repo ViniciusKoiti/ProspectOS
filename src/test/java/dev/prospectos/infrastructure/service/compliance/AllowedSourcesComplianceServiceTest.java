@@ -12,10 +12,7 @@ class AllowedSourcesComplianceServiceTest {
 
     @Test
     void allowsRequestedSourcesWhenAllAllowed() {
-        AllowedSourcesComplianceService service = new AllowedSourcesComplianceService(
-            List.of("google", "linkedin"),
-            List.of("google")
-        );
+        AllowedSourcesComplianceService service = new AllowedSourcesComplianceService(List.of("google", "linkedin"), List.of("google"));
 
         List<String> result = service.validateSources(List.of("google"));
 
@@ -24,10 +21,7 @@ class AllowedSourcesComplianceServiceTest {
 
     @Test
     void rejectsDisallowedSources() {
-        AllowedSourcesComplianceService service = new AllowedSourcesComplianceService(
-            List.of("google"),
-            List.of("google")
-        );
+        AllowedSourcesComplianceService service = new AllowedSourcesComplianceService(List.of("google"), List.of("google"));
 
         assertThatThrownBy(() -> service.validateSources(List.of("zoominfo")))
             .isInstanceOf(IllegalArgumentException.class)
@@ -36,10 +30,7 @@ class AllowedSourcesComplianceServiceTest {
 
     @Test
     void ignoresBlankAndNullSources() {
-        AllowedSourcesComplianceService service = new AllowedSourcesComplianceService(
-            List.of("google"),
-            List.of("google")
-        );
+        AllowedSourcesComplianceService service = new AllowedSourcesComplianceService(List.of("google"), List.of("google"));
 
         List<String> result = service.validateSources(Arrays.asList(null, " ", "google"));
 
@@ -48,10 +39,7 @@ class AllowedSourcesComplianceServiceTest {
 
     @Test
     void normalizesAndDeduplicatesSources() {
-        AllowedSourcesComplianceService service = new AllowedSourcesComplianceService(
-            List.of("LinkedIn", "Google"),
-            List.of("google")
-        );
+        AllowedSourcesComplianceService service = new AllowedSourcesComplianceService(List.of("LinkedIn", "Google"), List.of("google"));
 
         List<String> result = service.validateSources(List.of(" linkedin ", "GOOGLE", "google"));
 
@@ -69,10 +57,7 @@ class AllowedSourcesComplianceServiceTest {
 
     @Test
     void usesDefaultSourcesWhenRequestSourcesAreMissing() {
-        AllowedSourcesComplianceService service = new AllowedSourcesComplianceService(
-            List.of("in-memory", "scraper"),
-            List.of("in-memory")
-        );
+        AllowedSourcesComplianceService service = new AllowedSourcesComplianceService(List.of("in-memory", "scraper"), List.of("in-memory"));
 
         List<String> result = service.validateSources(null);
 
@@ -81,13 +66,22 @@ class AllowedSourcesComplianceServiceTest {
 
     @Test
     void usesDefaultSourcesWhenRequestSourcesAreBlank() {
-        AllowedSourcesComplianceService service = new AllowedSourcesComplianceService(
-            List.of("in-memory", "scraper"),
-            List.of("scraper")
-        );
+        AllowedSourcesComplianceService service = new AllowedSourcesComplianceService(List.of("in-memory", "scraper"), List.of("scraper"));
 
         List<String> result = service.validateSources(Arrays.asList(" ", null));
 
         assertThat(result).containsExactly("scraper");
+    }
+
+    @Test
+    void recommendationUsesAllAllowedSourcesWhenRequestIsMissing() {
+        AllowedSourcesComplianceService service = new AllowedSourcesComplianceService(
+            List.of("in-memory", "google-places", "amazon-location"),
+            List.of("in-memory")
+        );
+
+        List<String> result = service.recommendationSources(null);
+
+        assertThat(result).containsExactly("amazon-location", "google-places", "in-memory");
     }
 }

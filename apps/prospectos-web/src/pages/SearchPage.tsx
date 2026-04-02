@@ -20,9 +20,10 @@ import PageHeader from '../components/ui/PageHeader';
 import Select from '../components/ui/Select';
 import TextArea from '../components/ui/TextArea';
 import { listIcps } from '../services/icpService';
-import { acceptLead, searchLeads } from '../services/leadService';
+import { acceptLead, recommendLeadSource, searchLeads } from '../services/leadService';
 import type { AcceptLeadResponse, LeadResult, WebsitePresence } from '../types/leadContracts';
 import {
+    applyRecommendedSources,
     buildSearchResultsCsv,
     filterLeadsByWebsitePresence,
     getScoreBadgeVariant,
@@ -31,6 +32,7 @@ import {
     isSearchSourceValue,
     mergeWithFallbackError,
     parseApiErrorMessage,
+    recommendationRequestSources,
     SEARCH_SOURCE_VALUES,
     WEBSITE_PRESENCE_FILTER_VALUES,
 } from './search/searchUtils';
@@ -72,6 +74,9 @@ export default function SearchPage() {
             setAcceptFeedback(null);
         },
     });
+    const recommendationMutation = useMutation({
+        mutationFn: recommendLeadSource,
+    });
     const acceptMutation = useMutation({
         mutationFn: acceptLead,
         onSuccess: async (response, variables) => {
@@ -95,12 +100,15 @@ export default function SearchPage() {
         },
     });
 
-    const selectedSources = form.watch('sources');
-    const selectedIcpId = form.watch('icpId');
+    const selectedQuery = String(form.watch('query') ?? '');
+    const selectedSources = (form.watch('sources') ?? []) as SearchFormValues['sources'];
+    const selectedLimit = Number(form.watch('limit') ?? 20);
+    const selectedIcpId = (form.watch('icpId') as SearchFormValues['icpId']) ?? null;
     const selectedWebsitePresence = form.watch('websitePresence') ?? 'all';
     const selectedIcpName = selectedIcpId
         ? (icpsQuery.data ?? []).find((icp) => icp.id === selectedIcpId)?.name ?? null
         : null;
+    const recommendationSources = recommendationMutation.data ? applyRecommendedSources(recommendationMutation.data) : [];
     const sourceOptions: SearchSourceOption[] = [
         {
             value: 'in-memory',
@@ -116,6 +124,16 @@ export default function SearchPage() {
             value: 'cnpj-ws',
             label: t('pages.search.sources.cnpjWs', { defaultValue: 'cnpj-ws' }),
             description: t('pages.search.sources.cnpjWsDescription', { defaultValue: 'Discovery using CNPJ web data.' }),
+        },
+        {
+            value: 'amazon-location',
+            label: t('pages.search.sources.amazonLocation', { defaultValue: 'amazon-location' }),
+            description: t('pages.search.sources.amazonLocationDescription', { defaultValue: 'AWS Places discovery for local businesses.' }),
+        },
+        {
+            value: 'google-places',
+            label: t('pages.search.sources.googlePlaces', { defaultValue: 'google-places' }),
+            description: t('pages.search.sources.googlePlacesDescription', { defaultValue: 'Official Google Places business discovery.' }),
         },
     ];
 
@@ -145,6 +163,30 @@ export default function SearchPage() {
         } finally {
             setAcceptingLeadKey(null);
         }
+    };
+
+    const handleRecommendSources = async () => {
+        const query = selectedQuery.trim();
+        if (!query) {
+            form.setError('query', { type: 'manual', message: t('pages.search.fields.query') });
+            return;
+        }
+
+        await recommendationMutation.mutateAsync({
+            query,
+            limit: selectedLimit,
+            sources: recommendationRequestSources(),
+            icpId: selectedIcpId,
+            timeWindow: '24h',
+        });
+    };
+
+    const handleApplyRecommendation = () => {
+        if (recommendationSources.length === 0) {
+            return;
+        }
+
+        form.setValue('sources', recommendationSources, { shouldDirty: true, shouldValidate: true });
     };
 
     const handleExportCsv = () => {
@@ -250,6 +292,12 @@ export default function SearchPage() {
     const searchErrorMessage = searchMutation.isError
         ? mergeWithFallbackError(t('pages.search.errors.execute'), parseApiErrorMessage(searchMutation.error))
         : null;
+    const recommendationErrorMessage = recommendationMutation.isError
+        ? mergeWithFallbackError(
+            t('pages.search.errors.recommendation', { defaultValue: 'Falha ao recomendar fontes.' }),
+            parseApiErrorMessage(recommendationMutation.error)
+        )
+        : null;
     const acceptErrorMessage = acceptMutation.isError
         ? mergeWithFallbackError(t('pages.search.errors.accept'), parseApiErrorMessage(acceptMutation.error))
         : null;
@@ -299,13 +347,59 @@ export default function SearchPage() {
                             <option value="50">50</option>
                             <option value="100">100</option>
                         </Select>
-                        <div className="flex justify-end">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                loading={recommendationMutation.isPending}
+                                disabled={selectedQuery.trim().length === 0}
+                                data-testid="search-recommend-sources"
+                                onClick={() => void handleRecommendSources()}
+                            >
+                                {t('pages.search.actions.recommendSources', { defaultValue: 'Recomendar fontes' })}
+                            </Button>
                             <Button type="submit" loading={searchMutation.isPending}>{t('common.searchProspects')}</Button>
                         </div>
                     </form>
                 </Card>
 
                 <div className="space-y-4">
+                    {recommendationMutation.data ? (
+                        <Card data-testid="search-recommendation-card">
+                            <div className="space-y-3">
+                                <div>
+                                    <p className="text-sm font-medium text-slate-900">
+                                        {t('pages.search.recommendation.title', { defaultValue: 'Fonte recomendada' })}
+                                    </p>
+                                    <p className="text-sm text-slate-600">
+                                        {recommendationMutation.data.recommendedSource}
+                                        {recommendationSources.length > 1
+                                            ? ` • ${t('pages.search.recommendation.fallbacks', { defaultValue: 'Fallbacks' })}: ${recommendationSources.slice(1).join(', ')}`
+                                            : ''}
+                                    </p>
+                                </div>
+                                <p className="text-sm text-slate-600">{recommendationMutation.data.reason}</p>
+                                <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                                    <Badge variant="neutral">{`${recommendationMutation.data.expectedLatencyMs}ms`}</Badge>
+                                    <Badge variant="neutral">{`${recommendationMutation.data.expectedCost.toFixed(2)} cost`}</Badge>
+                                    <Badge variant="neutral">{recommendationMutation.data.timeWindow}</Badge>
+                                </div>
+                                <div className="flex justify-end">
+                                    <Button
+                                        type="button"
+                                        variant="secondary"
+                                        data-testid="search-apply-recommendation"
+                                        onClick={handleApplyRecommendation}
+                                    >
+                                        {t('pages.search.actions.applyRecommendation', { defaultValue: 'Usar recomendação' })}
+                                    </Button>
+                                </div>
+                            </div>
+                        </Card>
+                    ) : null}
+
+                    {recommendationErrorMessage ? <ErrorState message={recommendationErrorMessage} /> : null}
+
                     {acceptFeedback ? (
                         <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700" data-testid="search-accept-feedback">
                             <div>{t('pages.search.feedback.acceptSuccess')}</div>
@@ -368,3 +462,4 @@ export default function SearchPage() {
         </section>
     );
 }
+

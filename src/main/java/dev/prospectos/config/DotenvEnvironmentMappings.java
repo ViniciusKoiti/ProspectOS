@@ -24,6 +24,11 @@ final class DotenvEnvironmentMappings {
         mappings.put("PROSPECTOS_AI_GROQ_BASE_URL", "prospectos.ai.groq.base-url");
         mappings.put("PROSPECTOS_AI_GROQ_MODEL", "prospectos.ai.groq.model");
         mappings.put("SCRAPER_AI_ENABLED", "scraper.ai.enabled");
+        mappings.put("PROSPECTOS_LEADS_GOOGLE_PLACES_ENABLED", "prospectos.leads.google-places.enabled");
+        mappings.put("PROSPECTOS_LEADS_GOOGLE_PLACES_API_KEY", "prospectos.leads.google-places.api-key");
+        mappings.put("PROSPECTOS_LEADS_GOOGLE_PLACES_LANGUAGE_CODE", "prospectos.leads.google-places.language-code");
+        mappings.put("PROSPECTOS_LEADS_GOOGLE_PLACES_MAX_RESULTS", "prospectos.leads.google-places.max-results");
+        mappings.put("PROSPECTOS_LEADS_GOOGLE_PLACES_FIELD_MASK", "prospectos.leads.google-places.field-mask");
         mappings.put("OPENAI_API_KEY", "spring.ai.openai.api-key");
         mappings.put("ANTHROPIC_API_KEY", "spring.ai.anthropic.api-key");
         mappings.put("GROQ_API_KEY", "prospectos.ai.groq.api-key");
@@ -76,3 +81,4 @@ final class DotenvEnvironmentMappings {
         return mappings;
     }
 }
+

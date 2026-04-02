@@ -75,6 +75,10 @@ class DotenvEnvironmentPostProcessorTest {
         assertThat(mappings.get("AI_PROVIDER_PRIORITY")).isEqualTo("prospectos.ai.active-providers");
         assertThat(mappings.get("PROSPECTOS_AI_GROQ_API_KEY")).isEqualTo("prospectos.ai.groq.api-key");
         assertThat(mappings.get("PROSPECTOS_AI_ENABLED")).isEqualTo("prospectos.ai.enabled");
+        assertThat(mappings.get("PROSPECTOS_LEADS_GOOGLE_PLACES_ENABLED"))
+            .isEqualTo("prospectos.leads.google-places.enabled");
+        assertThat(mappings.get("PROSPECTOS_LEADS_GOOGLE_PLACES_API_KEY"))
+            .isEqualTo("prospectos.leads.google-places.api-key");
         assertThat(mappings.get("DEBUG")).isEqualTo("debug");
         assertThat(mappings.get("LOGGING_LEVEL_DEV_PROSPECTOS_AI_CONFIG"))
             .isEqualTo("logging.level.dev.prospectos.ai.config");
@@ -96,7 +100,11 @@ class DotenvEnvironmentPostProcessorTest {
                 "SPRING_PROFILES_ACTIVE=mock",
                 "SERVER_PORT=9090",
                 "AI_PROVIDER_PRIORITY=mock,openai",
-                "PROSPECTOS_AI_GROQ_API_KEY=groq-test-key"
+                "PROSPECTOS_AI_GROQ_API_KEY=groq-test-key",
+                "PROSPECTOS_LEADS_GOOGLE_PLACES_ENABLED=true",
+                "PROSPECTOS_LEADS_GOOGLE_PLACES_API_KEY=google-places-key",
+                "PROSPECTOS_LEADS_GOOGLE_PLACES_LANGUAGE_CODE=en-US",
+                "PROSPECTOS_LEADS_GOOGLE_PLACES_MAX_RESULTS=15"
             ) + System.lineSeparator(),
             () -> withTemporarySystemProperties(
                 properties,
@@ -109,6 +117,10 @@ class DotenvEnvironmentPostProcessorTest {
         assertThat(environment.getProperty("server.port")).isEqualTo("9090");
         assertThat(environment.getProperty("prospectos.ai.active-providers")).isEqualTo("mock,openai");
         assertThat(environment.getProperty("prospectos.ai.groq.api-key")).isEqualTo("groq-test-key");
+        assertThat(environment.getProperty("prospectos.leads.google-places.enabled")).isEqualTo("true");
+        assertThat(environment.getProperty("prospectos.leads.google-places.api-key")).isEqualTo("google-places-key");
+        assertThat(environment.getProperty("prospectos.leads.google-places.language-code")).isEqualTo("en-US");
+        assertThat(environment.getProperty("prospectos.leads.google-places.max-results")).isEqualTo("15");
         assertThat(environment.getPropertySources().iterator().next().getName()).isEqualTo("dotenv");
     }
 
@@ -249,3 +261,4 @@ class DotenvEnvironmentPostProcessorTest {
         T get();
     }
 }
+

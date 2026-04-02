@@ -1,7 +1,7 @@
 package dev.prospectos.infrastructure.service.inmemory;
 
-import java.util.List;
 import java.util.Arrays;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,6 +17,7 @@ import dev.prospectos.api.dto.LeadSearchRequest;
 import dev.prospectos.api.dto.LeadSearchResponse;
 import dev.prospectos.api.dto.LeadSearchStatus;
 import dev.prospectos.api.dto.ScoreDTO;
+import dev.prospectos.api.mcp.QueryMetricsRecorder;
 import dev.prospectos.core.domain.Company;
 import dev.prospectos.core.domain.ICP;
 import dev.prospectos.infrastructure.config.LeadSearchProperties;
@@ -27,6 +28,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -45,6 +50,9 @@ class InMemoryLeadSearchServiceTest {
     @Mock
     private AllowedSourcesComplianceService complianceService;
 
+    @Mock
+    private QueryMetricsRecorder queryMetricsRecorder;
+
     @Test
     void searchLeadsUsesDefaultIcpAndBuildsLeadResults() {
         InMemoryLeadSearchService service = new InMemoryLeadSearchService(
@@ -52,7 +60,8 @@ class InMemoryLeadSearchServiceTest {
             icpDataService,
             scoringService,
             complianceService,
-            new LeadSearchProperties(1L)
+            new LeadSearchProperties(1L),
+            queryMetricsRecorder
         );
 
         when(companyDataService.findAllCompanies()).thenReturn(List.of(
@@ -74,6 +83,7 @@ class InMemoryLeadSearchServiceTest {
             assertFalse(lead.leadKey().isBlank());
         }
         verify(icpDataService).findICP(1L);
+        verify(queryMetricsRecorder).recordExecution(eq("in-memory"), eq("software"), anyLong(), anyBoolean(), anyInt());
     }
 
     @Test
@@ -83,7 +93,8 @@ class InMemoryLeadSearchServiceTest {
             icpDataService,
             scoringService,
             complianceService,
-            new LeadSearchProperties(1L)
+            new LeadSearchProperties(1L),
+            queryMetricsRecorder
         );
 
         when(complianceService.validateSources(null)).thenReturn(Arrays.asList(" ", null));
@@ -106,7 +117,8 @@ class InMemoryLeadSearchServiceTest {
             icpDataService,
             scoringService,
             complianceService,
-            new LeadSearchProperties(null)
+            new LeadSearchProperties(null),
+            queryMetricsRecorder
         );
 
         when(complianceService.validateSources(List.of("in-memory"))).thenReturn(List.of("in-memory"));
