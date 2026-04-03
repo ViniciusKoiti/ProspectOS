@@ -3,6 +3,10 @@
 ## Objective
 Define the production pipeline for finding, qualifying, enriching, and contacting leads in ProspectOS.
 
+Supporting documents:
+- `docs/architecture/lead-prospecting-use-cases.md`
+- `docs/diagrams/lead-prospecting-end-to-end-flow.puml`
+
 This document consolidates the target flow described for:
 - data prospecting
 - qualification and enrichment

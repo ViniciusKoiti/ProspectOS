@@ -1,0 +1,53 @@
+@startuml
+title ProspectOS End-to-End Lead Prospecting Flow
+
+actor User
+participant "Frontend / UI" as UI
+participant "Lead Search API" as SearchApi
+participant "Discovery Orchestrator" as Discovery
+participant "Google Places" as GooglePlaces
+participant "Apify" as Apify
+participant "Prospect Enrichment API" as EnrichApi
+participant "Internal Website Auditor" as InternalAudit
+participant "Google PageSpeed" as PageSpeed
+participant "Hunter Domain Search" as Hunter
+participant "Outreach Delivery API" as DeliveryApi
+participant "Resend" as Resend
+
+User -> UI : Search local businesses\n(e.g. clinics in Orlando)
+UI -> SearchApi : POST /api/leads/search
+SearchApi -> Discovery : discover(query, sources, limit)
+
+alt Primary source healthy
+    Discovery -> GooglePlaces : search businesses
+    GooglePlaces --> Discovery : businesses with website/phone/address
+else Fallback source selected
+    Discovery -> Apify : scrape maps results
+    Apify --> Discovery : businesses with website/phone/address
+end
+
+Discovery --> SearchApi : lead candidates
+SearchApi --> UI : discovered companies
+
+User -> UI : Enrich selected prospect
+UI -> EnrichApi : POST /api/prospect/enrich
+EnrichApi -> InternalAudit : audit website heuristics
+InternalAudit --> EnrichApi : internal score + findings
+EnrichApi -> PageSpeed : run technical audit
+PageSpeed --> EnrichApi : technical score + findings
+EnrichApi -> Hunter : domain search
+Hunter --> EnrichApi : contacts by domain
+EnrichApi --> UI : audit + contacts + analysis
+
+User -> UI : Send outreach
+UI -> DeliveryApi : POST /api/outreach/deliveries
+DeliveryApi -> Resend : send email
+Resend --> DeliveryApi : delivery id
+DeliveryApi --> UI : SENT + delivery id
+
+note over UI,DeliveryApi
+Human review can happen before the final send step.
+The system automates lookup, qualification, and delivery.
+end note
+
+@enduml
