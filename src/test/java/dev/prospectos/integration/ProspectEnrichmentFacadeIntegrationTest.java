@@ -14,6 +14,8 @@ import dev.prospectos.core.enrichment.ContactProcessor;
 import dev.prospectos.core.enrichment.EnrichmentQuality;
 import dev.prospectos.core.enrichment.EnrichmentResult;
 import dev.prospectos.core.enrichment.ValidatedContact;
+import dev.prospectos.infrastructure.service.prospect.PageSpeedAuditProvider;
+import dev.prospectos.infrastructure.service.prospect.PageSpeedAuditResult;
 import dev.prospectos.infrastructure.service.prospect.ProspectEnrichmentFacade;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -49,6 +51,9 @@ class ProspectEnrichmentFacadeIntegrationTest {
     @MockitoBean
     private CompanyEnrichmentService companyEnrichmentService;
 
+    @MockitoBean
+    private PageSpeedAuditProvider pageSpeedAuditProvider;
+
     @Test
     void enrichNormalizesWebsiteAndAppliesScraperBasedEnrichment() {
         given(scraperClient.scrapeWebsiteSync("https://acme.com", false)).willReturn(new ScrapingResponse(
@@ -76,6 +81,10 @@ class ProspectEnrichmentFacadeIntegrationTest {
             EnrichmentQuality.calculate(1, 1, 1, 0, 0, 0, 5, 6)
         ));
         given(prospectEnrichService.enrichCompany(any(Company.class))).willReturn("Strong fit");
+        given(pageSpeedAuditProvider.audit("https://acme.com")).willReturn(new PageSpeedAuditResult(
+            40,
+            List.of("PageSpeed indicates poor technical performance on the mobile audit.")
+        ));
 
         ProspectEnrichResponse response = facade.enrich(new ProspectEnrichRequest(
             "Acme",
@@ -100,10 +109,13 @@ class ProspectEnrichmentFacadeIntegrationTest {
         assertThat(response.industry()).isEqualTo("SaaS");
         assertThat(response.analysis()).isEqualTo("Strong fit");
         assertThat(response.audit()).isNotNull();
-        assertThat(response.audit().status()).isEqualTo("GOOD");
+        assertThat(response.audit().status()).isEqualTo("REVIEW");
+        assertThat(response.audit().score()).isEqualTo(60);
         assertThat(response.audit().contactInfoDetected()).isTrue();
+        assertThat(response.audit().pageSpeedScore()).isEqualTo(40);
 
         verify(scraperClient).scrapeWebsiteSync("https://acme.com", false);
+        verify(pageSpeedAuditProvider).audit("https://acme.com");
     }
 
     @Test
@@ -114,6 +126,7 @@ class ProspectEnrichmentFacadeIntegrationTest {
             "timeout"
         ));
         given(prospectEnrichService.enrichCompany(any(Company.class))).willReturn("Fallback analysis");
+        given(pageSpeedAuditProvider.audit("https://fallback.example.com")).willReturn(PageSpeedAuditResult.unavailable());
 
         ProspectEnrichResponse response = facade.enrich(new ProspectEnrichRequest(
             "Fallback Co",
@@ -138,6 +151,7 @@ class ProspectEnrichmentFacadeIntegrationTest {
         assertThat(response.audit()).isNotNull();
         assertThat(response.audit().status()).isEqualTo("REVIEW");
         assertThat(response.audit().scrapeSucceeded()).isFalse();
+        assertThat(response.audit().pageSpeedScore()).isNull();
     }
 
     @Test
@@ -164,6 +178,7 @@ class ProspectEnrichmentFacadeIntegrationTest {
             "timeout"
         ));
         given(prospectEnrichService.enrichCompany(any(Company.class))).willReturn("Legacy analysis");
+        given(pageSpeedAuditProvider.audit("http://legacy.example.com")).willReturn(PageSpeedAuditResult.unavailable());
 
         ProspectEnrichResponse response = facade.enrich(new ProspectEnrichRequest(
             "Legacy Co",

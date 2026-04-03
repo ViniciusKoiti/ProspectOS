@@ -17,6 +17,7 @@ class ProspectWebsiteAuditResponseTest {
             true,
             true,
             false,
+            91,
             List.of("Website exposes enough signals for an initial sales review.")
         );
 
@@ -26,6 +27,7 @@ class ProspectWebsiteAuditResponseTest {
         assertThat(response.scrapeSucceeded()).isTrue();
         assertThat(response.contactInfoDetected()).isTrue();
         assertThat(response.technologySignalsDetected()).isFalse();
+        assertThat(response.pageSpeedScore()).isEqualTo(91);
         assertThat(response.findings()).hasSize(1);
     }
 }

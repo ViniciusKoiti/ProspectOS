@@ -29,6 +29,12 @@ final class DotenvEnvironmentMappings {
         mappings.put("PROSPECTOS_LEADS_GOOGLE_PLACES_LANGUAGE_CODE", "prospectos.leads.google-places.language-code");
         mappings.put("PROSPECTOS_LEADS_GOOGLE_PLACES_MAX_RESULTS", "prospectos.leads.google-places.max-results");
         mappings.put("PROSPECTOS_LEADS_GOOGLE_PLACES_FIELD_MASK", "prospectos.leads.google-places.field-mask");
+        mappings.put("PROSPECTOS_PROSPECT_PAGESPEED_ENABLED", "prospectos.prospect.pagespeed.enabled");
+        mappings.put("PROSPECTOS_PROSPECT_PAGESPEED_API_KEY", "prospectos.prospect.pagespeed.api-key");
+        mappings.put("PROSPECTOS_PROSPECT_PAGESPEED_BASE_URL", "prospectos.prospect.pagespeed.base-url");
+        mappings.put("PROSPECTOS_PROSPECT_PAGESPEED_STRATEGY", "prospectos.prospect.pagespeed.strategy");
+        mappings.put("PROSPECTOS_PROSPECT_PAGESPEED_LOCALE", "prospectos.prospect.pagespeed.locale");
+        mappings.put("PROSPECTOS_PROSPECT_PAGESPEED_TIMEOUT", "prospectos.prospect.pagespeed.timeout");
         mappings.put("PROSPECTOS_LEADS_APIFY_ENABLED", "prospectos.leads.apify.enabled");
         mappings.put("PROSPECTOS_LEADS_APIFY_API_TOKEN", "prospectos.leads.apify.api-token");
         mappings.put("PROSPECTOS_LEADS_APIFY_ACTOR_ID", "prospectos.leads.apify.actor-id");

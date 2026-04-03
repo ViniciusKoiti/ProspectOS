@@ -22,7 +22,7 @@ final class InternalWebsiteAuditor {
         if (!scrapeSucceeded) {
             score -= 35;
             findings.add("Website content could not be extracted reliably.");
-            return new ProspectWebsiteAuditResponse(normalize(score), status(score), secure, false, false, false, findings);
+            return new ProspectWebsiteAuditResponse(normalize(score), status(score), secure, false, false, false, null, findings);
         }
 
         Map<String, Object> data = response.data();
@@ -55,6 +55,7 @@ final class InternalWebsiteAuditor {
             true,
             contactInfoDetected,
             technologySignalsDetected,
+            null,
             findings
         );
     }

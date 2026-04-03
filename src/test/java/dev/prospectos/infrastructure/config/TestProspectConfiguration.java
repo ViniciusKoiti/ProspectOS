@@ -45,6 +45,7 @@ public class TestProspectConfiguration {
                     true,
                     true,
                     false,
+                    null,
                     java.util.List.of("Internal audit identified partial website quality signals.")
                 )
             );

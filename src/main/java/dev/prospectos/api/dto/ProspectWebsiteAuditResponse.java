@@ -9,6 +9,7 @@ public record ProspectWebsiteAuditResponse(
     boolean scrapeSucceeded,
     boolean contactInfoDetected,
     boolean technologySignalsDetected,
+    Integer pageSpeedScore,
     List<String> findings
 ) {
 }

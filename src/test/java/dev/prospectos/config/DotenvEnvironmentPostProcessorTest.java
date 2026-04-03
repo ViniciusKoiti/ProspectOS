@@ -79,6 +79,10 @@ class DotenvEnvironmentPostProcessorTest {
             .isEqualTo("prospectos.leads.google-places.enabled");
         assertThat(mappings.get("PROSPECTOS_LEADS_GOOGLE_PLACES_API_KEY"))
             .isEqualTo("prospectos.leads.google-places.api-key");
+        assertThat(mappings.get("PROSPECTOS_PROSPECT_PAGESPEED_ENABLED"))
+            .isEqualTo("prospectos.prospect.pagespeed.enabled");
+        assertThat(mappings.get("PROSPECTOS_PROSPECT_PAGESPEED_API_KEY"))
+            .isEqualTo("prospectos.prospect.pagespeed.api-key");
         assertThat(mappings.get("DEBUG")).isEqualTo("debug");
         assertThat(mappings.get("LOGGING_LEVEL_DEV_PROSPECTOS_AI_CONFIG"))
             .isEqualTo("logging.level.dev.prospectos.ai.config");
@@ -104,7 +108,11 @@ class DotenvEnvironmentPostProcessorTest {
                 "PROSPECTOS_LEADS_GOOGLE_PLACES_ENABLED=true",
                 "PROSPECTOS_LEADS_GOOGLE_PLACES_API_KEY=google-places-key",
                 "PROSPECTOS_LEADS_GOOGLE_PLACES_LANGUAGE_CODE=en-US",
-                "PROSPECTOS_LEADS_GOOGLE_PLACES_MAX_RESULTS=15"
+                "PROSPECTOS_LEADS_GOOGLE_PLACES_MAX_RESULTS=15",
+                "PROSPECTOS_PROSPECT_PAGESPEED_ENABLED=true",
+                "PROSPECTOS_PROSPECT_PAGESPEED_API_KEY=pagespeed-key",
+                "PROSPECTOS_PROSPECT_PAGESPEED_STRATEGY=desktop",
+                "PROSPECTOS_PROSPECT_PAGESPEED_LOCALE=en-US"
             ) + System.lineSeparator(),
             () -> withTemporarySystemProperties(
                 properties,
@@ -121,6 +129,10 @@ class DotenvEnvironmentPostProcessorTest {
         assertThat(environment.getProperty("prospectos.leads.google-places.api-key")).isEqualTo("google-places-key");
         assertThat(environment.getProperty("prospectos.leads.google-places.language-code")).isEqualTo("en-US");
         assertThat(environment.getProperty("prospectos.leads.google-places.max-results")).isEqualTo("15");
+        assertThat(environment.getProperty("prospectos.prospect.pagespeed.enabled")).isEqualTo("true");
+        assertThat(environment.getProperty("prospectos.prospect.pagespeed.api-key")).isEqualTo("pagespeed-key");
+        assertThat(environment.getProperty("prospectos.prospect.pagespeed.strategy")).isEqualTo("desktop");
+        assertThat(environment.getProperty("prospectos.prospect.pagespeed.locale")).isEqualTo("en-US");
         assertThat(environment.getPropertySources().iterator().next().getName()).isEqualTo("dotenv");
     }
 
@@ -261,5 +273,3 @@ class DotenvEnvironmentPostProcessorTest {
         T get();
     }
 }
-
-

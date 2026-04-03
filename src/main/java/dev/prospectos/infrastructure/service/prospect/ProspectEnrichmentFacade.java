@@ -20,17 +20,22 @@ public class ProspectEnrichmentFacade {
     private final ScraperClientInterface scraperClient;
     private final CompanyEnrichmentService companyEnrichmentService;
     private final ContactProcessor contactProcessor;
+    private final PageSpeedAuditProvider pageSpeedAuditProvider;
     private final ProspectEnrichmentAssembler assembler;
     private final InternalWebsiteAuditor websiteAuditor;
+    private final ProspectWebsiteAuditMerger auditMerger;
 
     public ProspectEnrichmentFacade(ProspectEnrichService prospectEnrichService, ScraperClientInterface scraperClient,
-                                    CompanyEnrichmentService companyEnrichmentService, ContactProcessor contactProcessor) {
+                                    CompanyEnrichmentService companyEnrichmentService, ContactProcessor contactProcessor,
+                                    PageSpeedAuditProvider pageSpeedAuditProvider) {
         this.prospectEnrichService = prospectEnrichService;
         this.scraperClient = scraperClient;
         this.companyEnrichmentService = companyEnrichmentService;
         this.contactProcessor = contactProcessor;
+        this.pageSpeedAuditProvider = pageSpeedAuditProvider;
         this.assembler = new ProspectEnrichmentAssembler();
         this.websiteAuditor = new InternalWebsiteAuditor();
+        this.auditMerger = new ProspectWebsiteAuditMerger();
     }
 
     public ProspectEnrichResponse enrich(ProspectEnrichRequest request) {
@@ -57,7 +62,10 @@ public class ProspectEnrichmentFacade {
             applyEnrichment(company, enrichmentResult);
         }
         String analysis = prospectEnrichService.enrichCompany(company);
-        var audit = websiteAuditor.audit(company.getWebsite().getUrl(), response);
+        var audit = auditMerger.merge(
+            websiteAuditor.audit(company.getWebsite().getUrl(), response),
+            pageSpeedAuditProvider.audit(company.getWebsite().getUrl())
+        );
         return new ProspectEnrichResponse(company.getName(), company.getWebsite().getUrl(), company.getIndustry(), analysis, audit);
     }
 
