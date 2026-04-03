@@ -21,19 +21,24 @@ public class ProspectEnrichmentFacade {
     private final CompanyEnrichmentService companyEnrichmentService;
     private final ContactProcessor contactProcessor;
     private final PageSpeedAuditProvider pageSpeedAuditProvider;
+    private final HunterContactEnrichmentProvider hunterContactEnrichmentProvider;
     private final ProspectEnrichmentAssembler assembler;
+    private final ProspectContactAssembler contactAssembler;
     private final InternalWebsiteAuditor websiteAuditor;
     private final ProspectWebsiteAuditMerger auditMerger;
 
     public ProspectEnrichmentFacade(ProspectEnrichService prospectEnrichService, ScraperClientInterface scraperClient,
                                     CompanyEnrichmentService companyEnrichmentService, ContactProcessor contactProcessor,
-                                    PageSpeedAuditProvider pageSpeedAuditProvider) {
+                                    PageSpeedAuditProvider pageSpeedAuditProvider,
+                                    HunterContactEnrichmentProvider hunterContactEnrichmentProvider) {
         this.prospectEnrichService = prospectEnrichService;
         this.scraperClient = scraperClient;
         this.companyEnrichmentService = companyEnrichmentService;
         this.contactProcessor = contactProcessor;
         this.pageSpeedAuditProvider = pageSpeedAuditProvider;
+        this.hunterContactEnrichmentProvider = hunterContactEnrichmentProvider;
         this.assembler = new ProspectEnrichmentAssembler();
+        this.contactAssembler = new ProspectContactAssembler();
         this.websiteAuditor = new InternalWebsiteAuditor();
         this.auditMerger = new ProspectWebsiteAuditMerger();
     }
@@ -66,7 +71,11 @@ public class ProspectEnrichmentFacade {
             websiteAuditor.audit(company.getWebsite().getUrl(), response),
             pageSpeedAuditProvider.audit(company.getWebsite().getUrl())
         );
-        return new ProspectEnrichResponse(company.getName(), company.getWebsite().getUrl(), company.getIndustry(), analysis, audit);
+        var contacts = contactAssembler.merge(
+            company.getContacts(),
+            hunterContactEnrichmentProvider.findContacts(company.getWebsite().getUrl())
+        );
+        return new ProspectEnrichResponse(company.getName(), company.getWebsite().getUrl(), company.getIndustry(), analysis, audit, contacts);
     }
 
     private void applyEnrichment(Company company, EnrichmentResult enrichmentResult) {

@@ -2,6 +2,7 @@ package dev.prospectos.infrastructure.config;
 
 import dev.prospectos.api.dto.ProspectEnrichRequest;
 import dev.prospectos.api.dto.ProspectEnrichResponse;
+import dev.prospectos.api.dto.ProspectContactResponse;
 import dev.prospectos.api.dto.ProspectWebsiteAuditResponse;
 import dev.prospectos.infrastructure.service.prospect.ProspectEnrichmentFacade;
 import org.springframework.context.annotation.Bean;
@@ -47,7 +48,8 @@ public class TestProspectConfiguration {
                     false,
                     null,
                     java.util.List.of("Internal audit identified partial website quality signals.")
-                )
+                ),
+                java.util.List.of(new ProspectContactResponse("hello@example.com", "Example Contact", "Owner", 80, "hunter"))
             );
         });
 

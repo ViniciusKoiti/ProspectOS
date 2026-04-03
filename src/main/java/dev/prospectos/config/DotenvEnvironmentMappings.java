@@ -35,6 +35,11 @@ final class DotenvEnvironmentMappings {
         mappings.put("PROSPECTOS_PROSPECT_PAGESPEED_STRATEGY", "prospectos.prospect.pagespeed.strategy");
         mappings.put("PROSPECTOS_PROSPECT_PAGESPEED_LOCALE", "prospectos.prospect.pagespeed.locale");
         mappings.put("PROSPECTOS_PROSPECT_PAGESPEED_TIMEOUT", "prospectos.prospect.pagespeed.timeout");
+        mappings.put("PROSPECTOS_PROSPECT_HUNTER_ENABLED", "prospectos.prospect.hunter.enabled");
+        mappings.put("PROSPECTOS_PROSPECT_HUNTER_API_KEY", "prospectos.prospect.hunter.api-key");
+        mappings.put("PROSPECTOS_PROSPECT_HUNTER_BASE_URL", "prospectos.prospect.hunter.base-url");
+        mappings.put("PROSPECTOS_PROSPECT_HUNTER_TIMEOUT", "prospectos.prospect.hunter.timeout");
+        mappings.put("PROSPECTOS_PROSPECT_HUNTER_MAX_RESULTS", "prospectos.prospect.hunter.max-results");
         mappings.put("PROSPECTOS_LEADS_APIFY_ENABLED", "prospectos.leads.apify.enabled");
         mappings.put("PROSPECTOS_LEADS_APIFY_API_TOKEN", "prospectos.leads.apify.api-token");
         mappings.put("PROSPECTOS_LEADS_APIFY_ACTOR_ID", "prospectos.leads.apify.actor-id");

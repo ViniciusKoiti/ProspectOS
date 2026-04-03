@@ -83,6 +83,10 @@ class DotenvEnvironmentPostProcessorTest {
             .isEqualTo("prospectos.prospect.pagespeed.enabled");
         assertThat(mappings.get("PROSPECTOS_PROSPECT_PAGESPEED_API_KEY"))
             .isEqualTo("prospectos.prospect.pagespeed.api-key");
+        assertThat(mappings.get("PROSPECTOS_PROSPECT_HUNTER_ENABLED"))
+            .isEqualTo("prospectos.prospect.hunter.enabled");
+        assertThat(mappings.get("PROSPECTOS_PROSPECT_HUNTER_API_KEY"))
+            .isEqualTo("prospectos.prospect.hunter.api-key");
         assertThat(mappings.get("DEBUG")).isEqualTo("debug");
         assertThat(mappings.get("LOGGING_LEVEL_DEV_PROSPECTOS_AI_CONFIG"))
             .isEqualTo("logging.level.dev.prospectos.ai.config");
@@ -112,7 +116,10 @@ class DotenvEnvironmentPostProcessorTest {
                 "PROSPECTOS_PROSPECT_PAGESPEED_ENABLED=true",
                 "PROSPECTOS_PROSPECT_PAGESPEED_API_KEY=pagespeed-key",
                 "PROSPECTOS_PROSPECT_PAGESPEED_STRATEGY=desktop",
-                "PROSPECTOS_PROSPECT_PAGESPEED_LOCALE=en-US"
+                "PROSPECTOS_PROSPECT_PAGESPEED_LOCALE=en-US",
+                "PROSPECTOS_PROSPECT_HUNTER_ENABLED=true",
+                "PROSPECTOS_PROSPECT_HUNTER_API_KEY=hunter-key",
+                "PROSPECTOS_PROSPECT_HUNTER_MAX_RESULTS=4"
             ) + System.lineSeparator(),
             () -> withTemporarySystemProperties(
                 properties,
@@ -133,6 +140,9 @@ class DotenvEnvironmentPostProcessorTest {
         assertThat(environment.getProperty("prospectos.prospect.pagespeed.api-key")).isEqualTo("pagespeed-key");
         assertThat(environment.getProperty("prospectos.prospect.pagespeed.strategy")).isEqualTo("desktop");
         assertThat(environment.getProperty("prospectos.prospect.pagespeed.locale")).isEqualTo("en-US");
+        assertThat(environment.getProperty("prospectos.prospect.hunter.enabled")).isEqualTo("true");
+        assertThat(environment.getProperty("prospectos.prospect.hunter.api-key")).isEqualTo("hunter-key");
+        assertThat(environment.getProperty("prospectos.prospect.hunter.max-results")).isEqualTo("4");
         assertThat(environment.getPropertySources().iterator().next().getName()).isEqualTo("dotenv");
     }
 

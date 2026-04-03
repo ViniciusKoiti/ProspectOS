@@ -3,6 +3,7 @@ package dev.prospectos.integration;
 import dev.prospectos.ai.client.ScraperClientInterface;
 import dev.prospectos.ai.client.ScrapingResponse;
 import dev.prospectos.api.ProspectEnrichService;
+import dev.prospectos.api.dto.ProspectContactResponse;
 import dev.prospectos.api.dto.ProspectEnrichRequest;
 import dev.prospectos.api.dto.ProspectEnrichResponse;
 import dev.prospectos.core.domain.Company;
@@ -14,6 +15,7 @@ import dev.prospectos.core.enrichment.ContactProcessor;
 import dev.prospectos.core.enrichment.EnrichmentQuality;
 import dev.prospectos.core.enrichment.EnrichmentResult;
 import dev.prospectos.core.enrichment.ValidatedContact;
+import dev.prospectos.infrastructure.service.prospect.HunterContactEnrichmentProvider;
 import dev.prospectos.infrastructure.service.prospect.PageSpeedAuditProvider;
 import dev.prospectos.infrastructure.service.prospect.PageSpeedAuditResult;
 import dev.prospectos.infrastructure.service.prospect.ProspectEnrichmentFacade;
@@ -54,6 +56,9 @@ class ProspectEnrichmentFacadeIntegrationTest {
     @MockitoBean
     private PageSpeedAuditProvider pageSpeedAuditProvider;
 
+    @MockitoBean
+    private HunterContactEnrichmentProvider hunterContactEnrichmentProvider;
+
     @Test
     void enrichNormalizesWebsiteAndAppliesScraperBasedEnrichment() {
         given(scraperClient.scrapeWebsiteSync("https://acme.com", false)).willReturn(new ScrapingResponse(
@@ -85,6 +90,9 @@ class ProspectEnrichmentFacadeIntegrationTest {
             40,
             List.of("PageSpeed indicates poor technical performance on the mobile audit.")
         ));
+        given(hunterContactEnrichmentProvider.findContacts("https://acme.com")).willReturn(List.of(
+            new ProspectContactResponse("owner@acme.com", "Owner Acme", "Founder", 91, "hunter")
+        ));
 
         ProspectEnrichResponse response = facade.enrich(new ProspectEnrichRequest(
             "Acme",
@@ -113,9 +121,13 @@ class ProspectEnrichmentFacadeIntegrationTest {
         assertThat(response.audit().score()).isEqualTo(60);
         assertThat(response.audit().contactInfoDetected()).isTrue();
         assertThat(response.audit().pageSpeedScore()).isEqualTo(40);
+        assertThat(response.contacts()).hasSize(2);
+        assertThat(response.contacts().getFirst().email()).isEqualTo("owner@acme.com");
+        assertThat(response.contacts().get(1).email()).isEqualTo("ceo@acme.com");
 
         verify(scraperClient).scrapeWebsiteSync("https://acme.com", false);
         verify(pageSpeedAuditProvider).audit("https://acme.com");
+        verify(hunterContactEnrichmentProvider).findContacts("https://acme.com");
     }
 
     @Test
@@ -127,6 +139,7 @@ class ProspectEnrichmentFacadeIntegrationTest {
         ));
         given(prospectEnrichService.enrichCompany(any(Company.class))).willReturn("Fallback analysis");
         given(pageSpeedAuditProvider.audit("https://fallback.example.com")).willReturn(PageSpeedAuditResult.unavailable());
+        given(hunterContactEnrichmentProvider.findContacts("https://fallback.example.com")).willReturn(List.of());
 
         ProspectEnrichResponse response = facade.enrich(new ProspectEnrichRequest(
             "Fallback Co",
@@ -152,6 +165,7 @@ class ProspectEnrichmentFacadeIntegrationTest {
         assertThat(response.audit().status()).isEqualTo("REVIEW");
         assertThat(response.audit().scrapeSucceeded()).isFalse();
         assertThat(response.audit().pageSpeedScore()).isNull();
+        assertThat(response.contacts()).isEmpty();
     }
 
     @Test
@@ -179,6 +193,7 @@ class ProspectEnrichmentFacadeIntegrationTest {
         ));
         given(prospectEnrichService.enrichCompany(any(Company.class))).willReturn("Legacy analysis");
         given(pageSpeedAuditProvider.audit("http://legacy.example.com")).willReturn(PageSpeedAuditResult.unavailable());
+        given(hunterContactEnrichmentProvider.findContacts("http://legacy.example.com")).willReturn(List.of());
 
         ProspectEnrichResponse response = facade.enrich(new ProspectEnrichRequest(
             "Legacy Co",
