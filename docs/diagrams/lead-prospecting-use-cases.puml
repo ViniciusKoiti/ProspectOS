@@ -1,0 +1,40 @@
+@startuml
+left to right direction
+title ProspectOS Lead Prospecting Use Cases
+
+actor "Sales Operator" as Sales
+actor "Agency / Consultant" as Agency
+actor "Outbound Team" as Outbound
+
+rectangle "ProspectOS" {
+  usecase "Search Local Businesses" as UC1
+  usecase "Evaluate Website Quality" as UC2
+  usecase "Enrich Company Contacts" as UC3
+  usecase "Review Prioritized Leads" as UC4
+  usecase "Send Outreach Email" as UC5
+  usecase "Operate Human-in-the-Loop Outbound" as UC6
+}
+
+Sales --> UC1
+Sales --> UC2
+Sales --> UC3
+Sales --> UC4
+Sales --> UC5
+Sales --> UC6
+
+Agency --> UC1
+Agency --> UC2
+Agency --> UC4
+
+Outbound --> UC1
+Outbound --> UC3
+Outbound --> UC4
+Outbound --> UC5
+
+UC4 ..> UC1 : <<includes>>
+UC4 ..> UC2 : <<includes>>
+UC4 ..> UC3 : <<includes>>
+UC6 ..> UC4 : <<includes>>
+UC6 ..> UC5 : <<includes>>
+
+@enduml

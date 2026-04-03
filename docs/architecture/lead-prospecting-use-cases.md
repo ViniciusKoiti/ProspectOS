@@ -6,6 +6,7 @@ Describe the current end-to-end flow of ProspectOS from company discovery to out
 Related documents:
 - `docs/architecture/lead-prospecting-pipeline.md`
 - `docs/diagrams/lead-prospecting-end-to-end-flow.puml`
+- `docs/diagrams/lead-prospecting-use-cases.puml`
 
 ## End-to-End Flow
 The current target flow of the application is:
