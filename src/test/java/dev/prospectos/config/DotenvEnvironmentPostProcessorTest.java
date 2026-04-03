@@ -87,6 +87,10 @@ class DotenvEnvironmentPostProcessorTest {
             .isEqualTo("prospectos.prospect.hunter.enabled");
         assertThat(mappings.get("PROSPECTOS_PROSPECT_HUNTER_API_KEY"))
             .isEqualTo("prospectos.prospect.hunter.api-key");
+        assertThat(mappings.get("PROSPECTOS_OUTREACH_RESEND_ENABLED"))
+            .isEqualTo("prospectos.outreach.resend.enabled");
+        assertThat(mappings.get("PROSPECTOS_OUTREACH_RESEND_API_KEY"))
+            .isEqualTo("prospectos.outreach.resend.api-key");
         assertThat(mappings.get("DEBUG")).isEqualTo("debug");
         assertThat(mappings.get("LOGGING_LEVEL_DEV_PROSPECTOS_AI_CONFIG"))
             .isEqualTo("logging.level.dev.prospectos.ai.config");
@@ -119,7 +123,9 @@ class DotenvEnvironmentPostProcessorTest {
                 "PROSPECTOS_PROSPECT_PAGESPEED_LOCALE=en-US",
                 "PROSPECTOS_PROSPECT_HUNTER_ENABLED=true",
                 "PROSPECTOS_PROSPECT_HUNTER_API_KEY=hunter-key",
-                "PROSPECTOS_PROSPECT_HUNTER_MAX_RESULTS=4"
+                "PROSPECTOS_PROSPECT_HUNTER_MAX_RESULTS=4",
+                "PROSPECTOS_OUTREACH_RESEND_ENABLED=true",
+                "PROSPECTOS_OUTREACH_RESEND_API_KEY=resend-key"
             ) + System.lineSeparator(),
             () -> withTemporarySystemProperties(
                 properties,
@@ -143,6 +149,8 @@ class DotenvEnvironmentPostProcessorTest {
         assertThat(environment.getProperty("prospectos.prospect.hunter.enabled")).isEqualTo("true");
         assertThat(environment.getProperty("prospectos.prospect.hunter.api-key")).isEqualTo("hunter-key");
         assertThat(environment.getProperty("prospectos.prospect.hunter.max-results")).isEqualTo("4");
+        assertThat(environment.getProperty("prospectos.outreach.resend.enabled")).isEqualTo("true");
+        assertThat(environment.getProperty("prospectos.outreach.resend.api-key")).isEqualTo("resend-key");
         assertThat(environment.getPropertySources().iterator().next().getName()).isEqualTo("dotenv");
     }
 

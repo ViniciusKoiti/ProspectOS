@@ -40,6 +40,10 @@ final class DotenvEnvironmentMappings {
         mappings.put("PROSPECTOS_PROSPECT_HUNTER_BASE_URL", "prospectos.prospect.hunter.base-url");
         mappings.put("PROSPECTOS_PROSPECT_HUNTER_TIMEOUT", "prospectos.prospect.hunter.timeout");
         mappings.put("PROSPECTOS_PROSPECT_HUNTER_MAX_RESULTS", "prospectos.prospect.hunter.max-results");
+        mappings.put("PROSPECTOS_OUTREACH_RESEND_ENABLED", "prospectos.outreach.resend.enabled");
+        mappings.put("PROSPECTOS_OUTREACH_RESEND_API_KEY", "prospectos.outreach.resend.api-key");
+        mappings.put("PROSPECTOS_OUTREACH_RESEND_BASE_URL", "prospectos.outreach.resend.base-url");
+        mappings.put("PROSPECTOS_OUTREACH_RESEND_TIMEOUT", "prospectos.outreach.resend.timeout");
         mappings.put("PROSPECTOS_LEADS_APIFY_ENABLED", "prospectos.leads.apify.enabled");
         mappings.put("PROSPECTOS_LEADS_APIFY_API_TOKEN", "prospectos.leads.apify.api-token");
         mappings.put("PROSPECTOS_LEADS_APIFY_ACTOR_ID", "prospectos.leads.apify.actor-id");
