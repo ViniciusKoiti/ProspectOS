@@ -29,6 +29,12 @@ final class DotenvEnvironmentMappings {
         mappings.put("PROSPECTOS_LEADS_GOOGLE_PLACES_LANGUAGE_CODE", "prospectos.leads.google-places.language-code");
         mappings.put("PROSPECTOS_LEADS_GOOGLE_PLACES_MAX_RESULTS", "prospectos.leads.google-places.max-results");
         mappings.put("PROSPECTOS_LEADS_GOOGLE_PLACES_FIELD_MASK", "prospectos.leads.google-places.field-mask");
+        mappings.put("PROSPECTOS_LEADS_APIFY_ENABLED", "prospectos.leads.apify.enabled");
+        mappings.put("PROSPECTOS_LEADS_APIFY_API_TOKEN", "prospectos.leads.apify.api-token");
+        mappings.put("PROSPECTOS_LEADS_APIFY_ACTOR_ID", "prospectos.leads.apify.actor-id");
+        mappings.put("PROSPECTOS_LEADS_APIFY_BASE_URL", "prospectos.leads.apify.base-url");
+        mappings.put("PROSPECTOS_LEADS_APIFY_TIMEOUT", "prospectos.leads.apify.timeout");
+        mappings.put("PROSPECTOS_LEADS_APIFY_USE_PROXY", "prospectos.leads.apify.use-apify-proxy");
         mappings.put("OPENAI_API_KEY", "spring.ai.openai.api-key");
         mappings.put("ANTHROPIC_API_KEY", "spring.ai.anthropic.api-key");
         mappings.put("GROQ_API_KEY", "prospectos.ai.groq.api-key");
