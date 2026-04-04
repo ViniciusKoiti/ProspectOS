@@ -7,6 +7,7 @@ import dev.prospectos.api.dto.request.OutreachDeliveryRequest;
 import dev.prospectos.api.dto.response.OutreachDeliveryResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -23,6 +24,7 @@ public class ResendOutreachDeliveryService implements OutreachDeliveryService {
     private final RestTemplate restTemplate;
     private final ResendProperties properties;
 
+    @Autowired
     public ResendOutreachDeliveryService(RestTemplateBuilder restTemplateBuilder, ResendProperties properties) {
         this(restTemplateBuilder.setConnectTimeout(properties.normalizedTimeout()).setReadTimeout(properties.normalizedTimeout()).build(),
             properties);

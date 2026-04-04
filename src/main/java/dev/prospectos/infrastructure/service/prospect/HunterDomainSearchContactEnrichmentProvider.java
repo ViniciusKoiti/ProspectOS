@@ -6,6 +6,7 @@ import java.util.List;
 import dev.prospectos.api.dto.ProspectContactResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
@@ -21,6 +22,7 @@ class HunterDomainSearchContactEnrichmentProvider implements HunterContactEnrich
     private final WebsiteDomainExtractor domainExtractor;
     private final HunterResponseMapper responseMapper;
 
+    @Autowired
     HunterDomainSearchContactEnrichmentProvider(RestTemplateBuilder restTemplateBuilder, HunterProperties properties) {
         this(
             restTemplateBuilder.setConnectTimeout(properties.normalizedTimeout()).setReadTimeout(properties.normalizedTimeout()).build(),
