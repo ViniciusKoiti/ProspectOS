@@ -43,7 +43,8 @@ class SemanticCompanySearchServiceTest {
             128,
             5,
             0.10d,
-            null
+            null,
+            "openai"
         );
         HashingTextEmbeddingService embeddingService = new HashingTextEmbeddingService(properties);
         InMemoryVectorIndex vectorIndex = new InMemoryVectorIndex(embeddingService);

@@ -12,10 +12,12 @@ public record VectorizationProperties(
     Integer embeddingDimension,
     Integer topK,
     Double minSimilarity,
-    PgVectorProperties pgvector
+    PgVectorProperties pgvector,
+    String embeddingProvider
 ) {
     private static final String DEFAULT_BACKEND = "in-memory";
     private static final String DEFAULT_MODEL_ID = "hashing-v1";
+    private static final String DEFAULT_EMBEDDING_PROVIDER = "openai";
     private static final int DEFAULT_EMBEDDING_DIMENSION = 256;
     private static final int DEFAULT_TOP_K = 5;
     private static final double DEFAULT_MIN_SIMILARITY = 0.20d;
@@ -28,6 +30,9 @@ public record VectorizationProperties(
         embeddingDimension = embeddingDimension == null ? DEFAULT_EMBEDDING_DIMENSION : embeddingDimension;
         topK = topK == null ? DEFAULT_TOP_K : topK;
         minSimilarity = minSimilarity == null ? DEFAULT_MIN_SIMILARITY : minSimilarity;
+        embeddingProvider = embeddingProvider == null || embeddingProvider.isBlank()
+            ? DEFAULT_EMBEDDING_PROVIDER
+            : embeddingProvider.trim().toLowerCase();
         pgvector = pgvector == null
             ? new PgVectorProperties(DEFAULT_PGVECTOR_TABLE_NAME, DEFAULT_PGVECTOR_INITIALIZE_SCHEMA)
             : pgvector;
@@ -43,6 +48,11 @@ public record VectorizationProperties(
         }
         if (!"in-memory".equals(backend) && !"pgvector".equals(backend)) {
             throw new IllegalArgumentException("prospectos.vectorization.backend must be one of: in-memory, pgvector");
+        }
+        if (!"openai".equals(embeddingProvider) && !"groq".equals(embeddingProvider)) {
+            throw new IllegalArgumentException(
+                "prospectos.vectorization.embedding-provider must be one of: openai, groq"
+            );
         }
     }
 

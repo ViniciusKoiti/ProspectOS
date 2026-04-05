@@ -26,7 +26,7 @@ class SpringAiVectorStoreIndexTest {
 
     @Test
     void upsert_DeletesBeforeInsert() {
-        VectorizationProperties properties = new VectorizationProperties("pgvector", "test", 128, 5, 0.2d, null);
+        VectorizationProperties properties = new VectorizationProperties("pgvector", "test", 128, 5, 0.2d, null, "openai");
         SpringAiVectorStoreIndex index = new SpringAiVectorStoreIndex(vectorStore, properties);
 
         index.upsert("company:10", "Acme software", Map.of("companyId", 10L));
@@ -37,7 +37,7 @@ class SpringAiVectorStoreIndexTest {
 
     @Test
     void similaritySearch_ReturnsMappedMatches() {
-        VectorizationProperties properties = new VectorizationProperties("pgvector", "test", 128, 5, 0.2d, null);
+        VectorizationProperties properties = new VectorizationProperties("pgvector", "test", 128, 5, 0.2d, null, "openai");
         SpringAiVectorStoreIndex index = new SpringAiVectorStoreIndex(vectorStore, properties);
 
         Document doc = new Document("company:1", "AgileSoft", Map.of("companyId", 1L, "score", 0.93d));

@@ -33,7 +33,7 @@ class PgVectorEmbeddingStartupValidatorTest {
                     rootCause = rootCause.getCause();
                 }
                 assertThat(rootCause).isInstanceOf(IllegalStateException.class);
-                assertThat(rootCause.getMessage()).contains("requires an EmbeddingModel bean");
+                assertThat(rootCause.getMessage()).contains("requires the selected vectorization embedding model");
             });
     }
 
@@ -50,7 +50,7 @@ class PgVectorEmbeddingStartupValidatorTest {
 
     @Configuration
     static class TestEmbeddingConfiguration {
-        @Bean
+        @Bean("vectorizationEmbeddingModel")
         EmbeddingModel embeddingModel() {
             return new EmbeddingModel() {
                 @Override

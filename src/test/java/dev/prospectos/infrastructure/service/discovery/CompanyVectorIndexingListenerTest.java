@@ -19,7 +19,7 @@ class CompanyVectorIndexingListenerTest {
     void onCompanyChanged_DoesNotPropagateIndexingFailure() {
         doThrow(new IllegalStateException("vector down")).when(indexingService).reindexCompany(10L);
 
-        VectorizationProperties properties = new VectorizationProperties("pgvector", "hashing-v1", 128, 5, 0.2d, null);
+        VectorizationProperties properties = new VectorizationProperties("pgvector", "hashing-v1", 128, 5, 0.2d, null, "openai");
         CompanyVectorIndexingListener listener = new CompanyVectorIndexingListener(indexingService, properties);
 
         assertDoesNotThrow(() -> listener.onCompanyChanged(new CompanyVectorReindexRequested(10L)));

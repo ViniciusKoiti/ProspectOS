@@ -127,7 +127,7 @@ class SemanticCompanySearchIntegrationTest {
 
         @Bean
         VectorizationProperties vectorizationProperties() {
-            return new VectorizationProperties("in-memory", "hashing-v1", 128, 5, 0.2d, null);
+            return new VectorizationProperties("in-memory", "hashing-v1", 128, 5, 0.2d, null, "openai");
         }
     }
 }

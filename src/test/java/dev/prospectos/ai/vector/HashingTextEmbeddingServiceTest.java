@@ -16,7 +16,8 @@ class HashingTextEmbeddingServiceTest {
             64,
             5,
             0.2d,
-            null
+            null,
+            "openai"
         );
         HashingTextEmbeddingService service = new HashingTextEmbeddingService(properties);
 
@@ -37,7 +38,8 @@ class HashingTextEmbeddingServiceTest {
             64,
             5,
             0.2d,
-            null
+            null,
+            "openai"
         );
         HashingTextEmbeddingService service = new HashingTextEmbeddingService(properties);
 

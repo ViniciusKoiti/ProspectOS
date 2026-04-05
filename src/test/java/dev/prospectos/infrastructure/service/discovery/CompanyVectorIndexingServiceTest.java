@@ -45,7 +45,7 @@ class CompanyVectorIndexingServiceTest {
         ));
         when(embeddingService.descriptor()).thenReturn(new dev.prospectos.ai.vector.EmbeddingModelDescriptor("mock", 128));
 
-        VectorizationProperties properties = new VectorizationProperties("in-memory", "mock", 128, 5, 0.2d, null);
+        VectorizationProperties properties = new VectorizationProperties("in-memory", "mock", 128, 5, 0.2d, null, "openai");
         CompanyVectorIndexingService service = new CompanyVectorIndexingService(
             companyDataService,
             embeddingService,
@@ -67,7 +67,7 @@ class CompanyVectorIndexingServiceTest {
     @Test
     void reindexCompany_DeletesVectorWhenCompanyNoLongerExists() {
         when(companyDataService.findCompany(2L)).thenReturn(null);
-        VectorizationProperties properties = new VectorizationProperties("in-memory", "mock", 128, 5, 0.2d, null);
+        VectorizationProperties properties = new VectorizationProperties("in-memory", "mock", 128, 5, 0.2d, null, "openai");
         CompanyVectorIndexingService service = new CompanyVectorIndexingService(
             companyDataService,
             embeddingService,

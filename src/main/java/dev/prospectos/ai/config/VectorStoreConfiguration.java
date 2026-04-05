@@ -12,6 +12,7 @@ import org.springframework.ai.document.Document;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -70,8 +71,8 @@ public class VectorStoreConfiguration {
         havingValue = "pgvector"
     )
     @ConditionalOnMissingBean(VectorStore.class)
-    @ConditionalOnBean(EmbeddingModel.class)
-    public VectorStore productionVectorStore(EmbeddingModel embeddingModel) {
+    @ConditionalOnBean(name = "vectorizationEmbeddingModel")
+    public VectorStore productionVectorStore(@Qualifier("vectorizationEmbeddingModel") EmbeddingModel embeddingModel) {
         log.info("Creating fallback SimpleVectorStore for production environment");
         log.warn("PgVector VectorStore integration not yet implemented, using SimpleVectorStore");
         return SimpleVectorStore.builder(embeddingModel).build();
