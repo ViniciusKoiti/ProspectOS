@@ -3,7 +3,6 @@ package dev.prospectos.ai.factory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
@@ -11,6 +10,7 @@ import dev.prospectos.ai.client.LLMClient;
 import dev.prospectos.ai.client.LLMProvider;
 import dev.prospectos.ai.client.impl.SpringAIToolResolver;
 import dev.prospectos.ai.config.AIProviderActivationProperties;
+import dev.prospectos.ai.config.AIProviderCredentials;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
@@ -19,12 +19,6 @@ import java.util.function.Function;
 @Slf4j
 @Component
 public class LLMClientFactory {
-    @Value("${spring.ai.openai.api-key:}")
-    private String openaiKey;
-    @Value("${spring.ai.anthropic.api-key:}")
-    private String anthropicKey;
-    @Value("${prospectos.ai.groq.api-key:}")
-    private String groqKey;
     private final Environment environment;
     private final AIProviderActivationProperties activationProperties;
     private final LLMProviderAvailabilityChecker availabilityChecker;
@@ -37,12 +31,12 @@ public class LLMClientFactory {
         @Qualifier("groqScoringChatClient") ObjectProvider<ChatClient> groqScoringChatClient,
         Environment environment,
         AIProviderActivationProperties activationProperties,
+        AIProviderCredentials credentials,
         Map<String, Function<?, ?>> functionTools
     ) {
         this.environment = environment;
         this.activationProperties = activationProperties;
-        this.availabilityChecker =
-            new LLMProviderAvailabilityChecker(() -> openaiKey, () -> anthropicKey, () -> groqKey);
+        this.availabilityChecker = new LLMProviderAvailabilityChecker(credentials);
         this.clientCreator = new LLMClientCreator(
             chatClient,
             scoringChatClient,
@@ -50,25 +44,6 @@ public class LLMClientFactory {
             groqScoringChatClient,
             availabilityChecker,
             new SpringAIToolResolver(Map.copyOf(functionTools))
-        );
-    }
-
-    LLMClientFactory(
-        ObjectProvider<ChatClient> chatClient,
-        ObjectProvider<ChatClient> scoringChatClient,
-        ObjectProvider<ChatClient> groqChatClient,
-        ObjectProvider<ChatClient> groqScoringChatClient,
-        Environment environment,
-        AIProviderActivationProperties activationProperties
-    ) {
-        this(
-            chatClient,
-            scoringChatClient,
-            groqChatClient,
-            groqScoringChatClient,
-            environment,
-            activationProperties,
-            Map.of()
         );
     }
 

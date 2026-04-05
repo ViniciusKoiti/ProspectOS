@@ -4,6 +4,7 @@ import dev.prospectos.ai.client.LLMClient;
 import dev.prospectos.ai.client.LLMProvider;
 import dev.prospectos.ai.client.impl.MockLLMClient;
 import dev.prospectos.ai.config.AIProviderActivationProperties;
+import dev.prospectos.ai.config.AIProviderCredentials;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -12,9 +13,9 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.env.Environment;
 import org.springframework.mock.env.MockEnvironment;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
@@ -66,9 +67,11 @@ class LLMClientFactoryTest {
 
     @Test
     void createBestAvailableClientPrefersFirstActiveAvailableProviderOutsideTestEnvironment() {
-        LLMClientFactory factory = factory(new MockEnvironment(), List.of(LLMProvider.GROQ, LLMProvider.OPENAI));
-        ReflectionTestUtils.setField(factory, "groqKey", "gsk-live-key");
-        ReflectionTestUtils.setField(factory, "openaiKey", "sk-live-key");
+        LLMClientFactory factory = factory(
+            new MockEnvironment(),
+            List.of(LLMProvider.GROQ, LLMProvider.OPENAI),
+            new AIProviderCredentials("sk-live-key", "", "gsk-live-key")
+        );
 
         LLMClient client = FactoryCallSupport.bestAvailableClient(factory);
 
@@ -78,9 +81,11 @@ class LLMClientFactoryTest {
 
     @Test
     void createBestAvailableClientFallsBackToOpenAiWhenGroqIsInvalid() {
-        LLMClientFactory factory = factory(new MockEnvironment(), List.of(LLMProvider.GROQ, LLMProvider.OPENAI));
-        ReflectionTestUtils.setField(factory, "groqKey", "mock-key");
-        ReflectionTestUtils.setField(factory, "openaiKey", "sk-live-key");
+        LLMClientFactory factory = factory(
+            new MockEnvironment(),
+            List.of(LLMProvider.GROQ, LLMProvider.OPENAI),
+            new AIProviderCredentials("sk-live-key", "", "mock-key")
+        );
 
         LLMClient client = FactoryCallSupport.bestAvailableClient(factory);
 
@@ -90,8 +95,11 @@ class LLMClientFactoryTest {
 
     @Test
     void createBestAvailableScoringClientUsesGroqScoringClientWhenConfigured() {
-        LLMClientFactory factory = factory(new MockEnvironment(), List.of(LLMProvider.GROQ, LLMProvider.OPENAI));
-        ReflectionTestUtils.setField(factory, "groqKey", "gsk-live-key");
+        LLMClientFactory factory = factory(
+            new MockEnvironment(),
+            List.of(LLMProvider.GROQ, LLMProvider.OPENAI),
+            new AIProviderCredentials("", "", "gsk-live-key")
+        );
 
         LLMClient client = FactoryCallSupport.invoke(factory::createScoringClient);
 
@@ -117,9 +125,10 @@ class LLMClientFactoryTest {
             provider(null),
             provider(null),
             new MockEnvironment(),
-            new AIProviderActivationProperties("openai")
+            new AIProviderActivationProperties("openai"),
+            new AIProviderCredentials("sk-live-key", "", ""),
+            Map.of()
         );
-        ReflectionTestUtils.setField(factory, "openaiKey", "sk-live-key");
 
         LLMClient client = FactoryCallSupport.createClient(factory, LLMProvider.OPENAI);
 
@@ -128,17 +137,20 @@ class LLMClientFactoryTest {
     }
 
     private LLMClientFactory factory(Environment environment, List<LLMProvider> providers) {
+        return factory(environment, providers, new AIProviderCredentials("", "", ""));
+    }
+
+    private LLMClientFactory factory(Environment environment, List<LLMProvider> providers, AIProviderCredentials credentials) {
         LLMClientFactory factory = new LLMClientFactory(
             provider(chatClient),
             provider(scoringChatClient),
             provider(groqChatClient),
             provider(groqScoringChatClient),
             environment,
-            new AIProviderActivationProperties(joinProviders(providers))
+            new AIProviderActivationProperties(joinProviders(providers)),
+            credentials,
+            Map.of()
         );
-        ReflectionTestUtils.setField(factory, "openaiKey", "");
-        ReflectionTestUtils.setField(factory, "anthropicKey", "");
-        ReflectionTestUtils.setField(factory, "groqKey", "");
         return factory;
     }
 

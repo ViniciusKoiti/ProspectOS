@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -17,18 +16,11 @@ import org.springframework.context.annotation.Profile;
 public class ChatClientConfig {
 
     private final AIProviderActivationProperties activationProperties;
-    
-    @Value("${spring.ai.openai.api-key:}")
-    private String openaiKey;
-    
-    @Value("${spring.ai.anthropic.api-key:}")
-    private String anthropicKey;
+    private final AIProviderCredentials credentials;
 
-    @Value("${prospectos.ai.groq.api-key:}")
-    private String groqKey;
-
-    public ChatClientConfig(AIProviderActivationProperties activationProperties) {
+    public ChatClientConfig(AIProviderActivationProperties activationProperties, AIProviderCredentials credentials) {
         this.activationProperties = activationProperties;
+        this.credentials = credentials;
     }
     
     /**
@@ -42,9 +34,9 @@ public class ChatClientConfig {
         @Qualifier("anthropicChatModel") @Autowired(required = false) ChatModel anthropicChatModel
     ) {
         log.info("Selecting primary ChatModel. OpenAI key set: {}, Groq key set: {}, Anthropic key set: {}",
-            isValidApiKey(openaiKey),
-            isValidApiKey(groqKey),
-            isValidApiKey(anthropicKey));
+            credentials.hasValidOpenAiKey(),
+            credentials.hasValidGroqKey(),
+            credentials.hasValidAnthropicKey());
         log.info("ChatModel beans present. OpenAI: {}, Groq: {}, Anthropic: {}",
             openAiChatModel != null,
             groqChatModel != null,
@@ -53,9 +45,9 @@ public class ChatClientConfig {
 
         for (LLMProvider provider : activationProperties.activeProviders()) {
             boolean keyValid = switch (provider) {
-                case OPENAI -> isValidApiKey(openaiKey);
-                case GROQ -> isValidApiKey(groqKey);
-                case ANTHROPIC -> isValidApiKey(anthropicKey);
+                case OPENAI -> credentials.hasValidOpenAiKey();
+                case GROQ -> credentials.hasValidGroqKey();
+                case ANTHROPIC -> credentials.hasValidAnthropicKey();
                 default -> false;
             };
             ChatModel candidate = switch (provider) {
@@ -77,20 +69,5 @@ public class ChatClientConfig {
                 + AIConfigurationProperties.ACTIVE_PROVIDERS
                 + ", provider API keys, and Spring AI provider bootstrap flags."
         );
-    }
-
-    private boolean isValidApiKey(String key) {
-        if (key == null || key.trim().isEmpty()) {
-            return false;
-        }
-
-        String trimmedKey = key.trim();
-
-        return !trimmedKey.equals("test-key")
-                && !trimmedKey.equals("dummy-key")
-                && !trimmedKey.equals("fake-key")
-                && !trimmedKey.equals("mock-key")
-                && !trimmedKey.startsWith("sk-test-")
-                && !trimmedKey.matches("(?i)test.*|mock.*|fake.*|dummy.*|dev.*");
     }
 }
