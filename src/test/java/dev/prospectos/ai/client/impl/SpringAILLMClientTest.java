@@ -7,6 +7,7 @@ import dev.prospectos.ai.dto.ScoringResult;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.chat.client.ChatClient;
 
+import java.util.Map;
 import java.lang.reflect.Proxy;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -51,9 +52,15 @@ class SpringAILLMClientTest {
 
     @Test
     void queryWithFunctionsUsesChatClientWhenAvailable() {
-        SpringAILLMClient client = new SpringAILLMClient(chatClient("function-response", null, null), LLMProvider.GROQ, true);
+        SpringAILLMClient client = new SpringAILLMClient(
+            chatClient("function-response", null, null),
+            LLMProvider.GROQ,
+            true,
+            new dev.prospectos.ai.client.LlmScoringResponseConverter(new dev.prospectos.ai.client.LlmStructuredResponseSanitizer()),
+            new SpringAIToolResolver(Map.of("scrapeWebsite", (java.util.function.Function<String, String>) value -> value))
+        );
 
-        assertThat(client.queryWithFunctions("prompt", "scrapeWebsite", "searchCompanyNews"))
+        assertThat(client.queryWithFunctions("prompt", "scrapeWebsite"))
             .isEqualTo("function-response");
     }
 
@@ -66,9 +73,22 @@ class SpringAILLMClientTest {
 
     @Test
     void queryWithFunctionsReturnsErrorMessageWhenChatClientFails() {
-        SpringAILLMClient client = new SpringAILLMClient(chatClient(null, null, new RuntimeException("boom")), LLMProvider.GROQ, true);
+        SpringAILLMClient client = new SpringAILLMClient(
+            chatClient(null, null, new RuntimeException("boom")),
+            LLMProvider.GROQ,
+            true,
+            new dev.prospectos.ai.client.LlmScoringResponseConverter(new dev.prospectos.ai.client.LlmStructuredResponseSanitizer()),
+            new SpringAIToolResolver(Map.of("scrapeWebsite", (java.util.function.Function<String, String>) value -> value))
+        );
 
         assertThat(client.queryWithFunctions("prompt", "scrapeWebsite")).isEqualTo("Error: boom");
+    }
+
+    @Test
+    void queryWithFunctionsFallsBackToPlainQueryWhenToolsCannotBeResolved() {
+        SpringAILLMClient client = new SpringAILLMClient(chatClient("plain-response", null, null), LLMProvider.GROQ, true);
+
+        assertThat(client.queryWithFunctions("prompt", "scrapeWebsite")).isEqualTo("plain-response");
     }
 
     @Test

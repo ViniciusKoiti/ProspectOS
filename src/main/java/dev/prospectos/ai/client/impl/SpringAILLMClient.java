@@ -16,17 +16,31 @@ public class SpringAILLMClient implements LLMClient {
     private final LLMProvider provider;
     private final boolean available;
     private final LlmScoringResponseConverter scoringResponseConverter;
+    private final SpringAIToolResolver toolResolver;
 
     public SpringAILLMClient(ChatClient chatClient, LLMProvider provider, boolean available) {
-        this(chatClient, provider, available, new LlmScoringResponseConverter(new LlmStructuredResponseSanitizer()));
+        this(
+            chatClient,
+            provider,
+            available,
+            new LlmScoringResponseConverter(new LlmStructuredResponseSanitizer()),
+            SpringAIToolResolver.empty()
+        );
     }
 
     public SpringAILLMClient(ChatClient chatClient, LLMProvider provider, boolean available,
                              LlmScoringResponseConverter scoringResponseConverter) {
+        this(chatClient, provider, available, scoringResponseConverter, SpringAIToolResolver.empty());
+    }
+
+    public SpringAILLMClient(ChatClient chatClient, LLMProvider provider, boolean available,
+                             LlmScoringResponseConverter scoringResponseConverter,
+                             SpringAIToolResolver toolResolver) {
         this.chatClient = chatClient;
         this.provider = provider;
         this.available = available;
         this.scoringResponseConverter = scoringResponseConverter;
+        this.toolResolver = toolResolver;
     }
 
     @Override
@@ -50,10 +64,15 @@ public class SpringAILLMClient implements LLMClient {
         }
         try {
             log.debug("Executing query with functions on {}: {}", provider.getDisplayName(), String.join(", ", functions));
-            return chatClient.prompt().user(prompt).tools((Object[]) functions).call().content();
+            Object[] tools = toolResolver.resolve(functions);
+            if (tools.length == 0) {
+                log.warn("No registered Spring AI tools resolved for {}. Falling back to plain query.", String.join(", ", functions));
+                return query(prompt);
+            }
+            return chatClient.prompt().user(prompt).tools(tools).call().content();
         } catch (Exception e) {
-            log.error("LLM query with functions error: {}", e.getMessage());
-            return "Error: " + e.getMessage();
+            log.error("LLM query with functions error: {}. Falling back to plain query.", e.getMessage());
+            return query(prompt);
         }
     }
 

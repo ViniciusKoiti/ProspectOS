@@ -104,17 +104,17 @@ class ProspectEnrichmentFacadeIntegrationTest {
         verify(prospectEnrichService).enrichCompany(companyCaptor.capture());
 
         Company enrichedCompany = companyCaptor.getValue();
-        assertThat(enrichedCompany.getName()).isEqualTo("Acme Corp");
+        assertThat(enrichedCompany.getName()).isEqualTo("Acme");
         assertThat(enrichedCompany.getWebsite().getUrl()).isEqualTo("https://acme.com");
-        assertThat(enrichedCompany.getIndustry()).isEqualTo("SaaS");
+        assertThat(enrichedCompany.getIndustry()).isEqualTo("Technology");
         assertThat(enrichedCompany.getDescription()).isEqualTo("Clean description");
         assertThat(enrichedCompany.getSize()).isEqualTo(CompanySize.MEDIUM);
         assertThat(enrichedCompany.getContacts()).hasSize(1);
         assertThat(enrichedCompany.getContacts().getFirst().getEmail().getAddress()).isEqualTo("ceo@acme.com");
 
-        assertThat(response.name()).isEqualTo("Acme Corp");
+        assertThat(response.name()).isEqualTo("Acme");
         assertThat(response.website()).isEqualTo("https://acme.com");
-        assertThat(response.industry()).isEqualTo("SaaS");
+        assertThat(response.industry()).isEqualTo("Technology");
         assertThat(response.analysis()).isEqualTo("Strong fit");
         assertThat(response.audit()).isNotNull();
         assertThat(response.audit().status()).isEqualTo("REVIEW");

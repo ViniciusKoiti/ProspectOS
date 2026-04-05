@@ -9,12 +9,12 @@ final class ProspectEnrichmentAssembler {
 
     EnrichmentRequest mergeWithRequest(EnrichmentRequest enrichmentRequest, String fallbackName, String fallbackIndustry) {
         return new EnrichmentRequest(
-            firstNonBlank(enrichmentRequest.companyName(), fallbackName),
+            firstNonBlank(fallbackName, enrichmentRequest.companyName()),
             enrichmentRequest.description(),
             enrichmentRequest.emails(),
             enrichmentRequest.phone(),
             enrichmentRequest.technologies(),
-            firstNonBlank(enrichmentRequest.industry(), fallbackIndustry),
+            firstNonBlank(fallbackIndustry, enrichmentRequest.industry()),
             enrichmentRequest.size(),
             enrichmentRequest.recentNews(),
             enrichmentRequest.website()
@@ -26,8 +26,8 @@ final class ProspectEnrichmentAssembler {
         String industry = fallbackIndustry;
         Website website = Website.of(websiteUrl);
         if (enrichmentResult != null) {
-            name = firstNonBlank(enrichmentResult.normalizedCompanyName(), name);
-            industry = firstNonBlank(enrichmentResult.standardizedIndustry(), industry);
+            name = firstNonBlank(name, enrichmentResult.normalizedCompanyName());
+            industry = firstNonBlank(industry, enrichmentResult.standardizedIndustry());
             if (enrichmentResult.website() != null) {
                 website = enrichmentResult.website();
             }

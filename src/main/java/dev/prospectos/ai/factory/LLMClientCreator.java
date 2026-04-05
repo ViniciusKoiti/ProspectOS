@@ -2,8 +2,11 @@ package dev.prospectos.ai.factory;
 
 import dev.prospectos.ai.client.LLMClient;
 import dev.prospectos.ai.client.LLMProvider;
+import dev.prospectos.ai.client.LlmScoringResponseConverter;
+import dev.prospectos.ai.client.LlmStructuredResponseSanitizer;
 import dev.prospectos.ai.client.impl.MockLLMClient;
 import dev.prospectos.ai.client.impl.SpringAILLMClient;
+import dev.prospectos.ai.client.impl.SpringAIToolResolver;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.ObjectProvider;
 
@@ -14,19 +17,22 @@ final class LLMClientCreator {
     private final ObjectProvider<ChatClient> groqChatClient;
     private final ObjectProvider<ChatClient> groqScoringChatClient;
     private final LLMProviderAvailabilityChecker availabilityChecker;
+    private final SpringAIToolResolver toolResolver;
 
     LLMClientCreator(
         ObjectProvider<ChatClient> chatClient,
         ObjectProvider<ChatClient> scoringChatClient,
         ObjectProvider<ChatClient> groqChatClient,
         ObjectProvider<ChatClient> groqScoringChatClient,
-        LLMProviderAvailabilityChecker availabilityChecker
+        LLMProviderAvailabilityChecker availabilityChecker,
+        SpringAIToolResolver toolResolver
     ) {
         this.chatClient = chatClient;
         this.scoringChatClient = scoringChatClient;
         this.groqChatClient = groqChatClient;
         this.groqScoringChatClient = groqScoringChatClient;
         this.availabilityChecker = availabilityChecker;
+        this.toolResolver = toolResolver;
     }
 
     LLMClient createProviderClient(LLMProvider provider, boolean scoring) {
@@ -39,7 +45,9 @@ final class LLMClientCreator {
         }
         boolean available = availabilityChecker.isProviderAvailable(provider);
         ChatClient client = providerClient.getIfAvailable();
-        return new SpringAILLMClient(client, provider, client != null && available);
+        return new SpringAILLMClient(client, provider, client != null && available,
+            new LlmScoringResponseConverter(new LlmStructuredResponseSanitizer()),
+            toolResolver);
     }
 
     LLMClient createMockClient() {

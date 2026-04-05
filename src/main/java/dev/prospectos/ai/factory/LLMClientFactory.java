@@ -9,8 +9,12 @@ import org.springframework.stereotype.Component;
 
 import dev.prospectos.ai.client.LLMClient;
 import dev.prospectos.ai.client.LLMProvider;
+import dev.prospectos.ai.client.impl.SpringAIToolResolver;
 import dev.prospectos.ai.config.AIProviderActivationProperties;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.Map;
+import java.util.function.Function;
 
 @Slf4j
 @Component
@@ -32,7 +36,8 @@ public class LLMClientFactory {
         @Qualifier("groqChatClient") ObjectProvider<ChatClient> groqChatClient,
         @Qualifier("groqScoringChatClient") ObjectProvider<ChatClient> groqScoringChatClient,
         Environment environment,
-        AIProviderActivationProperties activationProperties
+        AIProviderActivationProperties activationProperties,
+        Map<String, Function<?, ?>> functionTools
     ) {
         this.environment = environment;
         this.activationProperties = activationProperties;
@@ -43,7 +48,27 @@ public class LLMClientFactory {
             scoringChatClient,
             groqChatClient,
             groqScoringChatClient,
-            availabilityChecker
+            availabilityChecker,
+            new SpringAIToolResolver(Map.copyOf(functionTools))
+        );
+    }
+
+    LLMClientFactory(
+        ObjectProvider<ChatClient> chatClient,
+        ObjectProvider<ChatClient> scoringChatClient,
+        ObjectProvider<ChatClient> groqChatClient,
+        ObjectProvider<ChatClient> groqScoringChatClient,
+        Environment environment,
+        AIProviderActivationProperties activationProperties
+    ) {
+        this(
+            chatClient,
+            scoringChatClient,
+            groqChatClient,
+            groqScoringChatClient,
+            environment,
+            activationProperties,
+            Map.of()
         );
     }
 
