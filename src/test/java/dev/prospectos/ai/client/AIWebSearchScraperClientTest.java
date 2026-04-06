@@ -4,7 +4,6 @@ import dev.prospectos.ai.config.ScraperProperties;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.lang.reflect.Proxy;
 import java.time.Duration;
@@ -22,7 +21,7 @@ class AIWebSearchScraperClientTest {
     @AfterEach
     void tearDown() {
         if (client != null) {
-            ((java.util.concurrent.ExecutorService) ReflectionTestUtils.getField(client, "executorService")).shutdownNow();
+            client.shutdownExecutor();
         }
     }
 
@@ -63,8 +62,7 @@ class AIWebSearchScraperClientTest {
         ScrapingResponse response = client.scrapeWebsiteSync("https://acme.com", false);
 
         assertThat(response.success()).isFalse();
-        assertThat(response.error()).contains("after 2 attempts");
-        assertThat(response.error()).contains("boom");
+        assertThat(response.error()).isEqualTo("AI web search failed for https://acme.com after 2 attempts: boom");
     }
 
     @Test
