@@ -3,17 +3,21 @@ package dev.prospectos.ai.client;
 import dev.prospectos.ai.config.ScraperProperties;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ai.chat.client.ChatClient;
 
-import java.lang.reflect.Proxy;
 import java.time.Duration;
 import java.util.ArrayDeque;
 import java.util.List;
-import java.util.Map;
 import java.util.Queue;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class AIWebSearchScraperClientTest {
 
     private AIWebSearchScraperClient client;
@@ -97,48 +101,29 @@ class AIWebSearchScraperClientTest {
 
     private ChatClient chatClient(String... contents) {
         Queue<Object> queue = new ArrayDeque<>(List.of(contents));
-        return proxyClient(queue);
+        return stubChatClient(queue);
     }
 
     private ChatClient failingChatClient(RuntimeException... failures) {
         Queue<Object> queue = new ArrayDeque<>(List.of(failures));
-        return proxyClient(queue);
+        return stubChatClient(queue);
     }
 
-    private ChatClient proxyClient(Queue<Object> queue) {
-        Object responseSpec = Proxy.newProxyInstance(
-            getClass().getClassLoader(),
-            new Class[]{ChatClient.CallResponseSpec.class},
-            (proxy, method, args) -> {
-                if ("content".equals(method.getName())) {
-                    Object next = queue.remove();
-                    if (next instanceof RuntimeException runtimeException) {
-                        throw runtimeException;
-                    }
-                    return next;
-                }
-                return null;
-            }
-        );
+    private ChatClient stubChatClient(Queue<Object> queue) {
+        ChatClient chatClient = mock(ChatClient.class);
+        ChatClient.ChatClientRequestSpec requestSpec = mock(ChatClient.ChatClientRequestSpec.class);
+        ChatClient.CallResponseSpec responseSpec = mock(ChatClient.CallResponseSpec.class);
 
-        Object requestSpec = Proxy.newProxyInstance(
-            getClass().getClassLoader(),
-            new Class[]{ChatClient.ChatClientRequestSpec.class},
-            (proxy, method, args) -> switch (method.getName()) {
-                case "call" -> responseSpec;
-                case "mutate" -> null;
-                default -> proxy;
+        when(chatClient.prompt(anyString())).thenReturn(requestSpec);
+        when(requestSpec.call()).thenReturn(responseSpec);
+        when(responseSpec.content()).thenAnswer(invocation -> {
+            Object next = queue.remove();
+            if (next instanceof RuntimeException runtimeException) {
+                throw runtimeException;
             }
-        );
+            return next;
+        });
 
-        return (ChatClient) Proxy.newProxyInstance(
-            getClass().getClassLoader(),
-            new Class[]{ChatClient.class},
-            (proxy, method, args) -> switch (method.getName()) {
-                case "prompt" -> requestSpec;
-                case "mutate" -> null;
-                default -> null;
-            }
-        );
+        return chatClient;
     }
 }
