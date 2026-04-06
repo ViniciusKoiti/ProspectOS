@@ -1,20 +1,29 @@
 package dev.prospectos.infrastructure.service.prospect;
 
-import java.net.URI;
+import org.springframework.stereotype.Component;
 
-final class WebsiteDomainExtractor {
+import java.net.URI;
+import java.net.URISyntaxException;
+
+@Component
+public final class WebsiteDomainExtractor {
 
     String extract(String website) {
         if (website == null || website.isBlank()) {
             return null;
         }
+        String normalized = website.trim();
+        if (!normalized.startsWith("http://") && !normalized.startsWith("https://")) {
+            normalized = "https://" + normalized;
+        }
         try {
-            String host = URI.create(website.trim()).getHost();
-            if (host == null || host.isBlank()) {
+            URI uri = new URI(normalized);
+            String host = uri.getHost();
+            if (host == null || host.isBlank() || !host.contains(".")) {
                 return null;
             }
             return host.startsWith("www.") ? host.substring(4) : host;
-        } catch (IllegalArgumentException exception) {
+        } catch (URISyntaxException exception) {
             return null;
         }
     }

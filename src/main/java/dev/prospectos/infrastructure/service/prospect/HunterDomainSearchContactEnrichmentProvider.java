@@ -23,12 +23,13 @@ class HunterDomainSearchContactEnrichmentProvider implements HunterContactEnrich
     private final HunterResponseMapper responseMapper;
 
     @Autowired
-    HunterDomainSearchContactEnrichmentProvider(RestTemplateBuilder restTemplateBuilder, HunterProperties properties) {
+    HunterDomainSearchContactEnrichmentProvider(RestTemplateBuilder restTemplateBuilder, HunterProperties properties,
+                                                WebsiteDomainExtractor domainExtractor, HunterResponseMapper responseMapper) {
         this(
             restTemplateBuilder.setConnectTimeout(properties.normalizedTimeout()).setReadTimeout(properties.normalizedTimeout()).build(),
             properties,
-            new WebsiteDomainExtractor(),
-            new HunterResponseMapper()
+            domainExtractor,
+            responseMapper
         );
     }
 
