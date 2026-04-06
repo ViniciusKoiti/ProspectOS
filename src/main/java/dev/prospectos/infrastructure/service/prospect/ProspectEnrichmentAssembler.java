@@ -4,8 +4,10 @@ import dev.prospectos.core.domain.Company;
 import dev.prospectos.core.domain.Website;
 import dev.prospectos.core.enrichment.EnrichmentRequest;
 import dev.prospectos.core.enrichment.EnrichmentResult;
+import org.springframework.stereotype.Component;
 
-final class ProspectEnrichmentAssembler {
+@Component
+public final class ProspectEnrichmentAssembler {
 
     EnrichmentRequest mergeWithRequest(EnrichmentRequest enrichmentRequest, String fallbackName, String fallbackIndustry) {
         return new EnrichmentRequest(

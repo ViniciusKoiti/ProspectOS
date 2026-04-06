@@ -30,17 +30,21 @@ public class ProspectEnrichmentFacade {
     public ProspectEnrichmentFacade(ProspectEnrichService prospectEnrichService, ScraperClientInterface scraperClient,
                                     CompanyEnrichmentService companyEnrichmentService, ContactProcessor contactProcessor,
                                     PageSpeedAuditProvider pageSpeedAuditProvider,
-                                    HunterContactEnrichmentProvider hunterContactEnrichmentProvider) {
+                                    HunterContactEnrichmentProvider hunterContactEnrichmentProvider,
+                                    ProspectEnrichmentAssembler assembler,
+                                    ProspectContactAssembler contactAssembler,
+                                    InternalWebsiteAuditor websiteAuditor,
+                                    ProspectWebsiteAuditMerger auditMerger) {
         this.prospectEnrichService = prospectEnrichService;
         this.scraperClient = scraperClient;
         this.companyEnrichmentService = companyEnrichmentService;
         this.contactProcessor = contactProcessor;
         this.pageSpeedAuditProvider = pageSpeedAuditProvider;
         this.hunterContactEnrichmentProvider = hunterContactEnrichmentProvider;
-        this.assembler = new ProspectEnrichmentAssembler();
-        this.contactAssembler = new ProspectContactAssembler();
-        this.websiteAuditor = new InternalWebsiteAuditor();
-        this.auditMerger = new ProspectWebsiteAuditMerger();
+        this.assembler = assembler;
+        this.contactAssembler = contactAssembler;
+        this.websiteAuditor = websiteAuditor;
+        this.auditMerger = auditMerger;
     }
 
     public ProspectEnrichResponse enrich(ProspectEnrichRequest request) {

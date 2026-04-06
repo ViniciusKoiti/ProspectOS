@@ -16,9 +16,13 @@ import dev.prospectos.core.enrichment.EnrichmentQuality;
 import dev.prospectos.core.enrichment.EnrichmentResult;
 import dev.prospectos.core.enrichment.ValidatedContact;
 import dev.prospectos.infrastructure.service.prospect.HunterContactEnrichmentProvider;
+import dev.prospectos.infrastructure.service.prospect.InternalWebsiteAuditor;
 import dev.prospectos.infrastructure.service.prospect.PageSpeedAuditProvider;
 import dev.prospectos.infrastructure.service.prospect.PageSpeedAuditResult;
+import dev.prospectos.infrastructure.service.prospect.ProspectContactAssembler;
+import dev.prospectos.infrastructure.service.prospect.ProspectEnrichmentAssembler;
 import dev.prospectos.infrastructure.service.prospect.ProspectEnrichmentFacade;
+import dev.prospectos.infrastructure.service.prospect.ProspectWebsiteAuditMerger;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +41,11 @@ import static org.mockito.Mockito.verify;
 
 @SpringBootTest(classes = {
     ProspectEnrichmentFacade.class,
-    ContactProcessor.class
+    ContactProcessor.class,
+    ProspectEnrichmentAssembler.class,
+    ProspectContactAssembler.class,
+    InternalWebsiteAuditor.class,
+    ProspectWebsiteAuditMerger.class
 })
 class ProspectEnrichmentFacadeIntegrationTest {
 

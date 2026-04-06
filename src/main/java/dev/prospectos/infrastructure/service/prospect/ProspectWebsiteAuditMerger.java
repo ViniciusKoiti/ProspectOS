@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import dev.prospectos.api.dto.ProspectWebsiteAuditResponse;
+import org.springframework.stereotype.Component;
 
-final class ProspectWebsiteAuditMerger {
+@Component
+public final class ProspectWebsiteAuditMerger {
 
     ProspectWebsiteAuditResponse merge(ProspectWebsiteAuditResponse base, PageSpeedAuditResult pageSpeed) {
         if (pageSpeed == null || !pageSpeed.available()) {

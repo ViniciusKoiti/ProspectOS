@@ -2,12 +2,14 @@ package dev.prospectos.infrastructure.service.prospect;
 
 import dev.prospectos.ai.client.ScrapingResponse;
 import dev.prospectos.api.dto.ProspectWebsiteAuditResponse;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-final class InternalWebsiteAuditor {
+@Component
+public final class InternalWebsiteAuditor {
 
     ProspectWebsiteAuditResponse audit(String website, ScrapingResponse response) {
         int score = 100;

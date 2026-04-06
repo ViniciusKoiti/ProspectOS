@@ -6,8 +6,10 @@ import java.util.Map;
 
 import dev.prospectos.api.dto.ProspectContactResponse;
 import dev.prospectos.core.domain.Contact;
+import org.springframework.stereotype.Component;
 
-final class ProspectContactAssembler {
+@Component
+public final class ProspectContactAssembler {
 
     List<ProspectContactResponse> merge(List<Contact> internalContacts, List<ProspectContactResponse> hunterContacts) {
         Map<String, ProspectContactResponse> contacts = new LinkedHashMap<>();
