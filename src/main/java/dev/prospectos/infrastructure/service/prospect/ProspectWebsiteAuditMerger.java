@@ -9,6 +9,12 @@ import org.springframework.stereotype.Component;
 @Component
 public final class ProspectWebsiteAuditMerger {
 
+    private final ProspectWebsiteAuditStatusPolicy statusPolicy;
+
+    public ProspectWebsiteAuditMerger(ProspectWebsiteAuditStatusPolicy statusPolicy) {
+        this.statusPolicy = statusPolicy;
+    }
+
     ProspectWebsiteAuditResponse merge(ProspectWebsiteAuditResponse base, PageSpeedAuditResult pageSpeed) {
         if (pageSpeed == null || !pageSpeed.available()) {
             return base;
@@ -18,7 +24,7 @@ public final class ProspectWebsiteAuditMerger {
         findings.addAll(pageSpeed.findings());
         return new ProspectWebsiteAuditResponse(
             mergedScore,
-            status(mergedScore),
+            statusPolicy.status(mergedScore),
             base.secure(),
             base.scrapeSucceeded(),
             base.contactInfoDetected(),
@@ -26,15 +32,5 @@ public final class ProspectWebsiteAuditMerger {
             pageSpeed.score(),
             findings
         );
-    }
-
-    private String status(int score) {
-        if (score >= 80) {
-            return "GOOD";
-        }
-        if (score >= 55) {
-            return "REVIEW";
-        }
-        return "POOR";
     }
 }

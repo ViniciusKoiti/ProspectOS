@@ -11,6 +11,12 @@ import java.util.Map;
 @Component
 public final class InternalWebsiteAuditor {
 
+    private final ProspectWebsiteAuditStatusPolicy statusPolicy;
+
+    public InternalWebsiteAuditor(ProspectWebsiteAuditStatusPolicy statusPolicy) {
+        this.statusPolicy = statusPolicy;
+    }
+
     ProspectWebsiteAuditResponse audit(String website, ScrapingResponse response) {
         int score = 100;
         List<String> findings = new ArrayList<>();
@@ -24,7 +30,16 @@ public final class InternalWebsiteAuditor {
         if (!scrapeSucceeded) {
             score -= 35;
             findings.add("Website content could not be extracted reliably.");
-            return new ProspectWebsiteAuditResponse(normalize(score), status(score), secure, false, false, false, null, findings);
+            return new ProspectWebsiteAuditResponse(
+                normalize(score),
+                statusPolicy.status(normalize(score)),
+                secure,
+                false,
+                false,
+                false,
+                null,
+                findings
+            );
         }
 
         Map<String, Object> data = response.data();
@@ -52,7 +67,7 @@ public final class InternalWebsiteAuditor {
         int normalizedScore = normalize(score);
         return new ProspectWebsiteAuditResponse(
             normalizedScore,
-            status(normalizedScore),
+            statusPolicy.status(normalizedScore),
             secure,
             true,
             contactInfoDetected,
@@ -75,15 +90,5 @@ public final class InternalWebsiteAuditor {
 
     private int normalize(int score) {
         return Math.max(0, Math.min(score, 100));
-    }
-
-    private String status(int score) {
-        if (score >= 80) {
-            return "GOOD";
-        }
-        if (score >= 55) {
-            return "REVIEW";
-        }
-        return "POOR";
     }
 }

@@ -10,7 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class InternalWebsiteAuditorTest {
 
-    private final InternalWebsiteAuditor auditor = new InternalWebsiteAuditor();
+    private final InternalWebsiteAuditor auditor = new InternalWebsiteAuditor(new ProspectWebsiteAuditStatusPolicy());
 
     @Test
     void auditReturnsGoodWhenSecureAndRichSignalsExist() {

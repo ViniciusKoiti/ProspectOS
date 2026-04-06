@@ -23,6 +23,7 @@ import dev.prospectos.infrastructure.service.prospect.ProspectContactAssembler;
 import dev.prospectos.infrastructure.service.prospect.ProspectEnrichmentAssembler;
 import dev.prospectos.infrastructure.service.prospect.ProspectEnrichmentFacade;
 import dev.prospectos.infrastructure.service.prospect.ProspectWebsiteAuditMerger;
+import dev.prospectos.infrastructure.service.prospect.ProspectWebsiteAuditStatusPolicy;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +46,8 @@ import static org.mockito.Mockito.verify;
     ProspectEnrichmentAssembler.class,
     ProspectContactAssembler.class,
     InternalWebsiteAuditor.class,
-    ProspectWebsiteAuditMerger.class
+    ProspectWebsiteAuditMerger.class,
+    ProspectWebsiteAuditStatusPolicy.class
 })
 class ProspectEnrichmentFacadeIntegrationTest {
 

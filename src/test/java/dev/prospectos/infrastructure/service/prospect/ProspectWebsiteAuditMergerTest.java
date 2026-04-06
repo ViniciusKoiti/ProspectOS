@@ -9,7 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class ProspectWebsiteAuditMergerTest {
 
-    private final ProspectWebsiteAuditMerger merger = new ProspectWebsiteAuditMerger();
+    private final ProspectWebsiteAuditMerger merger = new ProspectWebsiteAuditMerger(new ProspectWebsiteAuditStatusPolicy());
 
     @Test
     void mergesInternalAuditWithPagespeedResult() {
