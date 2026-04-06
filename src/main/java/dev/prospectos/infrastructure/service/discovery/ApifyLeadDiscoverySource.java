@@ -28,8 +28,8 @@ public class ApifyLeadDiscoverySource implements LeadDiscoverySource {
     public ApifyLeadDiscoverySource(RestTemplateBuilder restTemplateBuilder, ApifyProperties properties) {
         this(
             restTemplateBuilder
-                .setConnectTimeout(properties.normalizedTimeout())
-                .setReadTimeout(properties.normalizedTimeout())
+                .connectTimeout(properties.normalizedTimeout())
+                .readTimeout(properties.normalizedTimeout())
                 .build(),
             properties,
             new ApifyResponseMapper(SOURCE_NAME)

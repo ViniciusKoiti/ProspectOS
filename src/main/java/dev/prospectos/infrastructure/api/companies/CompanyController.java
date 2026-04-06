@@ -26,9 +26,10 @@ import java.util.List;
 public class CompanyController {
     private final CompanyDataService companyDataService;
     private final CompanyListFilter companyListFilter;
-    public CompanyController(CompanyDataService companyDataService) {
+
+    CompanyController(CompanyDataService companyDataService, CompanyListFilter companyListFilter) {
         this.companyDataService = companyDataService;
-        this.companyListFilter = new CompanyListFilter();
+        this.companyListFilter = companyListFilter;
     }
     @GetMapping
     public ResponseEntity<List<CompanyDTO>> listCompanies(

@@ -26,7 +26,7 @@ class HunterDomainSearchContactEnrichmentProvider implements HunterContactEnrich
     HunterDomainSearchContactEnrichmentProvider(RestTemplateBuilder restTemplateBuilder, HunterProperties properties,
                                                 WebsiteDomainExtractor domainExtractor, HunterResponseMapper responseMapper) {
         this(
-            restTemplateBuilder.setConnectTimeout(properties.normalizedTimeout()).setReadTimeout(properties.normalizedTimeout()).build(),
+            restTemplateBuilder.connectTimeout(properties.normalizedTimeout()).readTimeout(properties.normalizedTimeout()).build(),
             properties,
             domainExtractor,
             responseMapper

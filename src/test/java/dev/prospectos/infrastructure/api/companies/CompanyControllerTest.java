@@ -27,11 +27,13 @@ class CompanyControllerTest {
     @Mock
     private CompanyDataService companyDataService;
 
+    private final CompanyListFilter companyListFilter = new CompanyListFilter();
+
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(new CompanyController(companyDataService))
+        mockMvc = MockMvcBuilders.standaloneSetup(new CompanyController(companyDataService, companyListFilter))
             .setControllerAdvice(new ApiExceptionHandler())
             .build();
     }

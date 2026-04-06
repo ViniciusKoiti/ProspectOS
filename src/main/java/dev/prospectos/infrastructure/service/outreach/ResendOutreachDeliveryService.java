@@ -26,7 +26,7 @@ public class ResendOutreachDeliveryService implements OutreachDeliveryService {
 
     @Autowired
     public ResendOutreachDeliveryService(RestTemplateBuilder restTemplateBuilder, ResendProperties properties) {
-        this(restTemplateBuilder.setConnectTimeout(properties.normalizedTimeout()).setReadTimeout(properties.normalizedTimeout()).build(),
+        this(restTemplateBuilder.connectTimeout(properties.normalizedTimeout()).readTimeout(properties.normalizedTimeout()).build(),
             properties);
     }
 

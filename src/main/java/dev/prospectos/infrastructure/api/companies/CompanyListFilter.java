@@ -4,8 +4,10 @@ import java.util.List;
 import java.util.Locale;
 
 import dev.prospectos.api.dto.CompanyDTO;
+import org.springframework.stereotype.Component;
 
-final class CompanyListFilter {
+@Component
+public class CompanyListFilter {
 
     record Result(List<CompanyDTO> items, int totalItems) {
     }

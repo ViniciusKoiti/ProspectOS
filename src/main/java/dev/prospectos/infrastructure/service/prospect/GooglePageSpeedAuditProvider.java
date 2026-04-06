@@ -21,7 +21,7 @@ class GooglePageSpeedAuditProvider implements PageSpeedAuditProvider {
 
     @Autowired
     GooglePageSpeedAuditProvider(RestTemplateBuilder restTemplateBuilder, PageSpeedProperties properties) {
-        this(restTemplateBuilder.setConnectTimeout(properties.normalizedTimeout()).setReadTimeout(properties.normalizedTimeout()).build(),
+        this(restTemplateBuilder.connectTimeout(properties.normalizedTimeout()).readTimeout(properties.normalizedTimeout()).build(),
             properties);
     }
 
