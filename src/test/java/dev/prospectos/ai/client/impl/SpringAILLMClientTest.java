@@ -5,15 +5,21 @@ import dev.prospectos.ai.dto.OutreachMessage;
 import dev.prospectos.ai.dto.PriorityLevel;
 import dev.prospectos.ai.dto.ScoringResult;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ai.chat.client.ChatClient;
 
 import java.util.Map;
-import java.lang.reflect.Proxy;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class SpringAILLMClientTest {
 
     @Test
@@ -135,45 +141,35 @@ class SpringAILLMClientTest {
 
     private ChatClient chatClient(String content, Object entity, RuntimeException error) {
         AtomicReference<String> promptRef = new AtomicReference<>();
+        AtomicReference<Object[]> toolsRef = new AtomicReference<>();
 
-        Object responseSpec = Proxy.newProxyInstance(
-            getClass().getClassLoader(),
-            new Class[]{ChatClient.CallResponseSpec.class},
-            (proxy, method, args) -> {
-                if (error != null) {
-                    throw error;
-                }
-                return switch (method.getName()) {
-                    case "content" -> content;
-                    case "entity" -> entity;
-                    default -> null;
-                };
-            }
-        );
+        ChatClient chatClient = mock(ChatClient.class);
+        ChatClient.ChatClientRequestSpec requestSpec = mock(ChatClient.ChatClientRequestSpec.class);
+        ChatClient.CallResponseSpec responseSpec = mock(ChatClient.CallResponseSpec.class);
 
-        Object requestSpec = Proxy.newProxyInstance(
-            getClass().getClassLoader(),
-            new Class[]{ChatClient.ChatClientRequestSpec.class},
-            (proxy, method, args) -> switch (method.getName()) {
-                case "user" -> {
-                    promptRef.set((String) args[0]);
-                    yield proxy;
-                }
-                case "tools" -> proxy;
-                case "call" -> responseSpec;
-                case "mutate" -> null;
-                default -> proxy;
+        when(chatClient.prompt()).thenReturn(requestSpec);
+        when(requestSpec.user(anyString())).thenAnswer(invocation -> {
+            promptRef.set(invocation.getArgument(0, String.class));
+            return requestSpec;
+        });
+        when(requestSpec.tools(any(Object[].class))).thenAnswer(invocation -> {
+            toolsRef.set(invocation.getArgument(0, Object[].class));
+            return requestSpec;
+        });
+        when(requestSpec.call()).thenReturn(responseSpec);
+        when(responseSpec.content()).thenAnswer(invocation -> {
+            if (error != null) {
+                throw error;
             }
-        );
+            return content;
+        });
+        when(responseSpec.entity(any(Class.class))).thenAnswer(invocation -> {
+            if (error != null) {
+                throw error;
+            }
+            return entity;
+        });
 
-        return (ChatClient) Proxy.newProxyInstance(
-            getClass().getClassLoader(),
-            new Class[]{ChatClient.class},
-            (proxy, method, args) -> switch (method.getName()) {
-                case "prompt" -> requestSpec;
-                case "mutate" -> null;
-                default -> null;
-            }
-        );
+        return chatClient;
     }
 }
